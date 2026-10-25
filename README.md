@@ -6,7 +6,7 @@
 | `posts/` | One JSON file per carousel. This is the source the Buffer pipeline renders from. |
 | `site/` | **The lab**: the link-in-bio website (Links, Read, About), plus `site/p/`, the rendered slides that Buffer pulls from. |
 | `experiments/` | `glyph-pit.html`: a standalone single-file physics header, built from `glyph-pit.js`. |
-| `tools/` | `render-posts.js` (posts → PNGs + Buffer payload) and `build-site.py` (inlines brand SVGs, builds the experiment). |
+| `tools/` | `render-posts.js` (posts → PNGs + Buffer payload), `push-to-buffer.js` (payload → Buffer post, via the API) and `build-site.py` (inlines brand SVGs, builds the experiment). |
 | `assets/` | Brand sources: hand-drawn SVG marks, animated runner and rose, and the HV Smegs fonts. |
 
 ---
@@ -19,8 +19,11 @@
 3. **Render**: `SITE_URL=https://your-site.com node tools/render-posts.js`
    This writes the slides to `site/p/<name>/`: PNGs, or MP4 loops with a JPG thumbnail when `motion` is above 0. It also writes `buffer.json`, which holds the caption, the media URLs and per-slide alt text.
 4. **Deploy `site/`**. The slides now have public URLs, which is what Buffer needs for Instagram.
-5. **Schedule.** Ask Claude to "schedule posts/<name> to Buffer". It reads `buffer.json` and creates the Instagram carousel post through the Buffer connector (queue, a specific time, or as a draft).
-   Without Claude, upload the PNGs in Buffer by hand and paste the caption.
+5. **Schedule**, one of two ways. Both read `buffer.json` and create one Instagram post: a carousel when there is more than one slide, a reel for a single video.
+   - **From the terminal**: `BUFFER_DRL_API_KEY=... node tools/push-to-buffer.js <name>` adds it to the queue. `--draft` saves a draft, `--now` publishes, `--at 2026-11-03T18:00:00+01:00` picks a time, `--dry-run` prints the payload without sending. The key is made at Buffer → Settings → API on the Design Runner Lab account; it lives in the environment, never in this repo.
+   - **Through Claude**: ask it to "schedule posts/<name> to Buffer" and it uses the Buffer connector. Mind which Buffer account the connector is signed into: the lab's channel lives on its own Buffer account, separate from any other account connected to Claude.
+
+   Without either, upload the PNGs in Buffer by hand and paste the caption.
 
 ### Motion and the ramp
 
