@@ -5,7 +5,7 @@
 | `studio/` | **Post Studio**: the Instagram template generator. Builds carousels in the house style and exports 1080 × 1350 PNGs and carousel JSON. |
 | `posts/` | One JSON file per carousel. This is the source the Buffer pipeline renders from. |
 | `site/` | **The lab**: the link-in-bio website (Links, Read, About), plus `site/p/`, the rendered slides that Buffer pulls from. |
-| `experiments/` | `glyph-pit.html`, the standalone single-file version of the physics header. |
+| `experiments/` | `glyph-pit.html`: a standalone single-file physics header, built from `glyph-pit.js`. |
 | `tools/` | `render-posts.js` (posts → PNGs + Buffer payload) and `build-site.py` (inlines brand SVGs, builds the experiment). |
 | `assets/` | Brand sources: hand-drawn SVG marks, animated runner and rose, and the HV Smegs fonts. |
 
@@ -85,11 +85,20 @@ The studio warns you when a colour breaks the rule.
 
 ## The lab website (`site/`)
 
-- **Links:** the Gumroad links, edited directly in the HTML.
-- **Read:** articles as a list or a grid of cards. Each article opens as its own page (`#<slug>`) and ends with its free and paid links. Edit `ARTICLES` in the script.
-- **About:** the about text with the blooming rose.
-- **Glyph Pit:** Matter.js physics under the content, in space nobody reads. Move the cursor to push glyphs, drag to throw them, click to spawn new ones, and scroll to shake the pile. Matter.js is vendored in `site/vendor/`.
+- **Links:** the Gumroad links, edited directly in the HTML. A hypnotic looping @ sits beside the heading.
+- **Read:** an infinite gallery you drag around. It drifts to a stop when you let go, horizontal trackpad swipes pan it, and the cards are reachable with Tab. Clicking a card scales it into an overlay with close-ups, what's inside, a Free or Extended choice and the Gumroad button. A List view is one click away.
+- **Articles (`#<slug>`):** after the title and first paragraph, a Three.js scene acts out the topic as you scroll, lit by a light that follows the mouse:
+  - `digest`: six tabs fold into one brief.
+  - `architect`: pixels assemble into a system.
+  - `system`: components flatten into written rules.
 
-After editing the SVGs in `assets/`, run `python3 tools/build-site.py`.
+  Pick one per article with `topic.scene`.
+- **About:** the about text with the blooming rose.
+- **Footer:** a meadow of blooming roses swaying in the wind. Moving the cursor through them pushes a gust.
+- **Runner:** the running logo is the loading screen, and it leaps across a quick wipe on every page change.
+
+Everything respects reduced motion. Three.js is vendored in `site/vendor/`. Edit `ARTICLES` in `site/index.html` to add articles.
+
+After editing the SVGs in `assets/`, run `python3 tools/build-site.py`. It also rebuilds `experiments/glyph-pit.html`, the standalone physics toy, from `experiments/glyph-pit.js`.
 
 The prices and most Gumroad slugs in the site are placeholders. The only real link is `mangorrinha.gumroad.com/l/Designcompanion`.

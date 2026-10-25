@@ -1,4 +1,5 @@
-"""Inline the brand SVGs into site/index.html and build experiments/glyph-pit.html.
+"""Inline the brand SVGs into site/index.html and build experiments/glyph-pit.html
+(from experiments/glyph-pit.js + tools/glyph-pit.template.html).
 
 Run from the repo root:  python3 tools/build-site.py
 """
@@ -24,7 +25,7 @@ html = site.read_text()
 html = re.sub(r"const SVG = (/\*__SVG__\*/)?\{.*?\};\n", lambda m: "const SVG = /*__SVG__*/" + blob + ";\n", html, count=1, flags=re.S)
 site.write_text(html)
 
-pit = (ROOT / "site" / "glyph-pit.js").read_text()
+pit = (ROOT / "experiments" / "glyph-pit.js").read_text()
 tpl = (ROOT / "tools" / "glyph-pit.template.html").read_text()
 from urllib.parse import quote
 def data_uri(name):
