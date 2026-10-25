@@ -2,27 +2,32 @@
   "slug": "new-tools-you-should-try",
   "name": "New tools you should try",
   "purpose": "learn",
+  "motion": 0,
   "caption": "Automated videos, visualizing codebases, agent bots, data storing. Save this one.",
-  "images": [
+  "media": [
     {
+      "type": "image",
       "file": "p/new-tools-you-should-try/01.png",
       "url": "https://YOUR-SITE/p/new-tools-you-should-try/01.png",
       "alt": "Slide 1 of 4. New tools you should try. Automated videos, visualizing codebases, agents bots, data storing, you name it."
     },
     {
+      "type": "image",
       "file": "p/new-tools-you-should-try/02.png",
       "url": "https://YOUR-SITE/p/new-tools-you-should-try/02.png",
-      "alt": "Slide 2 of 4. Jitter"
+      "alt": "Slide 2 of 4. Jitter."
     },
     {
+      "type": "image",
       "file": "p/new-tools-you-should-try/03.png",
       "url": "https://YOUR-SITE/p/new-tools-you-should-try/03.png",
       "alt": "Slide 3 of 4. Automate Your Motion: Move past manual keyframes. AI-Assisted Workflow: Speed up asset creation and dynamic motion design. Ship Faster: Spend less time tweaking, more time launching."
     },
     {
+      "type": "image",
       "file": "p/new-tools-you-should-try/04.png",
       "url": "https://YOUR-SITE/p/new-tools-you-should-try/04.png",
-      "alt": "Slide 4 of 4. Save it for later"
+      "alt": "Slide 4 of 4. Save it for later."
     }
   ]
 }

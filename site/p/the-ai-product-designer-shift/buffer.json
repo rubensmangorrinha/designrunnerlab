@@ -2,24 +2,29 @@
   "slug": "the-ai-product-designer-shift",
   "name": "The AI Product Designer Shift",
   "purpose": "view",
+  "motion": 0,
   "caption": "Stop treating AI like a chatbot. The full breakdown is in the lab, link in bio.",
-  "images": [
+  "media": [
     {
+      "type": "image",
       "file": "p/the-ai-product-designer-shift/01.png",
       "url": "https://YOUR-SITE/p/the-ai-product-designer-shift/01.png",
-      "alt": "Slide 1 of 4. Stop treating AI like a chatbot. How product design is shifting to workflow architecture.. The AI Product Designer Shift"
+      "alt": "Slide 1 of 4. Stop treating AI like a chatbot. How product design is shifting to workflow architecture. The AI Product Designer Shift."
     },
     {
+      "type": "image",
       "file": "p/the-ai-product-designer-shift/02.png",
       "url": "https://YOUR-SITE/p/the-ai-product-designer-shift/02.png",
       "alt": "Slide 2 of 4. The designer becomes the architect."
     },
     {
+      "type": "image",
       "file": "p/the-ai-product-designer-shift/03.png",
       "url": "https://YOUR-SITE/p/the-ai-product-designer-shift/03.png",
       "alt": "Slide 3 of 4. Old way: Manually pushing pixels for every screen state. New way: Designing the system logic, prompts, and tokens that generate the UI."
     },
     {
+      "type": "image",
       "file": "p/the-ai-product-designer-shift/04.png",
       "url": "https://YOUR-SITE/p/the-ai-product-designer-shift/04.png",
       "alt": "Slide 4 of 4. Explore the workflow lab. Link in bio."

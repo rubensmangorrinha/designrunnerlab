@@ -2,19 +2,23 @@
   "slug": "your-design-system-is-now-a-prompt",
   "name": "Your design system is now a prompt",
   "purpose": "view",
+  "motion": 0,
   "caption": "Components used to be the system. Now the rules are.",
-  "images": [
+  "media": [
     {
+      "type": "image",
       "file": "p/your-design-system-is-now-a-prompt/01.png",
       "url": "https://YOUR-SITE/p/your-design-system-is-now-a-prompt/01.png",
-      "alt": "Slide 1 of 3. Components used to be the system.. Your design system is now a prompt"
+      "alt": "Slide 1 of 3. Components used to be the system. Your design system is now a prompt."
     },
     {
+      "type": "image",
       "file": "p/your-design-system-is-now-a-prompt/02.png",
       "url": "https://YOUR-SITE/p/your-design-system-is-now-a-prompt/02.png",
       "alt": "Slide 2 of 3. Before: A library of components everyone copied by hand. Now: Tokens, rules and examples an agent can read and apply on its own."
     },
     {
+      "type": "image",
       "file": "p/your-design-system-is-now-a-prompt/03.png",
       "url": "https://YOUR-SITE/p/your-design-system-is-now-a-prompt/03.png",
       "alt": "Slide 3 of 3. Glyph slide"

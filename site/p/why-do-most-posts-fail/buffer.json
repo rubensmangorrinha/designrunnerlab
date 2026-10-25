@@ -2,39 +2,47 @@
   "slug": "why-do-most-posts-fail",
   "name": "Why do most posts fail?",
   "purpose": "view",
+  "motion": 0,
   "caption": "Most posts don't fail because of the algorithm. Here's what's actually leaking. Full breakdown in the lab, link in bio.",
-  "images": [
+  "media": [
     {
+      "type": "image",
       "file": "p/why-do-most-posts-fail/01.png",
       "url": "https://YOUR-SITE/p/why-do-most-posts-fail/01.png",
       "alt": "Slide 1 of 7. Your Content Funnel Is Leaking. • No clear CTA • You're speaking to the wrong stage of awareness • Inconsistent follow-up. Find out more →"
     },
     {
+      "type": "image",
       "file": "p/why-do-most-posts-fail/02.png",
       "url": "https://YOUR-SITE/p/why-do-most-posts-fail/02.png",
       "alt": "Slide 2 of 7. design runner lab. Why do most posts fail? → And no, it's not the algorithm's fault. 91%. of posts get zero meaningful engagement."
     },
     {
+      "type": "image",
       "file": "p/why-do-most-posts-fail/03.png",
       "url": "https://YOUR-SITE/p/why-do-most-posts-fail/03.png",
       "alt": "Slide 3 of 7. Workflow & systems. Notion is our brain. Here's why. 01. How we use it Content calendar Client portal Swipe file library. Don't get lost in apps Onboarding templates One app. Infinite uses."
     },
     {
+      "type": "image",
       "file": "p/why-do-most-posts-fail/04.png",
       "url": "https://YOUR-SITE/p/why-do-most-posts-fail/04.png",
       "alt": "Slide 4 of 7. Build trust with Templates. Show clients how you work. Post frameworks, swipe files, checklists, screenshots. They reveal your process and build authority."
     },
     {
+      "type": "image",
       "file": "p/why-do-most-posts-fail/05.png",
       "url": "https://YOUR-SITE/p/why-do-most-posts-fail/05.png",
       "alt": "Slide 5 of 7. Your portfolio, read in 6 seconds. PORT-."
     },
     {
+      "type": "image",
       "file": "p/why-do-most-posts-fail/06.png",
       "url": "https://YOUR-SITE/p/why-do-most-posts-fail/06.png",
       "alt": "Slide 6 of 7. How to handle client revisions effectively. Systems protect sanity. Set limits upfront Use Loom videos for clarity Have a kill fee."
     },
     {
+      "type": "image",
       "file": "p/why-do-most-posts-fail/07.png",
       "url": "https://YOUR-SITE/p/why-do-most-posts-fail/07.png",
       "alt": "Slide 7 of 7. Explore the workflow lab. Link in bio."

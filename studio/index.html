@@ -160,7 +160,7 @@ button { cursor: pointer; }
 .modal-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
 .modal-body { overflow: auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
 .modal-body figure { margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
-.modal-body img { width: 100%; display: block; }
+.modal-body img, .modal-body video { width: 100%; display: block; }
 .toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--text); color: var(--board); padding: 8px 14px; border-radius: 8px; font-weight: 500; z-index: 30; }
 
 @media (max-width: 1100px) {
@@ -306,6 +306,38 @@ function svgImg(name, ink, ribbon) {
   }
   return e.ok ? e.im : null;
 }
+/* ------------------------------------------------------------------ *
+ *  Motion. A carousel's motion level (0 to 1) turns its slides into   *
+ *  6-second loops. Frame 0 is the finished slide, so the cover frame  *
+ *  Instagram shows is never empty; text dips out and rises back in    *
+ *  only at the end of the loop. Each level adds an effect:            *
+ *    0.1+ glyphs breathe   0.3+ lines rise in                          *
+ *    0.5+ backgrounds drift   0.7+ circles draw on, numbers count up   *
+ *  Amplitudes stay about half of the website's.                        *
+ * ------------------------------------------------------------------ */
+const LOOP = 6, FPS = 30;
+const MO = { m: 0, t: 0, line: 0, mark: 0 };
+const TAU = Math.PI * 2;
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const easeOut = v => 1 - Math.pow(1 - v, 3);
+const amp = () => 0.4 + 0.6 * MO.m;            // once an effect is on, it grows with the level
+const on = level => MO.m >= level - 1e-6;
+/* Visibility of an element in the loop: 1 for most of it, out and back in at the end. */
+function reveal(delay) {
+  const t = MO.t, d = Math.min(delay, 0.3);
+  const out = clamp01((t - (4.6 + d * 0.5)) / 0.45);
+  const back = clamp01((t - (5.15 + d)) / 0.55);
+  return t < 5.15 + d ? 1 - easeOut(out) : easeOut(back);
+}
+/* Gentle breathing for marks and glyphs; every mark gets its own phase. */
+function breathe(ctx) {
+  if (!on(0.1)) return;
+  const i = MO.mark++, a = amp();
+  ctx.translate(0, Math.sin(TAU * MO.t / 3 + i * 1.7) * 7 * a);
+  ctx.rotate(Math.sin(TAU * MO.t / 6 + i * 2.3) * 0.035 * a);
+  const k = 1 + Math.sin(TAU * MO.t / 2 + i) * 0.015 * a; ctx.scale(k, k);
+}
+
 /* Draw an SVG mark at height h (or width w), positioned by anchor, optional rotation. */
 function drawSvg(ctx, name, o) {
   const im = svgImg(name, o.color, o.ribbon);
@@ -315,6 +347,7 @@ function drawSvg(ctx, name, o) {
   if (o.maxW && w > o.maxW) { w = o.maxW; h = w / ar; }
   if (im) {
     ctx.save(); ctx.translate(o.x, o.y); if (o.rotate) ctx.rotate(o.rotate);
+    if (!o.still) breathe(ctx);
     const ax = o.align === "center" ? -w / 2 : o.align === "right" ? -w : 0;
     const ay = o.baseline === "middle" ? -h / 2 : o.baseline === "bottom" ? -h : 0;
     ctx.drawImage(im, ax, ay, w, h);
@@ -725,6 +758,7 @@ function drawGlyph(ctx, text, o) {
   ctx.save();
   ctx.translate(o.x, o.y);
   if (o.rotate) ctx.rotate(o.rotate);
+  breathe(ctx);
   const ax = o.align === "center" ? -w / 2 : o.align === "right" ? -w : 0;
   const ay = o.baseline === "middle" ? -h / 2 : o.baseline === "bottom" ? -h : 0;
   ctx.drawImage(cv, ax - cv.ox, ay - cv.oy);
@@ -860,7 +894,8 @@ function drawCircle(ctx, x0, x1, by, size) {
   const cx = (x0 + x1) / 2, cy = by - size * 0.34, rx = (x1 - x0) / 2 + size * 0.28, ry = size * 0.66;
   ctx.save(); ctx.strokeStyle = ACCENT; ctx.lineWidth = Math.max(2.5, size * 0.04); ctx.lineCap = "round";
   ctx.beginPath();
-  for (let k = 0; k <= 64; k++) {
+  const upto = on(0.7) ? Math.round(64 * reveal(0.3)) : 64;   // the marker draws itself on
+  for (let k = 0; k <= upto; k++) {
     const a = -Math.PI * 0.62 + (k / 64) * Math.PI * 2.12;
     const wob = 1 + Math.sin(k * 0.7) * 0.02 + k / 64 * 0.06;
     const px = cx + Math.cos(a) * rx * wob, py = cy + Math.sin(a) * ry * wob - k / 64 * size * 0.08;
@@ -874,8 +909,13 @@ function drawRich(ctx, lines, x, y, size, lh, color, tracking, align) {
   lines.forEach((line, i) => {
     const lw = lineWidth(line);
     let cx = align === "center" ? x - lw / 2 : align === "right" ? x - lw : x;
-    const by = y + i * size * lh + asc;
+    let by = y + i * size * lh + asc;
     let runStart = null, runEnd = 0;
+    ctx.save();
+    if (on(0.3) && line.length) {   // each line dips out and rises back in, staggered
+      const v = reveal(MO.line++ * 0.07);
+      ctx.globalAlpha *= v; by += (1 - v) * 34 * amp();
+    }
     for (const tk of line) {
       const col = tk.a ? ACCENT : color;
       ctx.fillStyle = col; ctx.strokeStyle = col;
@@ -888,6 +928,7 @@ function drawRich(ctx, lines, x, y, size, lh, color, tracking, align) {
       cx += tk.w;
     }
     if (runStart !== null) drawCircle(ctx, runStart, runEnd, by, size);
+    ctx.restore();
   });
   return lines.length * size * lh;
 }
@@ -1062,6 +1103,20 @@ function drawHeader(ctx, text, th) {
   return M + 30 + 60;
 }
 
+/* Count the first number in a string up from zero as it comes back in ("91%" -> "0%" ... "91%"). */
+function countUp(str) {
+  const m = str.match(/\d+(\.\d+)?/); if (!m) return str;
+  const v = Number(m[0]) * reveal(0.2), dec = (m[1] || "").length - 1;
+  return str.replace(m[0], dec > 0 ? v.toFixed(dec) : Math.round(v).toString());
+}
+/* Backgrounds drift slowly in a closed loop. */
+function drawDrift(ctx, src, w, h) {
+  if (!on(0.5)) { ctx.drawImage(src, 0, 0, w, h); return; }
+  const a = amp(), k = 1 + 0.06 * a;
+  const dx = Math.sin(TAU * MO.t / LOOP) * 22 * a, dy = Math.cos(TAU * MO.t / LOOP) * 16 * a;
+  ctx.drawImage(src, (w - w * k) / 2 + dx, (h - h * k) / 2 + dy, w * k, h * k);
+}
+
 const LAYOUTS = {
   stat(ctx, s, th) {
     drawMono(ctx, s.eyebrow, M, M, 22, th.fg, 420);
@@ -1073,8 +1128,9 @@ const LAYOUTS = {
     const nw = ctx.measureText(s.number || "").width;
     if (nw > W * 0.66) size = Math.floor(size * W * 0.66 / nw);
     ctx.save(); ctx.fillStyle = ACCENT; font(ctx, size, 400); setSpacing(ctx, size, -0.06);
-    ctx.fillText(s.number || "", M - size * 0.04, H - M + size * 0.02);
-    const used = ctx.measureText(s.number || "").width; ctx.restore();
+    const used = ctx.measureText(s.number || "").width;
+    ctx.fillText(on(0.7) ? countUp(s.number || "") : (s.number || ""), M - size * 0.04, H - M + size * 0.02);
+    ctx.restore();
     const cw = Math.max(200, W - 2 * M - used - 30);
     const cl = layoutRich(ctx, s.caption, cw, 26, 0);
     drawRich(ctx, cl, W - M - cw, H - M - richHeight(cl, 26, 1.2) - size * 0.04, 26, 1.2, th.fg, 0);
@@ -1110,7 +1166,8 @@ const LAYOUTS = {
     cols.forEach((c, i) => drawMono(ctx, c, M + i * cw, M, 21, th.fg, cw - 24));
     const size = s.size || 430;
     ctx.save(); ctx.fillStyle = th.fg; font(ctx, size, 500); setSpacing(ctx, size, -0.06);
-    ctx.fillText((s.word || "").toUpperCase(), M - size * 0.06, H * 0.5 + size * 0.36); ctx.restore();
+    const slide = on(0.5) ? Math.sin(TAU * MO.t / LOOP) * 60 * amp() : 0;   // the cropped word slides a little
+    ctx.fillText((s.word || "").toUpperCase(), M - size * 0.06 + slide, H * 0.5 + size * 0.36); ctx.restore();
     if (s.image) {
       ctx.save(); ctx.translate(W * 0.62, H * 0.66); ctx.rotate(-0.07);
       drawPhotoBox(ctx, s.image, -W * 0.27, -H * 0.17, W * 0.54, H * 0.34);
@@ -1124,7 +1181,7 @@ const LAYOUTS = {
 
   card(ctx, s, th, key) {
     if (getImage(s.image)) drawCover(ctx, getImage(s.image), 0, 0, W, H);
-    else ctx.drawImage(texture(key, s.seed | 0, 64, 16, "silk"), 0, 0);
+    else drawDrift(ctx, texture(key, s.seed | 0, 64, 16, "silk"), W, H);
     const cx = M, ch = 400, cy = H - M - ch, cwid = W - 2 * M;
     ctx.save(); ctx.shadowColor = "rgba(0,0,0,.25)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14;
     ctx.fillStyle = th.card; ctx.beginPath(); ctx.roundRect(cx, cy, cwid, ch, 36); ctx.fill(); ctx.restore();
@@ -1176,7 +1233,7 @@ const LAYOUTS = {
   },
 
   cover(ctx, s, th, key) {
-    if (s.bg === "silk" || s.bg === "stretch") ctx.drawImage(texture(key, s.seed | 0, 64, 16, s.bg), 0, 0);
+    if (s.bg === "silk" || s.bg === "stretch") drawDrift(ctx, texture(key, s.seed | 0, 64, 16, s.bg), W, H);
     let topBottom = M;
     const noteW = s.note && s.note.trim() ? 400 : 0;
     if (noteW) drawMono(ctx, s.note, W - M - noteW, M, 22, th.fg, noteW);
@@ -1227,7 +1284,7 @@ const LAYOUTS = {
   texture(ctx, s, th, key) {
     const im = getImage(s.image);
     if (im) drawCover(ctx, im, 0, 0, W, H);
-    else ctx.drawImage(texture(key, s.seed | 0, s.density || 64, s.warp || 16, s.style || "glitch"), 0, 0);
+    else drawDrift(ctx, texture(key, s.seed | 0, s.density || 64, s.warp || 16, s.style || "glitch"), W, H);
     const ink = key === "cream" ? "#1b1b1b" : "#ece6da";
     const card = getImage(s.card);
     if (card) {
@@ -1314,9 +1371,11 @@ const LAYOUTS = {
   },
 };
 
-function renderSlide(ctx, sl, se) {
+/* t: seconds into the loop. Leave it out for a still (thumbnails, PNG export). */
+function renderSlide(ctx, sl, se, t) {
   const th = themeOf(sl, se), key = themeKeyOf(sl, se);
   ACCENT = th.accent;
+  MO.m = t == null ? 0 : (se.motion || 0); MO.t = t || 0; MO.line = 0; MO.mark = 0;
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.textAlign = "left";
@@ -1351,9 +1410,18 @@ const $ = id => document.getElementById(id);
 const stage = $("stage-canvas"), sctx = stage.getContext("2d");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+let stageRaf = 0;
+function stageLoop(now) {
+  stageRaf = 0;
+  const se = series();
+  if (!se.motion || document.hidden) return;
+  renderSlide(sctx, slide(), se, (now / 1000) % LOOP);
+  stageRaf = requestAnimationFrame(stageLoop);
+}
 function renderStage() {
   const se = series(), sl = slide();
   renderSlide(sctx, sl, se);
+  if (se.motion && !stageRaf && !matchMedia("(prefers-reduced-motion: reduce)").matches) stageRaf = requestAnimationFrame(stageLoop);
   const idx = se.slides.indexOf(sl);
   $("frame-label").textContent = `post ${idx + 1} · ${TEMPLATES[sl.template].name}`;
 }
@@ -1413,6 +1481,9 @@ function renderInspector() {
         <div class="hint">${PURPOSES[se.purpose].rule}</div></div>
       <div class="field"><div class="label">Colour</div>${swatchRow("series", se.theme, false)}
         ${PURPOSES[se.purpose].allowed.includes(se.theme) ? "" : `<div class="warn">${THEMES[se.theme].name} breaks the colour rule for “${PURPOSES[se.purpose].name}”. Use ${PURPOSES[se.purpose].allowed.map(t => THEMES[t].name).join(" or ")}.</div>`}</div>
+      <div class="field"><label for="series-motion">Motion <span id="series-motion-v">${Math.round((se.motion || 0) * 100)}%</span></label>
+        <input type="range" id="series-motion" min="0" max="100" step="10" value="${Math.round((se.motion || 0) * 100)}">
+        <div class="hint">${se.motion ? "Slides export as 6-second MP4 loops." : "0% exports still PNGs."} Ramp it up 10% per post.</div></div>
       <div class="field"><label for="series-caption">Caption</label><textarea id="series-caption" rows="3">${esc(se.caption || "")}</textarea>
         <div class="row"><button class="btn small" id="copy-caption">Copy caption</button></div></div>
       <div class="row"><button class="btn small" id="json-export">Export JSON</button><button class="btn small" id="json-open">Import JSON</button></div>
@@ -1447,6 +1518,11 @@ $("inspector").addEventListener("input", e => {
   const el = e.target, se = series(), sl = slide();
   if (el.id === "series-name") { se.name = el.value; scheduleThumbs(); save(); return; }
   if (el.id === "series-caption") { se.caption = el.value; save(); return; }
+  if (el.id === "series-motion") {
+    se.motion = Number(el.value) / 100; $("series-motion-v").textContent = el.value + "%";
+    el.nextElementSibling.textContent = (se.motion ? "Slides export as 6-second MP4 loops." : "0% exports still PNGs.") + " Ramp it up 10% per post.";
+    renderStage(); save(); return;
+  }
   if (el.id === "brand-word") { state.brand.wordmark = el.value; renderStage(); scheduleThumbs(); save(); return; }
   const k = el.dataset.k;
   if (!k || el.type === "file") return;
@@ -1545,18 +1621,62 @@ $("tab-feed").onclick = () => setView("feed");
 /* Export */
 const slug = s => (s || "post").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "post";
 let exportItems = [];
-function exportSlides(slides) {
-  const se = series();
-  exportItems = slides.map(sl => {
-    renderSlide(wctx, sl, se);
-    const n = se.slides.indexOf(sl) + 1;
-    return { name: `${slug(se.name)}-post-${n}.png`, url: work.toDataURL("image/png"), label: `post ${n} · ${TEMPLATES[sl.template].name}` };
-  });
-  $("modal-title").textContent = slides.length > 1 ? `Export “${se.name}”` : "Export slide";
-  $("modal-download").textContent = slides.length > 1 ? `Download all (${slides.length})` : "Download";
-  $("modal-body").innerHTML = exportItems.map((it, i) => `<figure><img src="${it.url}" alt="${esc(it.label)}"><figcaption>${esc(it.label)}</figcaption></figure>`).join("");
+function showExport(se, count) {
+  $("modal-title").textContent = count > 1 ? `Export “${se.name}”` : "Export slide";
+  $("modal-download").textContent = count > 1 ? `Download all (${count})` : "Download";
+  $("modal-body").innerHTML = exportItems.map(it => `<figure>${it.video
+    ? `<video src="${it.url}" autoplay loop muted playsinline aria-label="${esc(it.label)}"></video>`
+    : `<img src="${it.url}" alt="${esc(it.label)}">`}<figcaption>${esc(it.label)}</figcaption></figure>`).join("");
   $("modal").hidden = false;
   $("modal-close").focus();
+}
+/* Record one slide's loop in real time from a canvas stream. MP4 where the browser can, WebM otherwise. */
+function recordSlide(sl, se) {
+  const types = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"];
+  const type = types.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
+  if (!type) return Promise.reject(new Error("This browser can't record video. Use tools/render-posts.js instead."));
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const cx = cv.getContext("2d");
+  renderSlide(cx, sl, se, 0);
+  const rec = new MediaRecorder(cv.captureStream(FPS), { mimeType: type, videoBitsPerSecond: 10e6 });
+  const chunks = [];
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  return new Promise(resolve => {
+    rec.onstop = () => resolve({ blob: new Blob(chunks, { type: type.split(";")[0] }), ext: type.includes("mp4") ? "mp4" : "webm" });
+    rec.start();
+    const t0 = performance.now();
+    (function tick() {
+      const t = (performance.now() - t0) / 1000;
+      if (t >= LOOP) { renderSlide(cx, sl, se, 0); setTimeout(() => rec.stop(), 60); return; }
+      renderSlide(cx, sl, se, t);
+      requestAnimationFrame(tick);
+    })();
+  });
+}
+async function exportSlides(slides) {
+  const se = series();
+  exportItems.forEach(it => it.video && URL.revokeObjectURL(it.url));
+  if (!se.motion) {
+    $("modal-hint").textContent = "1080 × 1350 PNG. If the download button does nothing here, right-click or long-press an image to save it.";
+    exportItems = slides.map(sl => {
+      renderSlide(wctx, sl, se);
+      const n = se.slides.indexOf(sl) + 1;
+      return { name: `${slug(se.name)}-post-${n}.png`, url: work.toDataURL("image/png"), label: `post ${n} · ${TEMPLATES[sl.template].name}` };
+    });
+    return showExport(se, slides.length);
+  }
+  exportItems = [];
+  showExport(se, slides.length);
+  try {
+    for (const [k, sl] of slides.entries()) {
+      $("modal-hint").textContent = `Recording slide ${k + 1} of ${slides.length} (${LOOP} seconds each)…`;
+      const { blob, ext } = await recordSlide(sl, se);
+      const n = se.slides.indexOf(sl) + 1;
+      exportItems.push({ name: `${slug(se.name)}-post-${n}.${ext}`, url: URL.createObjectURL(blob), label: `post ${n} · ${TEMPLATES[sl.template].name}`, video: true });
+      showExport(se, slides.length);
+    }
+    $("modal-hint").textContent = `${LOOP}-second loops at ${Math.round(se.motion * 100)}% motion. If the download button does nothing here, right-click a video to save it.`;
+  } catch (err) { $("modal-hint").textContent = err.message; }
 }
 function download(url, name) { const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
 $("modal-download").onclick = () => exportItems.forEach((it, i) => setTimeout(() => download(it.url, it.name), i * 250));
@@ -1578,13 +1698,14 @@ function toast(msg) {
  *  Carousel JSON: the portable format posts/*.json uses               *
  * ------------------------------------------------------------------ */
 function toJSON(se) {
-  return { name: se.name, purpose: se.purpose, theme: se.theme, caption: se.caption || "",
+  return { name: se.name, purpose: se.purpose, theme: se.theme, motion: se.motion || 0, caption: se.caption || "",
     slides: se.slides.map(({ id, rev, ...rest }) => rest) };
 }
 function fromJSON(o) {
   if (!o || !Array.isArray(o.slides) || !o.slides.length) throw new Error("The JSON needs a \"slides\" list with at least one slide.");
   const theme = THEMES[o.theme] ? o.theme : (PURPOSES[o.purpose] ? PURPOSES[o.purpose].theme : "cream");
   return { id: newId(), name: o.name || "Imported carousel", theme, purpose: PURPOSES[o.purpose] ? o.purpose : purposeFromTheme(theme),
+    motion: Math.max(0, Math.min(1, Number(o.motion) || 0)),
     caption: o.caption || "", slides: o.slides.map(sl => makeSlide({ ...sl })) };
 }
 function openJSON(text) {
@@ -1636,6 +1757,14 @@ window.PostStudio = {
     pngs = draw();
     return pngs.map((png, i) => ({ n: i + 1, png, alt: altText(se.slides[i], i + 1, se.slides.length) }));
   },
+  /* For video: prepare once, then pull frames. */
+  async prepare(json) {
+    await fontsReady;
+    this._se = fromJSON(json);
+    for (let i = 0; i < 60; i++) { this._se.slides.forEach(sl => renderSlide(wctx, sl, this._se, 0)); if (!pendingAssets()) break; await new Promise(r => setTimeout(r, 100)); }
+    return { slides: this._se.slides.length, motion: this._se.motion, loop: LOOP, fps: FPS };
+  },
+  frame(i, t, type) { renderSlide(wctx, this._se.slides[i], this._se, t); return work.toDataURL(type || "image/jpeg", 0.95); },
   toJSON: () => toJSON(series()),
   fromJSON,
 };

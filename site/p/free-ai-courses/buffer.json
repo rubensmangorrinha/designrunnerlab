@@ -2,27 +2,32 @@
   "slug": "free-ai-courses",
   "name": "Free AI courses",
   "purpose": "learn",
+  "motion": 0,
   "caption": "Free official courses, no code needed. Start with fluency, then go deeper.",
-  "images": [
+  "media": [
     {
+      "type": "image",
       "file": "p/free-ai-courses/01.png",
       "url": "https://YOUR-SITE/p/free-ai-courses/01.png",
       "alt": "Slide 1 of 4. Learning AI tools where to start. Anthropic actually built a curriculum for it."
     },
     {
+      "type": "image",
       "file": "p/free-ai-courses/02.png",
       "url": "https://YOUR-SITE/p/free-ai-courses/02.png",
       "alt": "Slide 2 of 4. Claude Academy: Free official courses covering AI fluency, prompt patterns, and human-agent workflows. Deep Dives: Moving past basic chat into API architecture, system design, and the Model Context Protocol (MCP)."
     },
     {
+      "type": "image",
       "file": "p/free-ai-courses/03.png",
       "url": "https://YOUR-SITE/p/free-ai-courses/03.png",
       "alt": "Slide 3 of 4. Texture slide"
     },
     {
+      "type": "image",
       "file": "p/free-ai-courses/04.png",
       "url": "https://YOUR-SITE/p/free-ai-courses/04.png",
-      "alt": "Slide 4 of 4. Stop guessing what works. Learn how the systems are actually engineered to operate.. Check out the courses: Claude Academy"
+      "alt": "Slide 4 of 4. Stop guessing what works. Learn how the systems are actually engineered to operate. Check out the courses: Claude Academy."
     }
   ]
 }

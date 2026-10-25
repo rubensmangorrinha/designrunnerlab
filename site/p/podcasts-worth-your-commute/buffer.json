@@ -2,27 +2,32 @@
   "slug": "podcasts-worth-your-commute",
   "name": "Podcasts worth your commute",
   "purpose": "listen",
+  "motion": 0,
   "caption": "Three shows for designers building with AI. Which one is on your queue?",
-  "images": [
+  "media": [
     {
+      "type": "image",
       "file": "p/podcasts-worth-your-commute/01.png",
       "url": "https://YOUR-SITE/p/podcasts-worth-your-commute/01.png",
-      "alt": "Slide 1 of 4. The best founders to listen.. While you spend 45 minutes aligning a 2px stroke."
+      "alt": "Slide 1 of 4. The best founders to listen. While you spend 45 minutes aligning a 2px stroke."
     },
     {
+      "type": "image",
       "file": "p/podcasts-worth-your-commute/02.png",
       "url": "https://YOUR-SITE/p/podcasts-worth-your-commute/02.png",
       "alt": "Slide 2 of 4. The Input: Hearing how other builders break molds, scale products, and rethink their approach from scratch. The Urge: The immediate itch to close Figma, scrap your current roadmap, and build something entirely different."
     },
     {
+      "type": "image",
       "file": "p/podcasts-worth-your-commute/03.png",
       "url": "https://YOUR-SITE/p/podcasts-worth-your-commute/03.png",
       "alt": "Slide 3 of 4. Texture slide"
     },
     {
+      "type": "image",
       "file": "p/podcasts-worth-your-commute/04.png",
       "url": "https://YOUR-SITE/p/podcasts-worth-your-commute/04.png",
-      "alt": "Slide 4 of 4. Great conversations don't just inform. They make you want to raise your own bar.. Listen on Spotify: Growthmates Explore it: Link in caption"
+      "alt": "Slide 4 of 4. Great conversations don't just inform. They make you want to raise your own bar. Listen on Spotify: Growthmates Explore it: Link in caption."
     }
   ]
 }

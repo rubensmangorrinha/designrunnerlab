@@ -5,24 +5,31 @@
  *   node tools/render-posts.js                 # every posts/*.json
  *   node tools/render-posts.js posts/foo.json  # just one
  *
- * For each carousel it opens Post Studio in headless Chromium, renders every
- * slide at 1080 x 1350, and writes:
+ * For each carousel it opens Post Studio in headless Chromium and writes to
+ * site/p/<slug>/ (deployed with the site, so every file gets a public URL):
  *
- *   site/p/<slug>/01.png, 02.png, ...   the slides (deployed with the site, so
- *                                        each one gets a public URL)
- *   site/p/<slug>/buffer.json           caption + image URLs + alt text, ready
- *                                        for Buffer's create_post
+ *   motion 0      01.png, 02.png, ...            still slides
+ *   motion > 0    01.mp4, 02.mp4, ...            6-second loops (needs ffmpeg)
+ *                 01.jpg, 02.jpg, ...            first frame, used as the video thumbnail
+ *   buffer.json   caption + media URLs + alt text, ready for Buffer's create_post
  *
  * Set SITE_URL to where site/ is deployed so the URLs in buffer.json are real:
  *   SITE_URL=https://designrunnerlab.com node tools/render-posts.js
  */
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
+const { execFileSync } = require("child_process");
 const { chromium } = require("playwright");
 
 const ROOT = path.resolve(__dirname, "..");
 const SITE_URL = (process.env.SITE_URL || "https://YOUR-SITE").replace(/\/$/, "");
 const slugify = s => String(s || "post").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "post";
+const b64 = dataUrl => Buffer.from(dataUrl.split(",")[1], "base64");
+
+function hasFfmpeg() {
+  try { execFileSync("ffmpeg", ["-version"], { stdio: "ignore" }); return true; } catch (e) { return false; }
+}
 
 async function main() {
   const args = process.argv.slice(2);
@@ -37,26 +44,56 @@ async function main() {
   page.on("pageerror", e => console.error("  studio error:", e.message));
   await page.goto("file://" + path.join(ROOT, "studio", "index.html"));
   await page.waitForFunction(() => window.PostStudio);
+  const ffmpeg = hasFfmpeg();
 
   for (const file of files) {
     const json = JSON.parse(fs.readFileSync(file, "utf8"));
     const slug = json.slug || slugify(path.basename(file, ".json"));
     const outDir = path.join(ROOT, "site", "p", slug);
     fs.mkdirSync(outDir, { recursive: true });
-    for (const f of fs.readdirSync(outDir)) if (f.endsWith(".png")) fs.unlinkSync(path.join(outDir, f));
+    for (const f of fs.readdirSync(outDir)) if (/\.(png|jpg|mp4)$/.test(f)) fs.unlinkSync(path.join(outDir, f));
 
-    const slides = await page.evaluate(j => window.PostStudio.render(j), json);
-    const images = slides.map(s => {
-      const name = String(s.n).padStart(2, "0") + ".png";
-      fs.writeFileSync(path.join(outDir, name), Buffer.from(s.png.split(",")[1], "base64"));
-      return { file: `p/${slug}/${name}`, url: `${SITE_URL}/p/${slug}/${name}`, alt: s.alt };
-    });
-    const buffer = { slug, name: json.name, purpose: json.purpose, caption: json.caption || "", images };
+    const stills = await page.evaluate(j => window.PostStudio.render(j), json);
+    const motion = Number(json.motion) || 0;
+    let media;
+
+    if (motion > 0 && !ffmpeg) console.warn(`  ${slug}: motion is ${motion * 100}% but ffmpeg isn't installed, so slides stay still.`);
+    if (motion > 0 && ffmpeg) {
+      const info = await page.evaluate(j => window.PostStudio.prepare(j), json);
+      const frames = Math.round(info.loop * info.fps);
+      media = [];
+      for (let i = 0; i < info.slides; i++) {
+        const name = String(i + 1).padStart(2, "0");
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "drl-frames-"));
+        for (let f = 0; f < frames; f++) {
+          const url = await page.evaluate(([i, t]) => window.PostStudio.frame(i, t), [i, f / info.fps]);
+          fs.writeFileSync(path.join(tmp, String(f).padStart(4, "0") + ".jpg"), b64(url));
+        }
+        fs.copyFileSync(path.join(tmp, "0000.jpg"), path.join(outDir, name + ".jpg"));
+        // H.264 + yuv420p + faststart: the format Instagram expects
+        execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-framerate", String(info.fps), "-i", path.join(tmp, "%04d.jpg"),
+          "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-preset", "slow", "-movflags", "+faststart",
+          path.join(outDir, name + ".mp4")]);
+        fs.rmSync(tmp, { recursive: true, force: true });
+        media.push({ type: "video", file: `p/${slug}/${name}.mp4`, url: `${SITE_URL}/p/${slug}/${name}.mp4`,
+          thumbnail: `${SITE_URL}/p/${slug}/${name}.jpg`, alt: stills[i].alt });
+        process.stdout.write(`\r  ${slug}: slide ${i + 1}/${info.slides} encoded`);
+      }
+      process.stdout.write("\n");
+    } else {
+      media = stills.map(s => {
+        const name = String(s.n).padStart(2, "0") + ".png";
+        fs.writeFileSync(path.join(outDir, name), b64(s.png));
+        return { type: "image", file: `p/${slug}/${name}`, url: `${SITE_URL}/p/${slug}/${name}`, alt: s.alt };
+      });
+    }
+
+    const buffer = { slug, name: json.name, purpose: json.purpose, motion, caption: json.caption || "", media };
     fs.writeFileSync(path.join(outDir, "buffer.json"), JSON.stringify(buffer, null, 2) + "\n");
-    console.log(`✓ ${slug}: ${images.length} slides -> site/p/${slug}/`);
+    console.log(`✓ ${slug}: ${media.length} ${media[0].type === "video" ? "videos" : "slides"} at ${Math.round(motion * 100)}% motion -> site/p/${slug}/`);
   }
   await browser.close();
-  if (SITE_URL.includes("YOUR-SITE")) console.log("\nSet SITE_URL to your deployed site so buffer.json has real image URLs.");
+  if (SITE_URL.includes("YOUR-SITE")) console.log("\nSet SITE_URL to your deployed site so buffer.json has real media URLs.");
 }
 
 main().catch(err => { console.error(err); process.exit(1); });

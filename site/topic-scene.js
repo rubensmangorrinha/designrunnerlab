@@ -1,14 +1,14 @@
 /*!
- * Topic scenes: a small Three.js stage injected after an article's title and
+ * Topic scenes: a small flat 2D stage injected after an article's title and
  * first paragraph. Each article picks a scene that acts out its idea.
  *
- * One engine, three stories. Every scene is a set of boxes with a "before"
- * and an "after" arrangement. Scrolling the scene through the viewport
- * morphs one into the other (scroll-driven, like a camera move), and a
- * key light follows the mouse so the surfaces catch moving reflections.
+ * Every scene is a set of flat shapes with a "before" and an "after"
+ * arrangement. Scrolling the stage through the viewport morphs one into the
+ * other, and the mouse adds a gentle parallax drift: shapes further "back"
+ * move less, so the layers separate without any 3D.
  *
  *   digest     six floating tabs fold into one brief
- *   architect  scattered pixels assemble into an ordered system
+ *   architect  scattered pixels snap into an ordered grid
  *   system     UI components flatten into lines of written rules
  *
  *   TopicScene.mount(element, "digest") -> { destroy() }
@@ -16,134 +16,112 @@
 (function () {
   "use strict";
 
-  var INK = 0xece8de, RED = 0xe0301e, DARK = 0x3a3a38;
+  var INK = "#ece8de", RED = "#e0301e", DIM = "#5b5953";
 
   /* Small seeded random so every visit looks the same. */
   function rng(seed) { return function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
 
-  /* Each layout returns [{ p:[x,y,z], s:[w,h,d], r:[x,y,z], c:color }] for before and after. */
+  /* Shapes live in a 14 x 7 unit world centred on 0,0.
+     Each entry: { p:[x,y], s:[w,h], r:rotation, d:depth 0-1 (parallax), c:colour } for before (a) and after (b). */
   var STORIES = {
     digest: function () {
       var r = rng(7), a = [], b = [], i;
-      // six tabs: fanned out and tilted -> stacked into a single card
+      // six tabs fanned out -> stacked into one card, the last one red on top
       for (i = 0; i < 6; i++) {
         var t = i - 2.5;
-        a.push({ p: [t * 2.1, Math.sin(i * 1.7) * 1.1, -Math.abs(t) * 0.6], s: [1.9, 1.3, 0.05], r: [0.15, t * -0.18, t * 0.12], c: i === 5 ? RED : INK });
-        b.push({ p: [0, 0, -0.5 - i * 0.07], s: [3.6, 2.4, 0.05], r: [-0.08, 0.25, 0], c: i === 5 ? RED : INK });
+        a.push({ p: [t * 2.15, Math.sin(i * 1.7) * 0.9], s: [1.9, 1.3], r: t * 0.1, d: 0.3 + (i % 3) * 0.25, c: i === 5 ? RED : INK });
+        b.push({ p: [i * 0.05 - 0.12, -i * 0.05 + 0.12], s: [3.8, 2.6], r: -0.02, d: 0.5, c: i === 5 ? RED : INK });
       }
-      // notifications scattered around -> neat lines of text on the brief
+      // scattered notifications -> neat lines of text on the brief
       for (i = 0; i < 14; i++) {
-        a.push({ p: [(r() - 0.5) * 12, (r() - 0.5) * 5, (r() - 0.2) * 2], s: [0.28, 0.28, 0.28], r: [r() * 3, r() * 3, 0], c: r() < 0.25 ? RED : INK });
+        a.push({ p: [(r() - 0.5) * 12.5, (r() - 0.5) * 5.6], s: [0.3, 0.3], r: r() * 3, d: r(), c: r() < 0.25 ? RED : INK });
         var row = i % 7, col = (i / 7) | 0;
-        b.push({ p: [-1.35 + col * 1.5 + (row === 0 ? 0 : 0), 0.85 - row * 0.28, 0.06], s: [row === 0 ? 1.2 : 1.25 - (i % 3) * 0.25, 0.09, 0.03], r: [-0.08, 0.25, 0], c: row === 0 ? RED : DARK });
+        b.push({ p: [-0.85 + col * 1.75, -0.95 + row * 0.3], s: [row === 0 ? 1.4 : 1.5 - (i % 3) * 0.3, 0.1], r: -0.02, d: 0.5, c: row === 0 ? INK : DIM });
       }
-      return { a: a, b: b, labels: ["Six tabs", "One brief"] };
+      return { a: a, b: b };
     },
 
     architect: function () {
       var r = rng(11), a = [], b = [];
-      // 4x4x4 voxels: a loose cloud of pixels -> an ordered lattice, one red path through it
-      for (var x = 0; x < 4; x++) for (var y = 0; y < 4; y++) for (var z = 0; z < 4; z++) {
-        var red = x === y && y === z;
-        a.push({ p: [(r() - 0.5) * 13, (r() - 0.5) * 6, (r() - 0.5) * 6], s: [0.42, 0.42, 0.42], r: [r() * 6, r() * 6, r() * 6], c: red ? RED : INK });
-        b.push({ p: [(x - 1.5) * 0.78, (y - 1.5) * 0.78, (z - 1.5) * 0.78], s: [0.6, 0.6, 0.6], r: [0, 0, 0], c: red ? RED : INK });
+      // 64 pixels: a loose scatter -> an 8 x 8 grid with one red diagonal
+      for (var y = 0; y < 8; y++) for (var x = 0; x < 8; x++) {
+        var red = x === y;
+        a.push({ p: [(r() - 0.5) * 13, (r() - 0.5) * 6.2], s: [0.36, 0.36], r: r() * 3, d: r(), c: red ? RED : INK });
+        b.push({ p: [(x - 3.5) * 0.52, (y - 3.5) * 0.52], s: [0.44, 0.44], r: 0, d: 0.5, c: red ? RED : INK });
       }
-      return { a: a, b: b, labels: ["Pushing pixels", "Designing the system"], spin: true };
+      return { a: a, b: b };
     },
 
     system: function () {
       var a = [], b = [];
-      // a small UI: header, card, inputs, buttons, avatars -> a stack of text lines (the rules)
+      // a small UI (header, card, inputs, buttons, avatars) -> a stack of text lines
       var ui = [
-        [0, 1.9, 5.2, 0.5], [-1.35, 0.55, 2.5, 1.9], [1.45, 1.05, 2.3, 0.45], [1.45, 0.4, 2.3, 0.45],
-        [1.45, -0.25, 2.3, 0.45], [0.9, -0.95, 1.2, 0.5], [2.15, -0.95, 1.0, 0.5], [-2.2, -1.0, 0.6, 0.6],
-        [-1.5, -1.0, 0.6, 0.6], [-0.8, -1.0, 0.6, 0.6], [0, -1.85, 5.2, 0.35], [-1.35, 0.55, 1.8, 0.12],
+        [0, -1.9, 5.2, 0.5], [-1.35, -0.55, 2.5, 1.9], [1.45, -1.05, 2.3, 0.45], [1.45, -0.4, 2.3, 0.45],
+        [1.45, 0.25, 2.3, 0.45], [0.9, 0.95, 1.2, 0.5], [2.15, 0.95, 1.0, 0.5], [-2.2, 1.0, 0.6, 0.6],
+        [-1.5, 1.0, 0.6, 0.6], [-0.8, 1.0, 0.6, 0.6], [0, 1.85, 5.2, 0.35], [-1.35, -0.55, 1.8, 0.12],
       ];
       var widths = [2.6, 4.6, 4.1, 4.4, 3.2, 4.5, 3.8, 2.4, 4.2, 3.6, 4.4, 2.0];
       ui.forEach(function (u, i) {
-        a.push({ p: [u[0], u[1], 0], s: [u[2], u[3], 0.25], r: [0.18, -0.35, 0], c: i === 5 ? RED : INK });
-        b.push({ p: [-2.4 + widths[i] / 2, 2.0 - i * 0.36 - (i > 0 ? 0.25 : 0), 0], s: [widths[i], i === 0 ? 0.2 : 0.12, 0.05], r: [0, 0, 0], c: i === 0 ? RED : INK });
+        a.push({ p: [u[0], u[1]], s: [u[2], u[3]], r: 0, d: 0.2 + (i % 4) * 0.2, c: i === 5 ? RED : INK });
+        b.push({ p: [-2.4 + widths[i] / 2, -2.0 + i * 0.36 + (i > 0 ? 0.25 : 0)], s: [widths[i], i === 0 ? 0.2 : 0.12], r: 0, d: 0.5, c: i === 0 ? RED : INK });
       });
-      return { a: a, b: b, labels: ["Components", "Rules an agent can read"] };
+      return { a: a, b: b };
     },
   };
 
   function mount(host, kind) {
-    var THREE = window.THREE;
     var story = STORIES[kind] && STORIES[kind]();
-    if (!THREE || !story) { host.remove(); return { destroy: function () {} }; }
+    var stage = host.querySelector(".ts-stage");
+    if (!story || !stage) { host.remove(); return { destroy: function () {} }; }
     var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    var renderer;
-    try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
-    catch (e) { host.remove(); return { destroy: function () {} }; }
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    var canvas = renderer.domElement;
+    var canvas = document.createElement("canvas");
     canvas.setAttribute("aria-hidden", "true");
-    host.querySelector(".ts-stage").appendChild(canvas);
-
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(32, 2, 0.1, 100);
-    camera.position.set(0, 0, 11.5);
-
-    // studio light: soft ambient, a key light that follows the mouse, a warm red rim from behind
-    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-    var key = new THREE.DirectionalLight(0xffffff, 1.5);
-    key.position.set(3, 4, 8);
-    scene.add(key);
-    var rim = new THREE.DirectionalLight(RED, 0.9);
-    rim.position.set(-6, -2, -6);
-    scene.add(rim);
-
+    stage.appendChild(canvas);
+    var ctx = canvas.getContext("2d");
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    var W = 0, H = 0, unit = 1;
     var n = story.a.length;
-    var geo = new THREE.BoxGeometry(1, 1, 1);
-    var mat = new THREE.MeshStandardMaterial({ roughness: 0.42, metalness: 0.08 });
-    var mesh = new THREE.InstancedMesh(geo, mat, n);
-    var col = new THREE.Color();
-    for (var i = 0; i < n; i++) mesh.setColorAt(i, col.setHex(story.b[i].c || story.a[i].c).convertSRGBToLinear());
-    var group = new THREE.Group();
-    group.add(mesh);
-    scene.add(group);
 
-    // cached vectors so the frame loop allocates nothing
-    var m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), P = new THREE.Vector3(), S = new THREE.Vector3();
     function lerp(x, y, t) { return x + (y - x) * t; }
     function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
-    var progress = reduce ? 1 : 0, shown = progress, mouse = { x: 0, y: 0 }, lightT = { x: 3, y: 4 };
+    var progress = reduce ? 1 : 0, shown = progress, mouse = { x: 0, y: 0 }, drift = { x: 0, y: 0 };
     var labelA = host.querySelector(".ts-a"), labelB = host.querySelector(".ts-b");
 
-    function layout(t, time) {
-      var k = ease(t);
+    function draw(time) {
+      var k = ease(shown);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.translate(W / 2, H / 2);
       for (var i = 0; i < n; i++) {
         var A = story.a[i], B = story.b[i];
-        var bob = reduce ? 0 : Math.sin(time * 0.0012 + i * 0.9) * 0.08 * (1 - k * 0.7);
-        P.set(lerp(A.p[0], B.p[0], k), lerp(A.p[1], B.p[1], k) + bob, lerp(A.p[2], B.p[2], k));
-        S.set(lerp(A.s[0], B.s[0], k), lerp(A.s[1], B.s[1], k), lerp(A.s[2], B.s[2], k));
-        e.set(lerp(A.r[0], B.r[0], k), lerp(A.r[1], B.r[1], k), lerp(A.r[2], B.r[2], k));
-        q.setFromEuler(e);
-        m.compose(P, q, S);
-        mesh.setMatrixAt(i, m);
-        // colour: "before" pieces fade into their "after" colour halfway through
-        col.setHex(k < 0.5 ? A.c : B.c).convertSRGBToLinear();
-        mesh.setColorAt(i, col);
+        var depth = lerp(A.d, B.d, k);
+        var bob = reduce ? 0 : Math.sin(time * 0.0012 + i * 0.9) * 0.06 * (1 - k * 0.8);
+        // parallax: nearer shapes (higher depth) follow the mouse further
+        var px = (lerp(A.p[0], B.p[0], k) + drift.x * (0.2 + depth)) * unit;
+        var py = (lerp(A.p[1], B.p[1], k) + bob + drift.y * (0.2 + depth)) * unit;
+        var w = lerp(A.s[0], B.s[0], k) * unit, h = lerp(A.s[1], B.s[1], k) * unit;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(lerp(A.r, B.r, k));
+        ctx.fillStyle = k < 0.5 ? A.c : B.c;
+        ctx.beginPath();
+        ctx.roundRect(-w / 2, -h / 2, w, h, Math.min(w, h) * 0.12);
+        ctx.fill();
+        ctx.restore();
       }
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.instanceColor.needsUpdate = true;
       if (labelA) { labelA.style.opacity = (1 - k * 0.7).toFixed(2); labelB.style.opacity = (0.3 + k * 0.7).toFixed(2); }
     }
 
     function resize() {
-      var w = host.querySelector(".ts-stage").clientWidth, h = host.querySelector(".ts-stage").clientHeight;
-      if (!w || !h) return;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      // keep the composition in frame on narrow screens by stepping back
-      camera.position.z = w / h < 1.4 ? 11.5 * (1.4 / (w / h)) * 0.95 : 11.5;
-      camera.updateProjectionMatrix();
+      W = stage.clientWidth; H = stage.clientHeight;
+      if (!W || !H) return;
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      canvas.style.width = W + "px"; canvas.style.height = H + "px";
+      unit = Math.min(W / 14.5, H / 7.2);
+      draw(0);
     }
-
     // scroll progress: 0 as the stage enters from the bottom, 1 once it reaches the upper third
     function readScroll() {
       var r = host.getBoundingClientRect(), vh = window.innerHeight;
@@ -160,27 +138,20 @@
       if (!visible || document.hidden) return;
       readScroll();
       shown += (progress - shown) * 0.08;
-      layout(shown, time);
-      // key light chases the mouse; the whole piece leans a little toward it
-      lightT.x += (mouse.x * 14 - lightT.x) * 0.06;
-      lightT.y += (-mouse.y * 10 - lightT.y) * 0.06;
-      key.position.set(lightT.x, lightT.y, 8);
-      group.rotation.y += ((story.spin ? time * 0.00015 : 0) + mouse.x * 0.35 - group.rotation.y) * 0.05;
-      group.rotation.x += (mouse.y * 0.2 - group.rotation.x) * 0.05;
-      renderer.render(scene, camera);
+      drift.x += (mouse.x * 0.9 - drift.x) * 0.06;
+      drift.y += (mouse.y * 0.5 - drift.y) * 0.06;
+      draw(time);
       raf = requestAnimationFrame(frame);
     }
     function start() { if (!raf && !reduce) raf = requestAnimationFrame(frame); }
 
     var io = new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) start(); });
     io.observe(host);
-    var ro = new ResizeObserver(function () { resize(); if (reduce) { layout(1, 0); renderer.render(scene, camera); } });
-    ro.observe(host);
+    var ro = new ResizeObserver(resize);
+    ro.observe(stage);
     window.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("visibilitychange", start);
     resize();
-    layout(progress, 0);
-    renderer.render(scene, camera);
 
     return {
       destroy: function () {
@@ -188,7 +159,6 @@
         io.disconnect(); ro.disconnect();
         window.removeEventListener("pointermove", onMove);
         document.removeEventListener("visibilitychange", start);
-        geo.dispose(); mat.dispose(); renderer.dispose();
       },
     };
   }

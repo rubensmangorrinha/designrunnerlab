@@ -17,10 +17,25 @@
 2. **Export JSON** (Carousel section in the inspector), and save it as `posts/<name>.json`.
    Claude can also write these files directly; the format is below.
 3. **Render**: `SITE_URL=https://your-site.com node tools/render-posts.js`
-   This writes `site/p/<name>/01.png … NN.png` and `site/p/<name>/buffer.json`, which holds the caption, the image URLs and per-slide alt text.
+   This writes the slides to `site/p/<name>/`: PNGs, or MP4 loops with a JPG thumbnail when `motion` is above 0. It also writes `buffer.json`, which holds the caption, the media URLs and per-slide alt text.
 4. **Deploy `site/`**. The slides now have public URLs, which is what Buffer needs for Instagram.
 5. **Schedule.** Ask Claude to "schedule posts/<name> to Buffer". It reads `buffer.json` and creates the Instagram carousel post through the Buffer connector (queue, a specific time, or as a draft).
    Without Claude, upload the PNGs in Buffer by hand and paste the caption.
+
+### Motion and the ramp
+
+Every carousel has a `motion` level from `0` to `1`; set it with the Motion slider in the studio. At `0` the slides are still PNGs. Above `0` each slide becomes a 6-second MP4 loop, and every level adds an effect:
+
+| Level | What moves |
+| --- | --- |
+| 0.1+ | Glyphs, marks and logos breathe |
+| 0.3+ | Text lines dip out and rise back in, staggered |
+| 0.5+ | Backgrounds drift; giant words slide |
+| 0.7+ | Circles draw themselves on; stat numbers count up |
+
+The motion is tuned to about half the website's intensity. Frame 0 is always the finished slide, so the cover frame Instagram shows is never empty.
+
+**The ramp.** Raise the level by 0.1 per post: the next post is `0.1`, then `0.2`, and so on until everything runs at `1`. The render script needs `ffmpeg` for video (`brew install ffmpeg`). Without it, slides stay still. Rendering takes about 40 seconds per animated slide.
 
 ### Carousel JSON
 
@@ -28,6 +43,7 @@
 {
   "name": "Why do most posts fail?",
   "purpose": "view",
+  "motion": 0.1,
   "caption": "Instagram caption…",
   "slides": [
     { "template": "cover", "top": "none", "headline": "Your\nContent\nFunnel Is\nLeaking.", "note": "• No clear CTA", "cta": "Find out more →" },
