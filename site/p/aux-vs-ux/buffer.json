@@ -1,0 +1,51 @@
+{
+  "slug": "aux-vs-ux",
+  "name": "AUX vs UX",
+  "purpose": "view",
+  "motion": 0,
+  "caption": "Your next user might not have eyes.\n\nI've been thinking about how much of what we design will be used by agents, not people. UX is about attention, hierarchy and emotion. AUX (agent experience) is about whether an agent can read your product, decide what to do and finish the task without guessing.\n\nAn agent works in a loop of read, decide, act and check, and each step is a design decision. Swipe through for what to get right at each one.\n\nThe worst failure isn't confusion, it's a silent wrong action. That's why permissions and confirmations matter as much as visuals.\n\nSame goal as UX, different user. Which one are you designing for?\n\n#AUX #AX #UX #AgentExperience #DesignSystems #AIDesign #designrunnerlab",
+  "media": [
+    {
+      "type": "image",
+      "file": "p/aux-vs-ux/01.png",
+      "url": "https://YOUR-SITE/p/aux-vs-ux/01.png",
+      "alt": "Slide 1 of 7. AUX vs UX."
+    },
+    {
+      "type": "image",
+      "file": "p/aux-vs-ux/02.png",
+      "url": "https://YOUR-SITE/p/aux-vs-ux/02.png",
+      "alt": "Slide 2 of 7. AUX designs for an agent that reads, decides and acts on its own."
+    },
+    {
+      "type": "image",
+      "file": "p/aux-vs-ux/03.png",
+      "url": "https://YOUR-SITE/p/aux-vs-ux/03.png",
+      "alt": "Slide 3 of 7. Classic slide"
+    },
+    {
+      "type": "image",
+      "file": "p/aux-vs-ux/04.png",
+      "url": "https://YOUR-SITE/p/aux-vs-ux/04.png",
+      "alt": "Slide 4 of 7. Repeats until the goal is met."
+    },
+    {
+      "type": "image",
+      "file": "p/aux-vs-ux/05.png",
+      "url": "https://YOUR-SITE/p/aux-vs-ux/05.png",
+      "alt": "Slide 5 of 7. The worst failure is a silent wrong action. It books the wrong date and reports success. No error, no flag."
+    },
+    {
+      "type": "image",
+      "file": "p/aux-vs-ux/06.png",
+      "url": "https://YOUR-SITE/p/aux-vs-ux/06.png",
+      "alt": "Slide 6 of 7. Classic slide"
+    },
+    {
+      "type": "image",
+      "file": "p/aux-vs-ux/07.png",
+      "url": "https://YOUR-SITE/p/aux-vs-ux/07.png",
+      "alt": "Slide 7 of 7. Your product has two users now. Which one are you designing for?"
+    }
+  ]
+}

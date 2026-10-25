@@ -10,6 +10,7 @@
  *   digest     six floating tabs fold into one brief
  *   architect  scattered pixels snap into an ordered grid
  *   system     UI components flatten into lines of written rules
+ *   agents     a screen built for eyes rearranges into the read-decide-act-check loop
  *
  *   TopicScene.mount(element, "digest") -> { destroy() }
  */
@@ -24,6 +25,22 @@
   /* Shapes live in a 14 x 7 unit world centred on 0,0.
      Each entry: { p:[x,y], s:[w,h], r:rotation, d:depth 0-1 (parallax), c:colour } for before (a) and after (b). */
   var STORIES = {
+    agents: function () {
+      var a = [], b = [];
+      // before: a screen for a person (header, hero, text, two buttons, avatar)
+      var ui = [[0, -2.0, 5.6, 0.45], [-1.1, -0.55, 3.4, 2.0], [2.05, -1.2, 1.5, 0.14], [2.05, -0.85, 1.5, 0.14],
+                [2.05, -0.5, 1.1, 0.14], [1.6, 0.35, 1.3, 0.5], [2.75, 0.35, 0.9, 0.5], [-2.4, 1.55, 0.6, 0.6]];
+      // after: four boxes in a 2x2 square, joined clockwise by thin bars
+      var loop = [[-1.55, -0.95, 2.3, 1.1], [1.55, -0.95, 2.3, 1.1], [1.55, 1.05, 2.3, 1.1], [-1.55, 1.05, 2.3, 1.1],
+                  [0, -0.95, 0.8, 0.04], [1.55, 0.05, 0.04, 0.9], [0, 1.05, 0.8, 0.04], [-1.55, 0.05, 0.04, 0.9]];
+      ui.forEach(function (u, i) {
+        a.push({ p: [u[0], u[1]], s: [u[2], u[3]], r: 0, d: 0.2 + (i % 4) * 0.2, c: i === 1 ? DIM : INK });
+        var l = loop[i];
+        b.push({ p: [l[0], l[1]], s: [l[2], l[3]], r: 0, d: 0.5, c: i < 4 ? INK : DIM });
+      });
+      return { a: a, b: b };
+    },
+
     digest: function () {
       var r = rng(7), a = [], b = [], i;
       // six tabs fanned out -> stacked into one card, the last one red on top

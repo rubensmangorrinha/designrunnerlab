@@ -81,6 +81,7 @@ The studio warns you when a colour breaks the rule.
 
 | Template | Use |
 | --- | --- |
+| Classic | Your classic post: small descriptor on top, the big line at the bottom, runner mark small top-right or large above the handle. Optional 1px diagrams in between: eye vs node graph, comparison table, loop of four steps, chain with a wrong step, name and instruction rows. |
 | Cover | Glyph, logo or intro line on top; headline on the bottom edge. Options: uppercase, mono note, corner link, arrow pill, silk or stretch background. |
 | Breakdown | `**Label:**` points, or Old way / New way. |
 | Photo | Framed photo or screenshot with a credit line. |
@@ -99,6 +100,10 @@ The studio warns you when a colour breaks the rule.
 `**bold**` · `_italic serif_` · `~~strike~~` · `[underlined]` · `((circled))` · `{{accent colour}}`. Leave a blank line between points.
 
 ---
+
+## Voice
+
+`.claude/skills/my-writing-style/SKILL.md` is Ruben's voice profile. Claude loads it when drafting articles, captions or anything published as him.
 
 ## The lab website (`site/`)
 
