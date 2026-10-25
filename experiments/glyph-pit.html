@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Glyph Pit</title>
+<!--
+  GLYPH PIT · an experimental landing header for design runner lab
+  ----------------------------------------------------------------
+  One file. Open it in a browser and play.
+
+  The effect: the brand's hand-drawn glyphs are real rigid bodies (Matter.js physics).
+    move the mouse  -> the cursor is a force field; your swipe speed becomes wind,
+                       and gravity leans toward the side the cursor is on
+    drag            -> grab a glyph and throw it (no ceiling: it flies off and falls back)
+    click empty     -> shockwave ring + a new glyph pops up from the floor
+    click a glyph   -> it jumps
+    scroll          -> the whole pit gets shaken by your scroll speed
+    touch           -> tap for the shockwave; page scrolling keeps working
+    reduced motion  -> the pile settles once and stays still
+
+  Built from tools/glyph-pit.template.html + site/glyph-pit.js by tools/build-site.py.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&family=Caveat+Brush&display=swap">
+<style>
+:root { --bg: #222222; --ink: #ece8de; --muted: #8a867c; --red: #e0301e; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+
+/* The header: the pit fills it, the title floats above and ignores the pointer
+   so every gesture reaches the physics underneath. */
+.hero { position: relative; height: 100vh; min-height: 520px; overflow: hidden; }
+.pit { position: absolute; inset: 0; }
+.title {
+  position: absolute; left: max(24px, 5vw); bottom: max(28px, 6vh); right: 24px;
+  pointer-events: none; z-index: 1;
+}
+.title h1 { margin: 0; font-weight: 400; font-size: clamp(48px, 10vw, 150px); line-height: 0.95; letter-spacing: -0.045em; }
+.title p { margin: 18px 0 0; color: var(--muted); font-size: 18px; }
+.hint { position: absolute; top: 24px; left: max(24px, 5vw); font-family: "Caveat Brush", cursive; font-size: 24px; color: var(--muted); pointer-events: none; z-index: 1; }
+
+/* Something to scroll past, so the scroll shake has a reason to happen. */
+.below { max-width: 640px; margin: 0 auto; padding: 120px 24px 60vh; font-size: 20px; line-height: 1.5; color: var(--muted); }
+.below strong { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="pit" id="pit"></div>
+  <span class="hint">grab, throw, click, scroll</span>
+  <div class="title">
+    <h1>design<br>runner lab</h1>
+    <p>Workflows for designers who build with AI.</p>
+  </div>
+</header>
+<section class="below">
+  <p><strong>Scroll up and down fast.</strong> The pit above gets shaken by your scroll speed. Scroll back to the top to see where everything landed.</p>
+</section>
+
+<!-- Physics engine -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+<!-- The Glyph Pit module (same code the lab site uses) -->
+<script>
+/*!
+ * Glyph Pit
+ * A physics toy for the quiet parts of a page: the space under the content
+ * where nobody is reading and nothing needs clicking.
+ *
+ * design runner lab's hand-drawn glyphs are rigid bodies in a Matter.js world.
+ *   - Move the cursor through them: it is a force field that shoves them away,
+ *     and your swipe speed becomes wind. Gravity tilts toward the cursor's side.
+ *   - Grab and throw them (mouse and trackpad).
+ *   - Click empty space: a shockwave, plus a new glyph pops out of the floor.
+ *     Click a glyph: it jumps.
+ *   - Scroll the page: the pit is shaken by your scroll speed.
+ *   - On touch screens a tap does the shockwave, so page scrolling keeps working.
+ *   - With "reduce motion" on, the pile settles once and stays still.
+ *
+ * Needs Matter.js on window.Matter.
+ * Usage:  GlyphPit.mount(element, { glyphs: [...], ink: "#ece8de" })
+ *   glyph spec: { svg: "<svg…currentColor…>", h: 48 }   or   { text: "@", h: 60, color: "#e0301e" }
+ */
+(function () {
+  "use strict";
+
+  function mount(host, opts) {
+    opts = opts || {};
+    var M = window.Matter;
+    if (!M) { console.warn("GlyphPit: Matter.js is not loaded"); return null; }
+    var Engine = M.Engine, Bodies = M.Bodies, Body = M.Body, Composite = M.Composite,
+        Mouse = M.Mouse, MouseConstraint = M.MouseConstraint, Query = M.Query, Events = M.Events;
+
+    var ink = opts.ink || "#ece8de";
+    var font = opts.font || '"HV Smegs 1", "Caveat Brush", cursive';
+    var maxBodies = opts.max || 60;
+    var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var coarse = matchMedia("(pointer: coarse)").matches;
+
+    /* ---------------------------------------------------------------- *
+     *  Canvas                                                           *
+     * ---------------------------------------------------------------- */
+    var canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;";
+    host.appendChild(canvas);
+    var ctx = canvas.getContext("2d");
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    // Matter's Mouse divides by this, so pointer coordinates come out in CSS px
+    // and the physics world can stay in CSS px too.
+    canvas.pixelRatio = dpr;
+    var W = 0, H = 0, scale = 1;
+
+    /* ---------------------------------------------------------------- *
+     *  Physics world                                                    *
+     * ---------------------------------------------------------------- */
+    var engine = Engine.create();
+    engine.gravity.y = 1.1;
+    var bodies = [];
+    var walls = [];
+
+    function buildWalls() {
+      Composite.remove(engine.world, walls);
+      var t = 400; // thick walls so fast throws can't tunnel through
+      walls = [
+        Bodies.rectangle(W / 2, H + t / 2, W * 4, t, { isStatic: true }),              // floor
+        Bodies.rectangle(-t / 2, H / 2 - H * 3, t, H * 8, { isStatic: true }),         // left
+        Bodies.rectangle(W + t / 2, H / 2 - H * 3, t, H * 8, { isStatic: true }),      // right
+      ];
+      // No ceiling: a hard throw flies off the top and gravity brings it back.
+      Composite.add(engine.world, walls);
+    }
+
+    /* ---------------------------------------------------------------- *
+     *  Sprites: every glyph is pre-rendered once                        *
+     * ---------------------------------------------------------------- */
+    function svgSprite(spec) {
+      return new Promise(function (resolve) {
+        var markup = spec.svg.replace(/currentColor/g, spec.color || ink).replace(/var\(--red\)/g, opts.red || "#e0301e");
+        var vb = markup.match(/viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) ([\d.]+)"/);
+        var aspect = vb ? Number(vb[3]) / Number(vb[4]) : 1;
+        var img = new Image();
+        img.onload = function () { resolve({ img: img, w: spec.h * aspect, h: spec.h }); };
+        img.onerror = function () { resolve(null); };
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(markup);
+      });
+    }
+    function textSprite(spec) {
+      var size = spec.h * 1.4;
+      var probe = document.createElement("canvas").getContext("2d");
+      probe.font = size + "px " + font;
+      var m = probe.measureText(spec.text);
+      var l = m.actualBoundingBoxLeft || 0, r = m.actualBoundingBoxRight || m.width;
+      var a = m.actualBoundingBoxAscent || size * 0.7, d = m.actualBoundingBoxDescent || 0;
+      var k = spec.h / (a + d); // rescale so the ink is exactly spec.h tall
+      var c = document.createElement("canvas");
+      c.width = Math.ceil((l + r) * k * dpr) + 4;
+      c.height = Math.ceil(spec.h * dpr) + 4;
+      var cx = c.getContext("2d");
+      cx.scale(k * dpr, k * dpr);
+      cx.font = probe.font;
+      cx.fillStyle = spec.color || ink;
+      cx.fillText(spec.text, l + 2 / (k * dpr), a + 2 / (k * dpr));
+      return Promise.resolve({ img: c, w: (l + r) * k, h: spec.h });
+    }
+
+    var sprites = [];
+    function pick() { return sprites[(Math.random() * sprites.length) | 0]; }
+
+    /* ---------------------------------------------------------------- *
+     *  Bodies                                                           *
+     * ---------------------------------------------------------------- */
+    function spawn(x, y, sprite, vel) {
+      var w = sprite.w * scale, h = sprite.h * scale;
+      var b = Bodies.rectangle(x, y, w * 0.9, h * 0.82, {
+        chamfer: { radius: Math.min(w, h) * 0.3 },
+        restitution: 0.38,
+        friction: 0.2,
+        frictionAir: 0.012,
+        density: 0.0015,
+        angle: (Math.random() - 0.5) * 1.4,
+      });
+      b.sprite = sprite; b.dw = w; b.dh = h;
+      if (vel) Body.setVelocity(b, vel);
+      Body.setAngularVelocity(b, (Math.random() - 0.5) * 0.25);
+      Composite.add(engine.world, b);
+      bodies.push(b);
+      // Keep the world small: the oldest glyph leaves when the pit is full.
+      while (bodies.length > maxBodies) Composite.remove(engine.world, bodies.shift());
+      return b;
+    }
+
+    /* ---------------------------------------------------------------- *
+     *  Pointer: force field, wind, gravity tilt                         *
+     * ---------------------------------------------------------------- */
+    var ptr = { x: -1e4, y: -1e4, vx: 0, vy: 0, inside: false };
+    function local(e) {
+      var r = canvas.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    }
+    canvas.addEventListener("pointermove", function (e) {
+      var p = local(e);
+      if (ptr.inside) { ptr.vx = p.x - ptr.x; ptr.vy = p.y - ptr.y; }
+      ptr.x = p.x; ptr.y = p.y; ptr.inside = true;
+    });
+    canvas.addEventListener("pointerleave", function () { ptr.inside = false; ptr.x = ptr.y = -1e4; });
+
+    var dragging = null; // set by the mouse constraint below
+    Events.on(engine, "beforeUpdate", function () {
+      if (ptr.inside) {
+        var R = 140 * Math.max(0.7, scale);
+        for (var i = 0; i < bodies.length; i++) {
+          var b = bodies[i];
+          if (b === dragging) continue;
+          var dx = b.position.x - ptr.x, dy = b.position.y - ptr.y;
+          var d = Math.sqrt(dx * dx + dy * dy);
+          if (d > R || d < 1) continue;
+          var falloff = 1 - d / R;
+          var push = falloff * falloff * 0.006 * b.mass;     // radial shove
+          var wind = falloff * 0.00035 * b.mass;             // your swipe direction
+          Body.applyForce(b, b.position, {
+            x: (dx / d) * push + ptr.vx * wind,
+            y: (dy / d) * push + ptr.vy * wind,
+          });
+        }
+      }
+      ptr.vx *= 0.82; ptr.vy *= 0.82;
+      // Gravity leans toward whichever side the cursor is on.
+      var target = ptr.inside ? (ptr.x / W - 0.5) * 0.7 : 0;
+      engine.gravity.x += (target - engine.gravity.x) * 0.04;
+    });
+
+    /* ---------------------------------------------------------------- *
+     *  Grab and throw (fine pointers only, so touch scrolling survives) *
+     * ---------------------------------------------------------------- */
+    var mc = null;
+    if (!coarse && !reduce) {
+      var mouse = Mouse.create(canvas);
+      // Matter listens to the wheel for zooming. Never let it eat page scroll.
+      ["mousewheel", "DOMMouseScroll", "wheel"].forEach(function (ev) {
+        mouse.element.removeEventListener(ev, mouse.mousewheel);
+      });
+      mc = MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: { stiffness: 0.18, damping: 0.08, render: { visible: false } },
+      });
+      Composite.add(engine.world, mc);
+      Events.on(mc, "startdrag", function (e) { dragging = e.body; });
+      Events.on(mc, "enddrag", function () { dragging = null; });
+    }
+
+    /* ---------------------------------------------------------------- *
+     *  Clicks and taps: jump, shockwave, spawn                          *
+     * ---------------------------------------------------------------- */
+    var rings = [];
+    function shockwave(x, y, strength) {
+      rings.push({ x: x, y: y, r: 8, life: 1 });
+      for (var i = 0; i < bodies.length; i++) {
+        var b = bodies[i];
+        var dx = b.position.x - x, dy = b.position.y - y;
+        var d = Math.sqrt(dx * dx + dy * dy) || 1;
+        if (d > 300) continue;
+        var k = (1 - d / 300) * 16 * strength;
+        Body.setVelocity(b, { x: b.velocity.x + (dx / d) * k, y: b.velocity.y + (dy / d) * k - k * 0.4 });
+        Body.setAngularVelocity(b, b.angularVelocity + (Math.random() - 0.5) * 0.3 * strength);
+      }
+    }
+    var down = null;
+    canvas.addEventListener("pointerdown", function (e) { var p = local(e); down = { x: p.x, y: p.y, t: performance.now() }; });
+    canvas.addEventListener("pointerup", function (e) {
+      if (!down || reduce) { down = null; return; }
+      var p = local(e);
+      var isClick = Math.hypot(p.x - down.x, p.y - down.y) < 6 && performance.now() - down.t < 400;
+      down = null;
+      if (!isClick || !sprites.length) return;
+      var hit = Query.point(bodies, p)[0];
+      if (hit) {
+        Body.setVelocity(hit, { x: (Math.random() - 0.5) * 6, y: -16 });
+        Body.setAngularVelocity(hit, (Math.random() - 0.5) * 0.7);
+      } else {
+        shockwave(p.x, p.y, coarse ? 1 : 0.7);
+        spawn(p.x, H - 20, pick(), { x: (Math.random() - 0.5) * 5, y: -18 - Math.random() * 6 });
+      }
+    });
+
+    /* ---------------------------------------------------------------- *
+     *  Scrolling shakes the pit                                         *
+     * ---------------------------------------------------------------- */
+    var visible = false;
+    var lastScroll = window.scrollY;
+    window.addEventListener("scroll", function () {
+      var dy = window.scrollY - lastScroll;
+      lastScroll = window.scrollY;
+      if (!visible || reduce) return;
+      var k = Math.max(-1, Math.min(1, dy / 50));
+      for (var i = 0; i < bodies.length; i++) {
+        var b = bodies[i];
+        // Scrolling down kicks the floor up; scrolling back up slams it down.
+        Body.setVelocity(b, {
+          x: b.velocity.x + (Math.random() - 0.5) * Math.abs(k) * 5,
+          y: b.velocity.y - k * (4 + Math.random() * 5),
+        });
+      }
+    }, { passive: true });
+
+    /* ---------------------------------------------------------------- *
+     *  Drawing                                                          *
+     * ---------------------------------------------------------------- */
+    function draw() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < bodies.length; i++) {
+        var b = bodies[i];
+        ctx.save();
+        ctx.translate(b.position.x, b.position.y);
+        ctx.rotate(b.angle);
+        ctx.drawImage(b.sprite.img, -b.dw / 2, -b.dh / 2, b.dw, b.dh);
+        ctx.restore();
+      }
+      // Shockwave rings, drawn in the hand-drawn spirit: thick and quick.
+      for (var j = rings.length - 1; j >= 0; j--) {
+        var g = rings[j];
+        g.r += 9; g.life -= 0.045;
+        if (g.life <= 0) { rings.splice(j, 1); continue; }
+        ctx.globalAlpha = g.life * 0.6;
+        ctx.strokeStyle = ink; ctx.lineWidth = 3 * g.life + 1;
+        ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      // Cursor hint: grab when over a glyph, crosshair over empty space.
+      if (mc) {
+        var over = ptr.inside && Query.point(bodies, ptr).length;
+        canvas.style.cursor = dragging ? "grabbing" : over ? "grab" : "crosshair";
+      }
+    }
+
+    /* ---------------------------------------------------------------- *
+     *  Loop: runs only while the pit is on screen                       *
+     * ---------------------------------------------------------------- */
+    var raf = 0;
+    function frame() {
+      raf = 0;
+      if (!visible || document.hidden) return;
+      Engine.update(engine, 1000 / 60);
+      draw();
+      raf = requestAnimationFrame(frame);
+    }
+    function start() { if (!reduce && !raf) raf = requestAnimationFrame(frame); }
+    new IntersectionObserver(function (entries) {
+      visible = entries[0].isIntersecting;
+      if (visible) start();
+    }).observe(host);
+    document.addEventListener("visibilitychange", start);
+
+    /* ---------------------------------------------------------------- *
+     *  Size                                                             *
+     * ---------------------------------------------------------------- */
+    function resize() {
+      W = host.clientWidth; H = host.clientHeight;
+      if (!W || !H) return;
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      scale = Math.max(0.65, Math.min(1, W / 720));
+      buildWalls();
+      for (var i = 0; i < bodies.length; i++) {
+        var b = bodies[i];
+        if (b.position.x > W - 10 || b.position.y > H) Body.setPosition(b, { x: Math.min(b.position.x, W - 40), y: Math.min(b.position.y, H - 40) });
+      }
+      if (reduce) draw();
+    }
+    new ResizeObserver(resize).observe(host);
+    resize();
+
+    /* ---------------------------------------------------------------- *
+     *  Boot: load sprites, then rain the first batch in                 *
+     * ---------------------------------------------------------------- */
+    var specs = opts.glyphs || [];
+    var fontReady = document.fonts && document.fonts.load ? document.fonts.load("60px " + font).catch(function () {}) : Promise.resolve();
+    fontReady.then(function () {
+      return Promise.all(specs.map(function (s) { return s.svg ? svgSprite(s) : textSprite(s); }));
+    }).then(function (list) {
+      sprites = list.filter(Boolean);
+      if (!sprites.length) return;
+      var n = Math.round(Math.max(10, Math.min(34, (W * H) / 7500)));
+      for (var i = 0; i < n; i++) {
+        spawn(30 + Math.random() * (W - 60), -40 - i * (H / n) * 0.9, sprites[i % sprites.length]);
+      }
+      if (reduce) {
+        // No animation: let the pile settle off-screen, then draw it once.
+        for (var s = 0; s < 900; s++) Engine.update(engine, 1000 / 60);
+        draw();
+      } else start();
+    });
+
+    return { spawn: function () { if (sprites.length) spawn(W / 2, -40, pick()); }, shockwave: shockwave };
+  }
+
+  window.GlyphPit = { mount: mount };
+})();
+
+</script>
+
+<script>
+/* The brand's hand-drawn marks as inline SVG. "currentColor" gets swapped for the ink colour. */
+const SVG = {"qp": "<svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 952 237\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"> <path d=\"M159.556 105.744C161.566 111.338 161.566 118.945 159.109 124.314C155.759 131.026 148.612 138.186 143.028 143.332C137.891 148.254 130.52 149.596 124.266 152.952C101.261 165.258 77.5851 182.262 53.0162 186.736C37.3815 190.316 32.9144 181.814 23.3102 171.522C15.0461 163.915 3.43175 154.966 0.0814475 143.332C-0.588613 134.83 2.98504 125.88 6.78205 118.497C28.224 85.8318 59.0468 58.3124 95.0067 43.5458C104.611 41.756 111.312 35.0439 121.586 35.7151C131.637 35.4914 146.601 35.2676 155.312 35.9388C160.449 37.7287 166.48 40.6373 170.724 45.112C181.891 58.9836 168.937 79.3435 152.409 79.5672C150.175 79.5672 147.718 79.5672 145.485 79.5672C140.347 79.5672 135.88 75.54 130.743 73.9738C125.383 73.3026 120.246 75.0925 115.332 77.5536C107.961 83.147 100.144 89.1878 92.3265 94.11C76.4684 104.402 54.133 104.402 39.8384 117.602C25.7671 131.474 34.7012 151.162 52.7929 153.847C64.1839 157.203 79.372 158.546 88.3061 149.149C95.4534 141.989 102.824 135.054 108.408 126.775C121.139 113.799 140.794 92.3201 159.333 105.297L159.556 105.744Z\" fill=\"currentColor\"/> <path d=\"M281.353 0.812412C284.034 0.141215 288.501 -0.97746 289.394 1.70735V2.15483C289.394 3.49724 287.831 6.18207 287.607 8.41942C286.267 18.04 276.886 24.7521 269.516 31.0167C252.317 46.9019 233.556 64.3532 216.357 81.1334C207.87 89.6353 198.266 97.2423 193.799 108.205C189.778 114.694 187.768 120.958 187.768 128.118C185.311 139.752 185.535 151.834 191.565 162.349C192.012 164.363 192.012 166.153 191.342 168.166C185.311 179.577 190.895 190.54 191.789 202.174C192.459 211.347 184.195 222.087 174.367 217.164C172.133 216.046 168.336 216.941 165.656 215.374C159.849 209.11 154.489 200.608 148.235 194.12C146.895 192.33 145.778 190.316 145.331 187.855C142.874 181.59 147.788 175.102 147.341 168.614C146.671 163.692 149.575 159.217 151.138 154.742C153.595 137.738 166.103 125.433 174.144 110.89C182.854 98.361 195.139 86.9505 203.626 74.8688C207.647 69.2754 210.104 63.2345 212.337 56.97C221.271 41.3085 236.013 23.1859 251.647 11.5517C255.891 8.64315 260.805 8.19568 265.049 5.28712C270.632 1.48362 274.876 0.812412 281.353 0.812412Z\" fill=\"currentColor\"/> <path d=\"M415.872 42.4272C420.785 45.7832 423.466 53.6139 418.328 58.3124C414.085 63.4583 408.277 63.682 402.47 64.8007C396.886 68.8279 390.856 74.4213 385.272 78.4485C383.709 79.7909 381.698 81.5808 382.368 82.252C391.973 83.3707 402.47 72.1839 412.298 74.4213C425.029 86.0555 393.536 98.1372 386.165 100.151C381.475 101.941 376.338 101.493 371.648 102.836C366.734 104.402 361.82 107.31 369.414 110.219C371.871 111.114 372.541 112.904 373.211 114.917C374.104 118.721 376.785 123.643 376.561 127.447C375.668 133.04 368.521 137.962 364.724 141.989C363.383 143.332 361.82 144.45 360.033 144.898C358.023 145.122 356.906 142.884 356.236 141.094C354.226 137.067 352.216 132.145 350.206 127.447C346.185 119.84 345.962 110.89 337.028 114.246C324.073 121.629 313.799 135.054 302.855 144.898C299.504 147.359 296.601 150.268 292.357 150.715C289.23 150.715 285.656 149.149 284.093 147.135C281.859 145.122 284.316 141.094 285.21 137.738C285.88 134.83 285.656 131.25 287.89 128.118C293.921 121.629 303.971 116.931 310.449 110.443C311.789 107.982 304.641 106.415 304.195 103.731C301.291 97.2423 308.215 91.4252 314.022 91.2014C322.063 88.2929 329.21 88.2929 337.698 88.9641C342.388 88.2929 340.155 85.3843 340.378 82.0283C341.271 76.4349 336.804 72.1839 335.241 67.2618C333.007 59.8785 338.368 48.9155 346.409 45.3357C349.536 43.5458 356.906 40.1898 359.586 42.8746L359.81 43.0984C359.14 49.1392 358.47 57.8649 359.14 64.3532C359.363 67.2618 357.8 70.8415 360.033 73.0789C364.724 74.1976 370.307 70.6178 373.881 67.7092C382.592 59.6548 390.633 50.7054 402.247 44.8882C406.491 42.6509 411.404 40.861 415.872 42.4272Z\" fill=\"currentColor\"/> <path d=\"M792.444 105.744C790.434 111.338 790.434 118.945 792.891 124.314C796.241 131.026 803.388 138.186 808.972 143.332C814.109 148.254 821.48 149.596 827.734 152.952C850.739 165.258 874.415 182.262 898.984 186.736C914.618 190.316 919.086 181.814 928.69 171.522C936.954 163.915 948.568 154.966 951.919 143.332C952.589 134.83 949.015 125.88 945.218 118.497C923.776 85.8318 892.953 58.3124 856.993 43.5458C847.389 41.756 840.688 35.0439 830.414 35.7151C820.363 35.4914 805.399 35.2676 796.688 35.9388C791.551 37.7287 785.52 40.6373 781.276 45.112C770.109 58.9836 783.063 79.3435 799.591 79.5672C801.825 79.5672 804.282 79.5672 806.515 79.5672C811.652 79.5672 816.12 75.54 821.257 73.9738C826.617 73.3026 831.754 75.0925 836.668 77.5536C844.039 83.147 851.856 89.1878 859.674 94.11C875.532 104.402 897.867 104.402 912.162 117.602C926.233 131.474 917.299 151.162 899.207 153.847C887.816 157.203 872.628 158.546 863.694 149.149C856.547 141.989 849.176 135.054 843.592 126.775C830.861 113.799 811.206 92.3201 792.667 105.297L792.444 105.744Z\" fill=\"currentColor\"/> <path d=\"M670.647 0.812412C667.966 0.141215 663.499 -0.97746 662.606 1.70735V2.15483C662.606 3.49724 664.169 6.18207 664.393 8.41942C665.733 18.04 675.114 24.7521 682.484 31.0167C699.683 46.9019 718.444 64.3532 735.643 81.1334C744.13 89.6353 753.734 97.2423 758.201 108.205C762.222 114.694 764.232 120.958 764.232 128.118C766.689 139.752 766.465 151.834 760.435 162.349C759.988 164.363 759.988 166.153 760.658 168.166C766.689 179.577 761.105 190.54 760.211 202.174C759.541 211.347 767.805 222.087 777.633 217.164C779.867 216.046 783.664 216.941 786.344 215.374C792.151 209.11 797.511 200.608 803.765 194.12C805.105 192.33 806.222 190.316 806.669 187.855C809.126 181.59 804.212 175.102 804.659 168.614C805.329 163.692 802.425 159.217 800.862 154.742C798.405 137.738 785.897 125.433 777.856 110.89C769.146 98.361 756.861 86.9505 748.374 74.8688C744.353 69.2754 741.896 63.2345 739.663 56.97C730.729 41.3085 715.987 23.1859 700.353 11.5517C696.109 8.64315 691.195 8.19568 686.951 5.28712C681.368 1.48362 677.124 0.812412 670.647 0.812412Z\" fill=\"currentColor\"/> <path d=\"M536.128 42.4272C531.215 45.7832 528.534 53.6139 533.672 58.3124C537.915 63.4583 543.722 63.682 549.53 64.8007C555.113 68.8279 561.144 74.4213 566.728 78.4485C568.291 79.7909 570.302 81.5808 569.631 82.252C560.027 83.3707 549.53 72.1839 539.702 74.4213C526.971 86.0555 558.464 98.1372 565.834 100.151C570.525 101.941 575.662 101.493 580.352 102.836C585.266 104.402 590.18 107.31 582.586 110.219C580.129 111.114 579.459 112.904 578.789 114.917C577.896 118.721 575.215 123.643 575.439 127.447C576.332 133.04 583.479 137.962 587.276 141.989C588.617 143.332 590.18 144.45 591.967 144.898C593.977 145.122 595.094 142.884 595.764 141.094C597.774 137.067 599.784 132.145 601.794 127.447C605.815 119.84 606.038 110.89 614.972 114.246C627.927 121.629 638.201 135.054 649.145 144.898C652.496 147.359 655.399 150.268 659.643 150.715C662.77 150.715 666.344 149.149 667.907 147.135C670.141 145.122 667.684 141.094 666.79 137.738C666.12 134.83 666.344 131.25 664.11 128.118C658.079 121.629 648.029 116.931 641.551 110.443C640.211 107.982 647.359 106.415 647.805 103.731C650.709 97.2423 643.785 91.4252 637.978 91.2014C629.937 88.2929 622.79 88.2929 614.302 88.9641C609.612 88.2929 611.845 85.3843 611.622 82.0283C610.729 76.4349 615.196 72.1839 616.759 67.2618C618.993 59.8785 613.632 48.9155 605.591 45.3357C602.464 43.5458 595.094 40.1898 592.414 42.8746L592.19 43.0984C592.86 49.1392 593.53 57.8649 592.86 64.3532C592.637 67.2618 594.2 70.8415 591.967 73.0789C587.276 74.1976 581.693 70.6178 578.119 67.7092C569.408 59.6548 561.367 50.7054 549.753 44.8882C545.509 42.6509 540.596 40.861 536.128 42.4272Z\" fill=\"currentColor\"/> <path d=\"M571.186 232.112C583.548 205.781 526.32 213.12 512.524 211.965C480.67 211.754 448.275 195.415 415.985 198.562C407.799 198.912 399.238 198.931 392.542 204.082C388.565 208.574 385.895 215.964 390.09 221.028C391.685 222.846 394.358 224.953 396.6 226.945C401.185 231.418 408.046 232.565 413.813 234.344C418.086 234.796 422.505 232.971 427.267 233.323C441.41 233.181 455.422 234.394 469.349 234.195C489.075 233.93 511.856 229.158 530.599 232.567C543.516 234.413 559.161 241.624 570.639 232.428L571.186 232.112Z\" fill=\"currentColor\"/> </svg>", "eq": "<svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 365 166\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"> <path d=\"M168.226 72.5982C171.911 64.67 154.852 66.8798 150.739 66.532C141.243 66.4685 131.586 61.5487 121.961 62.4961C119.521 62.6016 116.969 62.6072 114.972 64.1584C113.787 65.5109 112.991 67.7361 114.242 69.2608C114.717 69.8082 115.514 70.4427 116.182 71.0424C117.549 72.3893 119.594 72.7346 121.314 73.2704C122.587 73.4065 123.904 72.857 125.324 72.9629C129.54 72.9202 133.717 73.2855 137.869 73.2254C143.749 73.1457 150.54 71.7089 156.127 72.7354C159.978 73.2912 164.641 75.4623 168.063 72.6935L168.226 72.5982Z\" fill=\"currentColor\"/> <path d=\"M258.447 72.5982C262.132 64.67 245.072 66.8798 240.96 66.532C231.464 66.4685 221.807 61.5487 212.182 62.4961C209.741 62.6016 207.189 62.6072 205.193 64.1584C204.008 65.5109 203.212 67.7361 204.462 69.2608C204.938 69.8082 205.735 70.4427 206.403 71.0424C207.77 72.3893 209.815 72.7346 211.534 73.2704C212.808 73.4065 214.125 72.857 215.545 72.9629C219.761 72.9202 223.938 73.2855 228.089 73.2254C233.969 73.1457 240.76 71.7089 246.348 72.7354C250.198 73.2912 254.862 75.4623 258.284 72.6935L258.447 72.5982Z\" fill=\"currentColor\"/> <path d=\"M168.226 94.8736C171.911 86.9454 154.852 89.1552 150.739 88.8074C141.243 88.7439 131.586 83.8241 121.961 84.7715C119.521 84.877 116.969 84.8826 114.972 86.4338C113.787 87.7863 112.991 90.0115 114.242 91.5362C114.717 92.0836 115.514 92.7181 116.182 93.3178C117.549 94.6647 119.594 95.01 121.314 95.5458C122.587 95.6819 123.904 95.1324 125.324 95.2382C129.54 95.1956 133.717 95.5609 137.869 95.5008C143.749 95.4211 150.54 93.9843 156.127 95.0108C159.978 95.5666 164.641 97.7377 168.063 94.9689L168.226 94.8736Z\" fill=\"currentColor\"/> <path d=\"M258.447 94.8736C262.132 86.9454 245.072 89.1552 240.96 88.8074C231.464 88.7439 221.807 83.8241 212.182 84.7715C209.741 84.877 207.189 84.8826 205.193 86.4338C204.008 87.7863 203.212 90.0115 204.462 91.5362C204.938 92.0836 205.735 92.7181 206.403 93.3178C207.77 94.6647 209.815 95.01 211.534 95.5458C212.808 95.6819 214.125 95.1324 215.545 95.2382C219.761 95.1956 223.938 95.5609 228.089 95.5008C233.969 95.4211 240.76 93.9843 246.348 95.0108C250.198 95.5666 254.862 97.7377 258.284 94.9689L258.447 94.8736Z\" fill=\"currentColor\"/> <path d=\"M75.2531 2.99152C76.5111 1.77509 78.6079 -0.252315 79.9469 0.935009L80.0884 1.18007C80.5128 1.91521 80.504 3.88067 81.0889 5.17664C83.3955 10.8696 80.3717 17.5163 78.3091 23.2814C73.8972 37.4275 69.1229 52.9264 64.994 67.5626C63.0262 74.9065 60.1628 82.1141 61.1786 89.5325C61.0246 94.359 61.9026 98.4263 64.1662 102.347C66.4969 109.496 70.4393 116.042 77.0722 119.891C77.9539 120.852 78.5198 121.832 78.7889 123.147C79.0884 131.306 85.6177 135.541 89.7862 141.629C93.0541 146.44 91.9162 154.939 84.9689 155.356C83.39 155.451 81.59 157.143 79.6246 157.134C74.4583 155.543 68.8296 152.585 63.3475 151.012C62.0465 150.457 60.7972 149.708 59.774 148.501C56.4456 145.849 57.0897 140.739 54.7932 137.328C52.8694 134.844 53.0474 131.474 52.4903 128.529C48.4619 118.439 51.4326 107.738 51.2454 97.2279C52.0624 87.6077 55.1935 77.4684 56.0295 68.164C56.4664 63.8276 55.9042 59.7414 55.1488 55.6033C55.098 44.1971 57.4547 29.6039 62.3529 18.2809C63.7613 15.3441 66.3153 13.5428 67.7236 10.6059C69.5842 6.75457 71.6999 5.04295 75.2531 2.99152Z\" fill=\"currentColor\"/> <path d=\"M289.45 2.99153C288.192 1.77509 286.095 -0.252312 284.756 0.935011L284.615 1.18007C284.19 1.91521 284.199 3.88067 283.614 5.17665C281.308 10.8696 284.331 17.5163 286.394 23.2814C290.806 37.4275 295.58 52.9264 299.709 67.5626C301.677 74.9065 304.54 82.1141 303.525 89.5325C303.679 94.359 302.801 98.4263 300.537 102.347C298.206 109.496 294.264 116.042 287.631 119.891C286.749 120.852 286.183 121.832 285.914 123.147C285.615 131.306 279.085 135.541 274.917 141.629C271.649 146.44 272.787 154.939 279.734 155.356C281.313 155.451 283.113 157.143 285.079 157.134C290.245 155.543 295.873 152.585 301.356 151.012C302.657 150.457 303.906 149.708 304.929 148.501C308.258 145.849 307.613 140.739 309.91 137.328C311.834 134.844 311.656 131.474 312.213 128.529C316.241 118.439 313.271 107.738 313.458 97.2279C312.641 87.6077 309.51 77.4684 308.674 68.164C308.237 63.8276 308.799 59.7414 309.554 55.6033C309.605 44.1971 307.248 29.6039 302.35 18.2809C300.942 15.3441 298.388 13.5428 296.979 10.6059C295.119 6.75457 293.003 5.04296 289.45 2.99153Z\" fill=\"currentColor\"/> </svg>", "bookmark": "<svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 220 732\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"> <path d=\"M152.952 258.533C156.046 257.759 161.305 257.914 163.935 258.842C168.731 260.389 173.062 267.35 169.504 272.146C158.366 286.068 145.836 299.062 135.007 313.294C122.013 330.465 110.411 350.73 98.0357 367.901C94.323 373.47 88.7541 378.111 85.8149 384.144C82.8757 391.26 81.6382 400.386 74.8317 404.718C72.3566 406.574 67.4064 406.729 65.3954 404.099C64.6219 403.016 63.8484 401.315 63.539 399.768C63.075 396.674 64.7766 394.199 65.086 391.105C65.5501 388.166 65.7048 385.072 66.0141 382.133C67.8705 358.155 76.0692 331.548 73.13 307.57C72.8207 304.477 72.5113 300.919 74.0582 298.134C76.8427 293.184 81.1741 286.687 87.8259 288.853C90.6104 289.781 93.3949 290.709 93.5496 293.648C93.7043 296.278 93.7043 299.526 93.5496 302.156C90.1463 314.841 87.8259 327.526 84.4227 340.211C83.1851 343.614 81.1741 349.028 85.5055 350.575C90.301 351.349 93.2402 344.852 97.1075 342.067C99.1185 340.52 101.748 339.901 103.914 338.354C120.312 326.598 132.842 301.383 136.4 282.665C136.864 280.654 137.482 278.952 138.565 276.941C140.886 273.074 143.206 266.267 145.527 263.019C147.228 261.008 150.167 259.925 152.488 258.687L152.952 258.533Z\" fill=\"currentColor\"/> <path d=\"M152.952 486.705C156.046 485.932 161.305 486.087 163.935 487.015C168.731 488.562 173.062 495.523 169.504 500.318C158.366 514.241 145.836 527.235 135.007 541.467C122.013 558.638 110.411 578.903 98.0357 596.074C94.323 601.643 88.7541 606.283 85.8149 612.317C82.8757 619.432 81.6382 628.559 74.8317 632.891C72.3566 634.747 67.4064 634.902 65.3954 632.272C64.6219 631.189 63.8484 629.487 63.539 627.94C63.075 624.847 64.7766 622.372 65.086 619.278C65.55 616.339 65.7047 613.245 66.0141 610.305C67.8705 586.328 76.0692 559.721 73.13 535.743C72.8206 532.649 72.5113 529.091 74.0582 526.307C76.8427 521.357 81.1741 514.86 87.8259 517.025C90.6104 517.954 93.3949 518.882 93.5496 521.821C93.7043 524.451 93.7043 527.699 93.5496 530.329C90.1463 543.014 87.8259 555.699 84.4226 568.384C83.1851 571.787 81.1741 577.201 85.5055 578.748C90.301 579.521 93.2402 573.024 97.1075 570.24C99.1185 568.693 101.748 568.074 103.914 566.527C120.312 554.771 132.842 529.556 136.4 510.838C136.864 508.827 137.482 507.125 138.565 505.114C140.886 501.247 143.206 494.44 145.527 491.192C147.228 489.181 150.167 488.098 152.488 486.86L152.952 486.705Z\" fill=\"currentColor\"/> <path d=\"M105.634 402.68C107.577 400.963 111.884 402.256 112.754 404.578C115.285 411.75 110.53 419.301 110.233 426.213C110.119 430.501 112.238 435.993 112.454 440.642C112.529 445.353 111.299 449.802 111.374 454.513C111.472 461.927 112.138 470.611 113.335 478.21C113.733 480.235 118.438 483.553 117.989 485.957C116.422 493.438 110.102 503.553 103.237 490.864C102.839 488.839 101.735 487.13 101.337 485.105C101.237 482.607 101.482 480.125 101.318 477.487C100.18 468.505 101.226 460.241 102.225 451.49C103.23 439.346 102.133 427.804 102.637 416.054C103.097 411.781 101.889 406.051 105.415 402.948L105.634 402.68Z\" fill=\"currentColor\"/> <path d=\"M105.629 201.222C107.572 199.505 111.879 200.798 112.749 203.12C115.281 210.292 110.525 217.843 110.229 224.755C110.114 229.043 112.233 234.535 112.449 239.184C112.524 243.896 111.294 248.344 111.369 253.056C111.467 260.469 112.133 269.153 113.331 276.752C113.729 278.777 118.433 282.095 117.984 284.499C116.417 291.98 110.097 302.096 103.232 289.406C102.834 287.381 101.731 285.672 101.333 283.647C101.232 281.15 101.477 278.667 101.313 276.029C100.175 267.048 101.222 258.783 102.22 250.032C103.226 237.888 102.128 226.346 102.632 214.597C103.092 210.323 101.884 204.593 105.41 201.49L105.629 201.222Z\" fill=\"currentColor\"/> <path d=\"M105.634 623.67C107.577 621.953 111.884 623.246 112.754 625.568C115.285 632.74 110.53 640.291 110.233 647.203C110.119 651.491 112.238 656.983 112.454 661.632C112.529 666.344 111.299 670.792 111.374 675.504C111.472 682.917 112.138 691.601 113.335 699.2C113.733 701.226 118.438 704.543 117.989 706.948C116.422 714.428 110.102 724.544 103.237 711.855C102.839 709.829 101.735 708.12 101.337 706.095C101.237 703.598 101.482 701.116 101.318 698.477C100.18 689.496 101.226 681.231 102.225 672.48C103.23 660.336 102.133 648.795 102.637 637.045C103.097 632.771 101.889 627.041 105.415 623.938L105.634 623.67Z\" fill=\"currentColor\"/> <path d=\"M105.634 730.851C107.577 729.134 111.884 730.427 112.754 732.749C115.285 739.92 110.53 747.472 110.233 754.384C110.119 758.672 112.238 764.164 112.454 768.812C112.529 773.524 111.299 777.972 111.374 782.684C111.472 790.098 112.138 798.782 113.335 806.381C113.733 808.406 118.438 811.724 117.989 814.128C116.422 821.608 110.102 831.724 103.237 819.035C102.839 817.01 101.735 815.301 101.337 813.275C101.237 810.778 101.482 808.296 101.318 805.658C100.18 796.676 101.226 788.412 102.225 779.661C103.23 767.517 102.133 755.975 102.637 744.225C103.097 739.952 101.889 734.222 105.415 731.118L105.634 730.851Z\" fill=\"currentColor\"/> <g filter=\"url(#filter0_d_102_332)\"> <g clip-path=\"url(#clip0_102_332)\"> <g filter=\"url(#filter1_dd_102_332)\"> <path d=\"M175.264 216.97L117.184 165.324C113.019 161.62 106.738 161.62 102.57 165.324L44.4904 216.97C40.5035 220.515 34.2031 217.685 34.2031 212.351V13.242C34.2031 6.59638 39.5906 1.20886 46.2363 1.20886H173.518C180.163 1.20886 185.551 6.59638 185.551 13.242V212.351C185.551 217.685 179.248 220.515 175.264 216.97Z\" fill=\"var(--red)\"/> </g> </g> </g> <defs> <filter id=\"filter0_d_102_332\" x=\"-4\" y=\"0\" width=\"228\" height=\"228\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\"> <feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/> <feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/> <feOffset dy=\"4\"/> <feGaussianBlur stdDeviation=\"2\"/> <feComposite in2=\"hardAlpha\" operator=\"out\"/> <feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0\"/> <feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_102_332\"/> <feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_102_332\" result=\"shape\"/> </filter> <filter id=\"filter1_dd_102_332\" x=\"16.2031\" y=\"-8.79114\" width=\"187.348\" height=\"253.336\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\"> <feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/> <feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/> <feOffset dy=\"4\"/> <feGaussianBlur stdDeviation=\"2\"/> <feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0\"/> <feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_102_332\"/> <feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/> <feMorphology radius=\"6\" operator=\"dilate\" in=\"SourceAlpha\" result=\"effect2_dropShadow_102_332\"/> <feOffset dy=\"8\"/> <feGaussianBlur stdDeviation=\"6\"/> <feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0\"/> <feBlend mode=\"normal\" in2=\"effect1_dropShadow_102_332\" result=\"effect2_dropShadow_102_332\"/> <feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect2_dropShadow_102_332\" result=\"shape\"/> </filter> <clipPath id=\"clip0_102_332\"> <rect width=\"220\" height=\"220\" fill=\"white\"/> </clipPath> </defs> </svg>", "logo": "<svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 392 58\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"> <path d=\"M132.009 41V37.61L132.309 37.67C132.109 38.77 131.509 39.65 130.509 40.31C129.529 40.97 128.349 41.3 126.969 41.3C125.569 41.3 124.349 40.98 123.309 40.34C122.289 39.68 121.499 38.76 120.939 37.58C120.379 36.4 120.099 35.01 120.099 33.41C120.099 31.79 120.389 30.38 120.969 29.18C121.549 27.98 122.359 27.05 123.399 26.39C124.459 25.73 125.689 25.4 127.089 25.4C128.549 25.4 129.729 25.74 130.629 26.42C131.549 27.1 132.089 28.03 132.249 29.21L131.919 29.24V19.4H136.419V41H132.009ZM128.409 37.7C129.469 37.7 130.329 37.33 130.989 36.59C131.649 35.83 131.979 34.75 131.979 33.35C131.979 31.95 131.639 30.88 130.959 30.14C130.299 29.38 129.429 29 128.349 29C127.309 29 126.449 29.38 125.769 30.14C125.109 30.9 124.779 31.98 124.779 33.38C124.779 34.78 125.109 35.85 125.769 36.59C126.449 37.33 127.329 37.7 128.409 37.7ZM146.317 41.3C144.617 41.3 143.137 40.97 141.877 40.31C140.617 39.63 139.637 38.69 138.937 37.49C138.257 36.29 137.917 34.91 137.917 33.35C137.917 31.77 138.257 30.39 138.937 29.21C139.637 28.01 140.607 27.08 141.847 26.42C143.087 25.74 144.527 25.4 146.167 25.4C147.747 25.4 149.117 25.72 150.277 26.36C151.437 27 152.337 27.89 152.977 29.03C153.617 30.17 153.937 31.51 153.937 33.05C153.937 33.37 153.927 33.67 153.907 33.95C153.887 34.21 153.857 34.46 153.817 34.7H140.557V31.73H150.187L149.407 32.27C149.407 31.03 149.107 30.12 148.507 29.54C147.927 28.94 147.127 28.64 146.107 28.64C144.927 28.64 144.007 29.04 143.347 29.84C142.707 30.64 142.387 31.84 142.387 33.44C142.387 35 142.707 36.16 143.347 36.92C144.007 37.68 144.987 38.06 146.287 38.06C147.007 38.06 147.627 37.94 148.147 37.7C148.667 37.46 149.057 37.07 149.317 36.53H153.547C153.047 38.01 152.187 39.18 150.967 40.04C149.767 40.88 148.217 41.3 146.317 41.3ZM161.77 41.3C159.53 41.3 157.75 40.85 156.43 39.95C155.11 39.05 154.39 37.81 154.27 36.23H158.29C158.39 36.91 158.73 37.43 159.31 37.79C159.91 38.13 160.73 38.3 161.77 38.3C162.71 38.3 163.39 38.17 163.81 37.91C164.25 37.63 164.47 37.24 164.47 36.74C164.47 36.36 164.34 36.07 164.08 35.87C163.84 35.65 163.39 35.47 162.73 35.33L160.27 34.82C158.45 34.44 157.11 33.87 156.25 33.11C155.39 32.33 154.96 31.33 154.96 30.11C154.96 28.63 155.53 27.48 156.67 26.66C157.81 25.82 159.4 25.4 161.44 25.4C163.46 25.4 165.07 25.81 166.27 26.63C167.47 27.43 168.13 28.55 168.25 29.99H164.23C164.15 29.47 163.87 29.08 163.39 28.82C162.91 28.54 162.23 28.4 161.35 28.4C160.55 28.4 159.95 28.52 159.55 28.76C159.17 28.98 158.98 29.3 158.98 29.72C158.98 30.08 159.14 30.37 159.46 30.59C159.78 30.79 160.31 30.97 161.05 31.13L163.81 31.7C165.35 32.02 166.51 32.62 167.29 33.5C168.09 34.36 168.49 35.38 168.49 36.56C168.49 38.06 167.9 39.23 166.72 40.07C165.56 40.89 163.91 41.3 161.77 41.3ZM169.807 41V25.7H174.307V41H169.807ZM169.657 23.66V18.8H174.457V23.66H169.657ZM183.896 47.45C181.776 47.45 180.046 47 178.706 46.1C177.386 45.2 176.606 43.98 176.366 42.44H180.626C180.786 42.82 181.126 43.11 181.646 43.31C182.186 43.51 182.866 43.61 183.686 43.61C185.046 43.61 186.036 43.35 186.656 42.83C187.276 42.31 187.586 41.5 187.586 40.4V37.07L187.826 37.13C187.626 38.25 187.046 39.14 186.086 39.8C185.126 40.44 183.936 40.76 182.516 40.76C181.156 40.76 179.966 40.45 178.946 39.83C177.946 39.19 177.166 38.3 176.606 37.16C176.046 36.02 175.766 34.68 175.766 33.14C175.766 31.58 176.056 30.22 176.636 29.06C177.216 27.9 178.026 27 179.066 26.36C180.126 25.72 181.356 25.4 182.756 25.4C184.196 25.4 185.366 25.74 186.266 26.42C187.186 27.1 187.726 28.03 187.886 29.21L187.676 29.24V25.7H192.086V40.34C192.086 42.54 191.356 44.27 189.896 45.53C188.436 46.81 186.436 47.45 183.896 47.45ZM184.076 37.31C185.136 37.31 185.996 36.95 186.656 36.23C187.316 35.49 187.646 34.44 187.646 33.08C187.646 31.72 187.306 30.68 186.626 29.96C185.966 29.22 185.096 28.85 184.016 28.85C182.976 28.85 182.116 29.22 181.436 29.96C180.776 30.7 180.446 31.75 180.446 33.11C180.446 34.47 180.776 35.51 181.436 36.23C182.116 36.95 182.996 37.31 184.076 37.31ZM194.784 41V25.7H199.194V29.3H199.284V41H194.784ZM205.434 41V31.52C205.434 30.68 205.214 30.05 204.774 29.63C204.354 29.21 203.734 29 202.914 29C202.214 29 201.584 29.16 201.024 29.48C200.484 29.8 200.054 30.24 199.734 30.8C199.434 31.36 199.284 32.02 199.284 32.78L198.894 29.09C199.394 27.97 200.124 27.08 201.084 26.42C202.064 25.74 203.264 25.4 204.684 25.4C206.384 25.4 207.684 25.88 208.584 26.84C209.484 27.78 209.934 29.05 209.934 30.65V41H205.434ZM217.271 41V25.7H221.681V29.3H221.771V41H217.271ZM221.771 33.02L221.381 29.39C221.741 28.09 222.331 27.1 223.151 26.42C223.971 25.74 224.991 25.4 226.211 25.4C226.591 25.4 226.871 25.44 227.051 25.52V29.72C226.951 29.68 226.811 29.66 226.631 29.66C226.451 29.64 226.231 29.63 225.971 29.63C224.531 29.63 223.471 29.89 222.791 30.41C222.111 30.91 221.771 31.78 221.771 33.02ZM233.128 41.3C232.048 41.3 231.118 41.07 230.338 40.61C229.578 40.13 228.998 39.5 228.598 38.72C228.198 37.92 227.998 37.03 227.998 36.05V25.7H232.498V35.18C232.498 36.02 232.708 36.65 233.128 37.07C233.548 37.49 234.138 37.7 234.898 37.7C235.578 37.7 236.178 37.54 236.698 37.22C237.218 36.9 237.628 36.46 237.928 35.9C238.248 35.32 238.408 34.66 238.408 33.92L238.798 37.61C238.298 38.71 237.568 39.6 236.608 40.28C235.648 40.96 234.488 41.3 233.128 41.3ZM238.498 41V37.4H238.408V25.7H242.908V41H238.498ZM245.618 41V25.7H250.028V29.3H250.118V41H245.618ZM256.268 41V31.52C256.268 30.68 256.048 30.05 255.608 29.63C255.188 29.21 254.568 29 253.748 29C253.048 29 252.418 29.16 251.858 29.48C251.318 29.8 250.888 30.24 250.568 30.8C250.268 31.36 250.118 32.02 250.118 32.78L249.728 29.09C250.228 27.97 250.958 27.08 251.918 26.42C252.898 25.74 254.098 25.4 255.518 25.4C257.218 25.4 258.518 25.88 259.418 26.84C260.318 27.78 260.768 29.05 260.768 30.65V41H256.268ZM263.292 41V25.7H267.702V29.3H267.792V41H263.292ZM273.942 41V31.52C273.942 30.68 273.722 30.05 273.282 29.63C272.862 29.21 272.242 29 271.422 29C270.722 29 270.092 29.16 269.532 29.48C268.992 29.8 268.562 30.24 268.242 30.8C267.942 31.36 267.792 32.02 267.792 32.78L267.402 29.09C267.902 27.97 268.632 27.08 269.592 26.42C270.572 25.74 271.772 25.4 273.192 25.4C274.892 25.4 276.192 25.88 277.092 26.84C277.992 27.78 278.442 29.05 278.442 30.65V41H273.942ZM288.166 41.3C286.466 41.3 284.986 40.97 283.726 40.31C282.466 39.63 281.486 38.69 280.786 37.49C280.106 36.29 279.766 34.91 279.766 33.35C279.766 31.77 280.106 30.39 280.786 29.21C281.486 28.01 282.456 27.08 283.696 26.42C284.936 25.74 286.376 25.4 288.016 25.4C289.596 25.4 290.966 25.72 292.126 26.36C293.286 27 294.186 27.89 294.826 29.03C295.466 30.17 295.786 31.51 295.786 33.05C295.786 33.37 295.776 33.67 295.756 33.95C295.736 34.21 295.706 34.46 295.666 34.7H282.406V31.73H292.036L291.256 32.27C291.256 31.03 290.956 30.12 290.356 29.54C289.776 28.94 288.976 28.64 287.956 28.64C286.776 28.64 285.856 29.04 285.196 29.84C284.556 30.64 284.236 31.84 284.236 33.44C284.236 35 284.556 36.16 285.196 36.92C285.856 37.68 286.836 38.06 288.136 38.06C288.856 38.06 289.476 37.94 289.996 37.7C290.516 37.46 290.906 37.07 291.166 36.53H295.396C294.896 38.01 294.036 39.18 292.816 40.04C291.616 40.88 290.066 41.3 288.166 41.3ZM297.293 41V25.7H301.703V29.3H301.793V41H297.293ZM301.793 33.02L301.403 29.39C301.763 28.09 302.353 27.1 303.173 26.42C303.993 25.74 305.013 25.4 306.233 25.4C306.613 25.4 306.893 25.44 307.073 25.52V29.72C306.973 29.68 306.833 29.66 306.653 29.66C306.473 29.64 306.253 29.63 305.993 29.63C304.553 29.63 303.493 29.89 302.813 30.41C302.133 30.91 301.793 31.78 301.793 33.02ZM313.159 41V19.4H317.659V41H313.159ZM329.975 41C329.855 40.56 329.765 40.09 329.705 39.59C329.665 39.09 329.645 38.51 329.645 37.85H329.525V30.62C329.525 30 329.315 29.52 328.895 29.18C328.495 28.82 327.895 28.64 327.095 28.64C326.335 28.64 325.725 28.77 325.265 29.03C324.825 29.29 324.535 29.67 324.395 30.17H320.105C320.305 28.79 321.015 27.65 322.235 26.75C323.455 25.85 325.125 25.4 327.245 25.4C329.445 25.4 331.125 25.89 332.285 26.87C333.445 27.85 334.025 29.26 334.025 31.1V37.85C334.025 38.35 334.055 38.86 334.115 39.38C334.195 39.88 334.315 40.42 334.475 41H329.975ZM324.635 41.3C323.115 41.3 321.905 40.92 321.005 40.16C320.105 39.38 319.655 38.35 319.655 37.07C319.655 35.65 320.185 34.51 321.245 33.65C322.325 32.77 323.825 32.2 325.745 31.94L330.215 31.31V33.92L326.495 34.49C325.695 34.61 325.105 34.83 324.725 35.15C324.345 35.47 324.155 35.91 324.155 36.47C324.155 36.97 324.335 37.35 324.695 37.61C325.055 37.87 325.535 38 326.135 38C327.075 38 327.875 37.75 328.535 37.25C329.195 36.73 329.525 36.13 329.525 35.45L329.945 37.85C329.505 38.99 328.835 39.85 327.935 40.43C327.035 41.01 325.935 41.3 324.635 41.3ZM345.913 41.3C344.453 41.3 343.263 40.96 342.343 40.28C341.443 39.6 340.913 38.67 340.753 37.49L340.993 37.46V41H336.583V19.4H341.083V29.09L340.813 29.03C341.033 27.91 341.613 27.03 342.553 26.39C343.513 25.73 344.713 25.4 346.153 25.4C347.533 25.4 348.723 25.73 349.723 26.39C350.743 27.03 351.523 27.94 352.063 29.12C352.623 30.3 352.903 31.69 352.903 33.29C352.903 34.91 352.613 36.32 352.033 37.52C351.453 38.72 350.643 39.65 349.603 40.31C348.563 40.97 347.333 41.3 345.913 41.3ZM344.653 37.7C345.713 37.7 346.573 37.32 347.233 36.56C347.893 35.8 348.223 34.72 348.223 33.32C348.223 31.92 347.883 30.85 347.203 30.11C346.543 29.37 345.673 29 344.593 29C343.553 29 342.693 29.38 342.013 30.14C341.353 30.88 341.023 31.95 341.023 33.35C341.023 34.75 341.353 35.83 342.013 36.59C342.693 37.33 343.573 37.7 344.653 37.7Z\" fill=\"currentColor\"/> <path d=\"M35.7683 14.6702C39.0724 14.1407 44.4027 13.773 47.0756 15.5216C47.8152 16.0057 50.8108 17.325 51.6308 17.5488C51.1744 16.2777 50.5061 16.4513 50.3922 15.2017C51.5669 14.6868 51.4387 15.4495 52.8665 15.1533L53.0382 14.1653C54.6304 12.6044 58.302 14.4556 59.8965 15.3942C60.9073 15.1028 62.3437 14.5337 63.2756 14.7727C63.6073 15.4803 63.422 15.5186 63.2351 16.4863C63.9272 17.2515 64.8518 16.9842 66.0585 17.873C65.7296 18.9925 63.8364 18.6021 62.9491 19.9L63.2317 20.34C64.2369 20.654 69.088 21.2157 70.2066 20.7766C72.771 19.7685 84.1428 8.39347 86.452 9.45972C86.6262 9.77432 86.9657 10.2202 86.8637 10.5057C86.326 12.2192 83.0251 18.6991 81.4753 19.3737C76.4179 21.5748 76.6498 23.1165 73.0966 26.9264C72.0035 27.0222 69.8776 27.2873 68.9674 27.8429C69.6143 28.5852 73.9517 27.9082 75.0315 27.7123C83.2028 26.2262 89.7663 30.9068 97.3085 32.7612L85.4619 36.1978C83.2675 35.7469 81.2092 34.7224 78.7401 34.2638C70.3299 32.6964 63.2735 36.5314 55.4776 37.7729C51.354 38.4473 50.8932 41.3143 47.6662 43.2758C44.8971 44.9616 41.6445 46.3401 38.7187 47.7691C32.0767 51.0153 24.4951 51.4864 17.1827 51.9093C15.5816 54.2269 12.8109 57.5743 9.42977 57.221C9.09839 57.1854 9.07808 56.8905 8.93593 56.5861C9.13256 54.6784 11.8988 51.1902 13.091 49.4052C12.4166 48.4575 11.281 47.2509 11.5622 46.1093C12.4496 45.8196 12.5691 46.2725 13.8582 46.5343C15.3128 46.0284 15.624 45.9413 17.1761 45.9354L17.5329 45.9338C17.5062 45.3401 17.4393 45.184 17.7023 44.6568C19.15 44.3905 19.6972 45.046 20.9777 45.0725C28.8661 45.2314 31.5226 46.1921 37.492 40.9676C36.2627 40.6945 35.2897 40.6282 34.5637 39.6513C35.7619 38.0614 40.0207 38.5787 40.3876 35.6916C39.6068 34.5769 38.3864 35.1511 37.4355 34.106C37.488 33.8945 37.5403 33.6831 37.5928 33.4717C38.8521 32.9385 44.7189 29.8275 45.141 29.0535C44.5381 28.8808 43.9325 28.7172 43.3245 28.5623L43.2313 28.2414C43.462 27.9773 46.9361 25.728 47.9337 24.9156C46.3278 24.7781 41.33 24.9624 40.6707 24.6526C40.3913 24.0477 40.3717 23.9112 39.9155 23.4078C37.4719 23.3465 31.8437 27.3196 30.2278 26.3898L30.46 25.3465C29.6737 23.7087 27.046 25.997 24.7973 24.6351C25.2893 23.1584 31.0188 21.9903 31.8343 20.7836C31.1705 20.2756 31.0934 20.2316 30.6045 19.5652C31.6742 17.8993 36.8049 20.2654 37.2849 16.2153C36.8724 15.9593 36.458 15.7584 36.0089 15.5755L35.7683 14.6702Z\" fill=\"currentColor\"/> </svg>", "lab": "<svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 557 541\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"> <path d=\"M436.692 61.2036C469.614 48.346 488.706 65.8477 481.851 94.3078C476.06 118.347 463.347 127.604 441.199 140.697C450.317 142.836 465.1 144.161 469.768 151.056C498.766 193.88 475.102 367.978 390.449 354.287C388.6 353.549 333.907 323.851 333.783 323.762C321.326 314.107 340.915 258.402 342.823 245.888C350.967 192.472 335.875 142.082 366.849 91.5544C370.159 86.1204 371.144 83.4752 378.073 81.5006C386.454 86.0195 384.955 95.5296 393.133 100.471C408.115 89.8022 419.206 74.3454 436.692 61.2036ZM424.917 183.71C380.83 205.74 365.547 240.337 369.922 281.916C376.371 287.934 382.731 295.271 391.699 297.349C397.979 296.831 399.855 296.629 405.858 295.035C416.308 292.726 427.741 290.458 437.769 287.247C459.93 263.917 461.24 237.856 459.355 208.81C458.292 192.402 446.868 176.838 424.917 183.71ZM409.65 119.645C400.19 127.628 374.773 156.998 375.375 167.855C380.414 169.467 378.849 168.954 385.189 167.415C392.579 157.071 421.164 125.353 421.104 120.397L417.887 118.389L409.65 119.645Z\" fill=\"currentColor\"/> <path d=\"M235.313 147.459C240.737 147.898 241.666 147.842 245.731 151.355C249.085 156.472 248.743 163.561 249.076 169.827C257.334 161.193 268.374 146.883 281.118 150.41C290.613 158.899 296.828 205.387 296.726 218.495C296.478 250.242 281.779 287.838 280.471 319.234C279.343 346.277 302.692 372.374 278.552 399.574C273.957 404.863 271.878 408.786 263.984 409.953C252.948 404.712 259.901 360.552 257.307 348.504C255.981 342.35 253.671 338.144 250.84 332.587C252.432 320.738 256.07 310.241 254.836 298.264C228.765 233.266 203.194 305.599 184.993 333.373C177.953 344.173 169.755 354.173 160.542 363.191C155.991 367.638 151.914 372.209 145.425 372.116L143.619 369.907C143.663 354.312 167.854 285.644 176.048 268.22C186.126 252.516 198.596 238.229 206.328 221.119C220.223 190.375 205.162 169.068 235.313 147.459ZM260.374 200.018C249.275 207.78 233.005 218.796 230.003 232.607C232.134 234.396 230.961 234.043 233.384 234.478C240.527 233.074 248.068 231.727 255.137 230.143C258.957 222.783 264.079 214.547 264.659 206.454C263.273 202.559 263.465 202.668 260.374 200.018Z\" fill=\"currentColor\"/> <path d=\"M128.442 180.676C133.513 180.387 134.206 180.551 139.075 182.073C173.677 210.18 55.4845 413.109 65.5254 461.758C72.2194 471.194 78.6261 468.037 89.2418 468.068C122.407 468.164 135.305 419.573 171.902 428.021C188.536 431.857 187.065 442.825 184.327 455.955C179.611 484.936 176.534 496.523 148.676 507.568C130.386 512.563 95.53 509.279 70.7995 517.926C52.7967 521.796 38.5973 541.971 19.2253 540.008C-9.35931 537.11 0.24209 507.186 8.17006 490.964C33.712 439.143 64.7985 315.343 90.6447 263.723C106.213 232.631 98.3191 201.748 128.442 180.676Z\" fill=\"currentColor\"/> <path d=\"M191.121 32.8751C198.525 31.6886 210.47 30.8647 216.46 34.7831C218.117 35.8679 224.83 38.8244 226.668 39.326C225.645 36.4775 224.147 36.8665 223.892 34.0663C226.524 32.9123 226.237 34.6216 229.437 33.9578L229.822 31.7437C233.39 28.2458 241.617 32.3943 245.191 34.4977C247.456 33.8447 250.675 32.5694 252.763 33.1048C253.506 34.6907 253.091 34.7763 252.672 36.945C254.223 38.6596 256.295 38.0607 258.999 40.0524C258.262 42.5612 254.02 41.6864 252.031 44.5947L252.664 45.5807C254.917 46.2845 265.788 47.5433 268.295 46.5593C274.041 44.3002 299.525 18.8094 304.7 21.1989C305.09 21.9038 305.851 22.9031 305.622 23.5427C304.417 27.3828 297.02 41.9036 293.547 43.4154C282.214 48.348 282.734 51.8028 274.771 60.3404C272.322 60.5553 267.558 61.1492 265.518 62.3942C266.967 64.0577 276.687 62.5407 279.107 62.1015C297.418 58.7715 312.127 69.2604 329.028 73.4159L302.481 81.117C297.563 80.1067 292.951 77.8108 287.418 76.7832C268.571 73.2706 252.758 81.8647 235.288 84.6468C226.047 86.1581 225.015 92.5828 217.783 96.9785C211.578 100.756 204.289 103.845 197.733 107.048C182.848 114.322 165.858 115.378 149.472 116.326C145.884 121.519 139.675 129.02 132.098 128.229C131.355 128.149 131.31 127.488 130.991 126.806C131.432 122.531 137.631 114.714 140.303 110.714C138.791 108.59 136.247 105.886 136.877 103.328C138.865 102.679 139.133 103.694 142.022 104.281C145.282 103.147 145.979 102.952 149.457 102.938L150.257 102.935C150.197 101.604 150.047 101.255 150.636 100.073C153.88 99.4764 155.107 100.945 157.976 101.005C175.654 101.361 181.607 103.514 194.984 91.8058C192.229 91.1938 190.048 91.0454 188.421 88.856C191.107 85.2932 200.65 86.4525 201.472 79.9826C199.723 77.4847 196.988 78.7715 194.857 76.4294C194.975 75.9555 195.092 75.4818 195.21 75.008C198.031 73.8132 211.179 66.8417 212.124 65.1071C210.773 64.7203 209.416 64.3535 208.054 64.0066L207.845 63.2874C208.362 62.6955 216.147 57.6549 218.383 55.8345C214.784 55.5263 203.584 55.9393 202.107 55.245C201.481 53.8896 201.437 53.5836 200.414 52.4555C194.939 52.3181 182.326 61.2217 178.705 59.1379L179.225 56.8C177.463 53.1299 171.575 58.2577 166.536 55.2058C167.638 51.8966 180.478 49.279 182.305 46.5749C180.818 45.4364 180.645 45.3379 179.549 43.8447C181.946 40.1114 193.444 45.4136 194.52 36.3377C193.595 35.764 192.667 35.3138 191.66 34.9039L191.121 32.8751Z\" fill=\"currentColor\"/> </svg>"};
+
+GlyphPit.mount(document.getElementById("pit"), {
+  ink: "#ece8de",
+  red: "#e0301e",
+  font: '"Caveat Brush", cursive',
+  max: 70,
+  glyphs: [
+    { svg: SVG.qp, h: 56 }, { svg: SVG.eq, h: 62 }, { svg: SVG.lab, h: 120 },
+    { svg: SVG.bookmark, h: 140 }, { svg: SVG.logo, h: 34 },
+    { text: "@", h: 80, color: "#e0301e" }, { text: "<3", h: 60 }, { text: "*", h: 60 },
+  ],
+});
+</script>
+</body>
+</html>

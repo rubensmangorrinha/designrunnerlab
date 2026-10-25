@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Glyph Pit</title>
+<!--
+  GLYPH PIT · an experimental landing header for design runner lab
+  ----------------------------------------------------------------
+  One file. Open it in a browser and play.
+
+  The effect: the brand's hand-drawn glyphs are real rigid bodies (Matter.js physics).
+    move the mouse  -> the cursor is a force field; your swipe speed becomes wind,
+                       and gravity leans toward the side the cursor is on
+    drag            -> grab a glyph and throw it (no ceiling: it flies off and falls back)
+    click empty     -> shockwave ring + a new glyph pops up from the floor
+    click a glyph   -> it jumps
+    scroll          -> the whole pit gets shaken by your scroll speed
+    touch           -> tap for the shockwave; page scrolling keeps working
+    reduced motion  -> the pile settles once and stays still
+
+  Built from tools/glyph-pit.template.html + site/glyph-pit.js by tools/build-site.py.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&family=Caveat+Brush&display=swap">
+<style>
+:root { --bg: #222222; --ink: #ece8de; --muted: #8a867c; --red: #e0301e; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+
+/* The header: the pit fills it, the title floats above and ignores the pointer
+   so every gesture reaches the physics underneath. */
+.hero { position: relative; height: 100vh; min-height: 520px; overflow: hidden; }
+.pit { position: absolute; inset: 0; }
+.title {
+  position: absolute; left: max(24px, 5vw); bottom: max(28px, 6vh); right: 24px;
+  pointer-events: none; z-index: 1;
+}
+.title h1 { margin: 0; font-weight: 400; font-size: clamp(48px, 10vw, 150px); line-height: 0.95; letter-spacing: -0.045em; }
+.title p { margin: 18px 0 0; color: var(--muted); font-size: 18px; }
+.hint { position: absolute; top: 24px; left: max(24px, 5vw); font-family: "Caveat Brush", cursive; font-size: 24px; color: var(--muted); pointer-events: none; z-index: 1; }
+
+/* Something to scroll past, so the scroll shake has a reason to happen. */
+.below { max-width: 640px; margin: 0 auto; padding: 120px 24px 60vh; font-size: 20px; line-height: 1.5; color: var(--muted); }
+.below strong { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="pit" id="pit"></div>
+  <span class="hint">grab, throw, click, scroll</span>
+  <div class="title">
+    <h1>design<br>runner lab</h1>
+    <p>Workflows for designers who build with AI.</p>
+  </div>
+</header>
+<section class="below">
+  <p><strong>Scroll up and down fast.</strong> The pit above gets shaken by your scroll speed. Scroll back to the top to see where everything landed.</p>
+</section>
+
+<!-- Physics engine -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+<!-- The Glyph Pit module (same code the lab site uses) -->
+<script>
+/*__GLYPH_PIT__*/
+</script>
+
+<script>
+/* The brand's hand-drawn marks as inline SVG. "currentColor" gets swapped for the ink colour. */
+const SVG = /*__SVG__*/{};
+
+GlyphPit.mount(document.getElementById("pit"), {
+  ink: "#ece8de",
+  red: "#e0301e",
+  font: '"Caveat Brush", cursive',
+  max: 70,
+  glyphs: [
+    { svg: SVG.qp, h: 56 }, { svg: SVG.eq, h: 62 }, { svg: SVG.lab, h: 120 },
+    { svg: SVG.bookmark, h: 140 }, { svg: SVG.logo, h: 34 },
+    { text: "@", h: 80, color: "#e0301e" }, { text: "<3", h: 60 }, { text: "*", h: 60 },
+  ],
+});
+</script>
+</body>
+</html>
