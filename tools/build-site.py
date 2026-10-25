@@ -22,7 +22,9 @@ blob = json.dumps(SVG, ensure_ascii=False)
 
 site = ROOT / "site" / "index.html"
 html = site.read_text()
-html = re.sub(r"const SVG = (/\*__SVG__\*/)?\{.*?\};\n", lambda m: "const SVG = /*__SVG__*/" + blob + ";\n", html, count=1, flags=re.S)
+# the site only uses these marks (the bookmark lives in the experiment)
+site_blob = json.dumps({k: SVG[k] for k in ("qp", "eq", "logo", "lab")}, ensure_ascii=False)
+html = re.sub(r"const SVG = (/\*__SVG__\*/)?\{.*?\};\n", lambda m: "const SVG = /*__SVG__*/" + site_blob + ";\n", html, count=1, flags=re.S)
 site.write_text(html)
 
 pit = (ROOT / "experiments" / "glyph-pit.js").read_text()

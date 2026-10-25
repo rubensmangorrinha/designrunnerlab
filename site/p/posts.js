@@ -4,54 +4,54 @@ window.POSTS = {
     "name": "Dive Club",
     "date": "",
     "purpose": "listen",
-    "cover": "p/dive-club/01.png"
+    "cover": "p/dive-club/thumb.jpg"
   },
   "first-thing-in-the-morning": {
     "name": "First thing in the morning?",
     "date": "",
     "purpose": "giveaway",
-    "cover": "p/first-thing-in-the-morning/01.png"
+    "cover": "p/first-thing-in-the-morning/thumb.jpg"
   },
   "free-ai-courses": {
     "name": "Free AI courses",
     "date": "",
     "purpose": "learn",
-    "cover": "p/free-ai-courses/01.png"
+    "cover": "p/free-ai-courses/thumb.jpg"
   },
   "how-this-feed-gets-made": {
     "name": "How this feed gets made",
     "date": "",
     "purpose": "view",
-    "cover": "p/how-this-feed-gets-made/01.png"
+    "cover": "p/how-this-feed-gets-made/thumb.jpg"
   },
   "new-tools-you-should-try": {
     "name": "New tools you should try",
     "date": "",
     "purpose": "learn",
-    "cover": "p/new-tools-you-should-try/01.png"
+    "cover": "p/new-tools-you-should-try/thumb.jpg"
   },
   "podcasts-worth-your-commute": {
     "name": "Podcasts worth your commute",
     "date": "",
     "purpose": "listen",
-    "cover": "p/podcasts-worth-your-commute/01.png"
+    "cover": "p/podcasts-worth-your-commute/thumb.jpg"
   },
   "the-ai-product-designer-shift": {
     "name": "The AI Product Designer Shift",
     "date": "",
     "purpose": "view",
-    "cover": "p/the-ai-product-designer-shift/01.png"
+    "cover": "p/the-ai-product-designer-shift/thumb.jpg"
   },
   "why-do-most-posts-fail": {
     "name": "Why do most posts fail?",
     "date": "",
     "purpose": "view",
-    "cover": "p/why-do-most-posts-fail/01.png"
+    "cover": "p/why-do-most-posts-fail/thumb.jpg"
   },
   "your-design-system-is-now-a-prompt": {
     "name": "Your design system is now a prompt",
     "date": "",
     "purpose": "view",
-    "cover": "p/your-design-system-is-now-a-prompt/01.png"
+    "cover": "p/your-design-system-is-now-a-prompt/thumb.jpg"
   }
 };
