@@ -371,24 +371,11 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
    *  Newest first. Entries without a post show as plain links.      *
    * ============================================================== */
   const LINKS = [
-    {
-      post: "aux-vs-ux", read: "aux-vs-ux",
-      links: [["About AX vs UX, the longer read", "https://mangorrinha.gumroad.com/l/Designcompanion", ""]],
-    },
-    {
-      post: "first-thing-in-the-morning", read: "morning-digest",
-      links: [
-        ["The morning digest script", "https://mangorrinha.gumroad.com/l/morning-digest", "free"],
-        ["Extended: every connector plus priority scoring", "https://mangorrinha.gumroad.com/l/morning-digest-extended", "$19"],
-      ],
-    },
-    {
-      post: "the-ai-product-designer-shift", read: "designer-shift",
-      links: [
-        ["Workflow lab starter", "https://mangorrinha.gumroad.com/l/workflow-lab", "free"],
-        ["Workflow lab, the full kit", "https://mangorrinha.gumroad.com/l/workflow-lab-extended", "$29"],
-      ],
-    },
+    { post: "aux-vs-ux", read: "aux-vs-ux", links: [] },
+    { post: "first-thing-in-the-morning", read: "morning-digest", links: [] },
+    { post: "the-ai-product-designer-shift", read: "designer-shift", links: [] },
+    // links only where something real is attached
+    { links: [["About AX vs UX, read the article", "https://mangorrinha.gumroad.com/l/Designcompanion", ""]] },
   ];
 
   const ARTICLES = [
@@ -425,8 +412,8 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
         ["p", "None of this replaces UX. The person is still there, usually at the start and the end: they ask for the thing and they live with the result. Designing only for the agent gets you a product that's easy to operate and unpleasant to use. I don't have a clean line yet for where one stops and the other starts, and I'm wary of anyone who says they do."],
         ["p", "What I'm sure of is the starting question. Your product has two users now. Which one did you design this screen for?"],
       ],
-      inside: ["The action contract from the article", "The longer AX vs UX read on Gumroad"],
-      get: [["About AX vs UX, the longer read", "https://mangorrinha.gumroad.com/l/Designcompanion", "Free"]],
+      inside: ["The action contract from the article"],
+      get: [],
     },
     {
       slug: "morning-digest", post: "first-thing-in-the-morning", kind: "Giveaway", read: "5 min", style: "dark",
@@ -441,13 +428,10 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
         ["h", "The brief"],
         ["p", "A single, scannable summary delivered straight to your DMs before you log on."],
         ["h", "Set it up in 15 minutes"],
-        ["ol", ["Grab the free version below.", "Connect your calendar and inbox with the guide inside.", "Pick the DM where the brief should land.", "Schedule it for 8:30 AM."]],
+        ["ol", ["List the places you check every morning.", "Connect your calendar and inbox with the guide inside.", "Pick the DM where the brief should land.", "Schedule it for 8:30 AM."]],
       ],
-      inside: ["The exact script from the post", "Setup guide for Slack DMs", "Runs on a free scheduler"],
-      get: [
-        ["Free version", "https://mangorrinha.gumroad.com/l/morning-digest", "Free"],
-        ["Extended: every connector plus priority scoring", "https://mangorrinha.gumroad.com/l/morning-digest-extended", "$19"],
-      ],
+      inside: [],
+      get: [],
     },
     {
       slug: "designer-shift", post: "the-ai-product-designer-shift", kind: "Perspective", read: "6 min", style: "light",
@@ -463,11 +447,8 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
         ["h", "Where to start"],
         ["p", "Pick one flow you redraw constantly, like empty, loading and error states. Write the rules once, generate, review. That loop is the job, at a smaller scale."],
       ],
-      inside: ["3 prompt templates for screen states", "Token naming sheet", "Review checklist for generated UI"],
-      get: [
-        ["Workflow lab starter", "https://mangorrinha.gumroad.com/l/workflow-lab", "Free"],
-        ["Workflow lab, the full kit", "https://mangorrinha.gumroad.com/l/workflow-lab-extended", "$29"],
-      ],
+      inside: [],
+      get: [],
     },
     {
       slug: "design-system-prompt", post: "your-design-system-is-now-a-prompt", kind: "Perspective", read: "4 min", style: "dark",

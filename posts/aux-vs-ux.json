@@ -2,7 +2,7 @@
   "name": "AUX vs UX",
   "purpose": "view",
   "theme": "charcoal",
-  "motion": 0,
+  "motion": 0.2,
   "date": "",
   "caption": "Your next user might not have eyes.\n\nI've been thinking about how much of what we design will be used by agents, not people. UX is about attention, hierarchy and emotion. AUX (agent experience) is about whether an agent can read your product, decide what to do and finish the task without guessing.\n\nAn agent works in a loop of read, decide, act and check, and each step is a design decision. Swipe through for what to get right at each one.\n\nThe worst failure isn't confusion, it's a silent wrong action. That's why permissions and confirmations matter as much as visuals.\n\nSame goal as UX, different user. Which one are you designing for?\n\n#AUX #AX #UX #AgentExperience #DesignSystems #AIDesign #designrunnerlab",
   "slides": [

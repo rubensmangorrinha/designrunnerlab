@@ -1153,6 +1153,14 @@ function sansText(ctx, text, x, y, size, color, align, weight) {
   ctx.save(); ctx.fillStyle = color; ctx.textAlign = align || "left"; ctx.textBaseline = "middle";
   font(ctx, size, weight || 400); setSpacing(ctx, size, -0.01); ctx.fillText(text, x, y); ctx.restore();
 }
+/* Diagram activity for video: the finished diagram is always there; motion only adds a pulse
+   that walks through it. Four beats of 1.5 s fill the 6 s loop, so the loop, table and rows
+   slides of a carousel stay in step with each other. */
+const live = () => MO.m > 0;
+const beat = () => Math.floor(MO.t / 1.5) % 4;
+const beatF = () => (MO.t % 1.5) / 1.5;
+const easeIO = v => v < 0.5 ? 2 * v * v : 1 - Math.pow(-2 * v + 2, 2) / 2;
+
 const DIAGRAMS = {
   /* an outlined eye (UX) - "vs" - a small connected node graph (AUX) */
   eyevs(ctx, s, th, box) {
@@ -1160,16 +1168,31 @@ const DIAGRAMS = {
     const cy = box.y + box.h / 2, cxL = box.x + box.w * 0.22, cxR = box.x + box.w * 0.78;
     const w = Math.min(380, box.w * 0.36), h = w * 0.52;
     ctx.save(); ctx.strokeStyle = th.fg; ctx.lineWidth = HAIR;
-    // eye: two arcs, iris, pupil
-    ctx.beginPath(); ctx.moveTo(cxL - w / 2, cy); ctx.quadraticCurveTo(cxL, cy - h * 1.15, cxL + w / 2, cy);
-    ctx.quadraticCurveTo(cxL, cy + h * 1.15, cxL - w / 2, cy); ctx.stroke();
-    ctx.beginPath(); ctx.arc(cxL, cy, h * 0.42, 0, TAU); ctx.stroke();
-    ctx.beginPath(); ctx.arc(cxL, cy, h * 0.14, 0, TAU); ctx.stroke();
+    // eye: two arcs, iris, pupil. In motion it looks around and blinks once per loop.
+    const t = MO.t;
+    const blink = live() && t > 2.2 && t < 2.5 ? 1 - Math.sin(Math.PI * (t - 2.2) / 0.3) * 0.94 : 1;
+    const look = live() ? Math.sin(TAU * t / 6) * h * 0.18 : 0;
+    ctx.save(); ctx.translate(cxL, cy); ctx.scale(1, blink);
+    ctx.beginPath(); ctx.moveTo(-w / 2, 0); ctx.quadraticCurveTo(0, -h * 1.15, w / 2, 0);
+    ctx.quadraticCurveTo(0, h * 1.15, -w / 2, 0); ctx.stroke();
+    ctx.beginPath(); ctx.arc(look, 0, h * 0.42, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(look * 1.15, 0, h * 0.14, 0, TAU); ctx.stroke();
+    ctx.restore();
     // node graph
     const n = [[-0.5, -0.32], [-0.08, -0.5], [0.42, -0.2], [-0.3, 0.3], [0.2, 0.42], [0.5, 0.22]].map(([a, b]) => [cxR + a * w, cy + b * w * 0.85]);
     const edges = [[0, 1], [1, 2], [0, 3], [1, 3], [3, 4], [2, 5], [4, 5], [1, 4]];
     edges.forEach(([a, b]) => { ctx.beginPath(); ctx.moveTo(n[a][0], n[a][1]); ctx.lineTo(n[b][0], n[b][1]); ctx.stroke(); });
-    n.forEach(([x, y]) => { ctx.fillStyle = th.bg; ctx.beginPath(); ctx.arc(x, y, 13, 0, TAU); ctx.fill(); ctx.stroke(); });
+    // in motion a signal hops along the edges, lighting each node it reaches
+    const e = Math.floor(t / 0.75) % edges.length, f = easeIO((t % 0.75) / 0.75);
+    n.forEach(([x, y], i) => {
+      const lit = live() && edges[e][1] === i && f > 0.85;
+      ctx.fillStyle = lit ? th.fg : th.bg; ctx.beginPath(); ctx.arc(x, y, 13, 0, TAU); ctx.fill(); ctx.stroke();
+    });
+    if (live()) {
+      const [a, b] = edges[e];
+      ctx.fillStyle = th.fg; ctx.beginPath();
+      ctx.arc(n[a][0] + (n[b][0] - n[a][0]) * f, n[a][1] + (n[b][1] - n[a][1]) * f, 6, 0, TAU); ctx.fill();
+    }
     ctx.restore();
     sansText(ctx, "vs", box.x + box.w / 2, cy, 44, th.muted);
     sansText(ctx, la, cxL, cy + w * 0.62, 30, th.muted, "center");
@@ -1198,8 +1221,13 @@ const DIAGRAMS = {
       ctx.save(); ctx.strokeStyle = th.muted; ctx.lineWidth = HAIR; ctx.globalAlpha = 0.6;
       ctx.beginPath(); ctx.moveTo(box.x, Math.round(y) + 0.5); ctx.lineTo(box.x + box.w, Math.round(y) + 0.5); ctx.stroke(); ctx.restore();
       const top = y + pad;
+      const on = live() && i === beat() % lines.length;
+      if (on) {   // a short bar in the margin marks the row being compared
+        ctx.save(); ctx.fillStyle = th.fg; ctx.globalAlpha = Math.min(1, beatF() * 6, (1 - beatF()) * 6);
+        ctx.fillRect(c0 - 30, y + pad - 2, 2, rowsH[i] + 4); ctx.restore();
+      }
       const lab = layoutRich(ctx, r[0], c1 - c0 - 24, 26, 0);
-      drawRich(ctx, lab, c0, top + 4, 26, 1.25, th.muted, 0);
+      drawRich(ctx, lab, c0, top + 4, 26, 1.25, on ? th.fg : th.muted, 0);
       drawRich(ctx, layoutRich(ctx, r[1] || "", cw, size, -0.01), c1, top, size, lh, th.fg, -0.01);
       drawRich(ctx, layoutRich(ctx, r[2] || "", cw, size, -0.01), c2, top, size, lh, th.fg, -0.01);
       y += rowsH[i] + pad * 2;
@@ -1215,12 +1243,26 @@ const DIAGRAMS = {
     const x0 = box.x + (box.w - (bw * 2 + gx)) / 2, y0 = box.y + (box.h - (bh * 2 + gy)) / 2;
     const pos = [[x0, y0], [x0 + bw + gx, y0], [x0 + bw + gx, y0 + bh + gy], [x0, y0 + bh + gy]];   // TL TR BR BL
     ctx.save(); ctx.strokeStyle = th.fg; ctx.lineWidth = HAIR;
-    pos.forEach(([x, y], i) => { strokeBox(ctx, x, y, bw, bh, 18); sansText(ctx, names[i] || "", x + bw / 2, y + bh / 2, 44, th.fg, "center"); });
     const g = 22, hd = 16;
-    arrow(ctx, x0 + bw + g, y0 + bh / 2, x0 + bw + gx - g, y0 + bh / 2, hd);                         // Read -> Decide
-    arrow(ctx, x0 + bw * 1.5 + gx, y0 + bh + g, x0 + bw * 1.5 + gx, y0 + bh + gy - g, hd);           // Decide -> Act
-    arrow(ctx, x0 + bw + gx - g, y0 + bh * 1.5 + gy, x0 + bw + g, y0 + bh * 1.5 + gy, hd);           // Act -> Check
-    arrow(ctx, x0 + bw / 2, y0 + bh + gy - g, x0 + bw / 2, y0 + bh + g, hd);                         // Check -> Read
+    const arrows = [
+      [x0 + bw + g, y0 + bh / 2, x0 + bw + gx - g, y0 + bh / 2],                     // Read -> Decide
+      [x0 + bw * 1.5 + gx, y0 + bh + g, x0 + bw * 1.5 + gx, y0 + bh + gy - g],       // Decide -> Act
+      [x0 + bw + gx - g, y0 + bh * 1.5 + gy, x0 + bw + g, y0 + bh * 1.5 + gy],       // Act -> Check
+      [x0 + bw / 2, y0 + bh + gy - g, x0 + bw / 2, y0 + bh + g],                     // Check -> Read
+    ];
+    // in motion the active step's box thickens, then a dot carries on to the next one
+    const k = beat(), f = beatF();
+    pos.forEach(([x, y], i) => {
+      ctx.lineWidth = live() && i === k ? 2.5 : HAIR;
+      strokeBox(ctx, x, y, bw, bh, 18);
+      sansText(ctx, names[i] || "", x + bw / 2, y + bh / 2, 44, th.fg, "center");
+    });
+    ctx.lineWidth = HAIR;
+    arrows.forEach(a => arrow(ctx, a[0], a[1], a[2], a[3], hd));
+    if (live() && f > 0.55) {
+      const a = arrows[k], p = easeIO((f - 0.55) / 0.45);
+      ctx.fillStyle = th.fg; ctx.beginPath(); ctx.arc(a[0] + (a[2] - a[0]) * p, a[1] + (a[3] - a[1]) * p, 7, 0, TAU); ctx.fill();
+    }
     ctx.restore();
   },
 
@@ -1239,6 +1281,26 @@ const DIAGRAMS = {
     [0, 1, 3].forEach(i => { ctx.beginPath(); ctx.arc(xs[i], cy, r, 0, TAU); ctx.fillStyle = th.fg; ctx.fill(); });
     ctx.strokeStyle = th.bg; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.beginPath(); ctx.moveTo(xs[3] - 10, cy + 1); ctx.lineTo(xs[3] - 3, cy + 8); ctx.lineTo(xs[3] + 11, cy - 8); ctx.stroke();
+    if (live()) {
+      // a task travels the chain: right through 1 and 2, off the line at 3, and "succeeds" at 4
+      const pts = [[xs[0], cy], [xs[1], cy], [drift.x, drift.y], [xs[3], cy]];
+      const lens = pts.slice(1).map((q, i) => Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]));
+      const total = lens.reduce((a, b) => a + b, 0);
+      const t = MO.t, run = 4.2;
+      let d = easeIO(Math.min(1, t / run)) * total, i = 0;
+      while (i < lens.length - 1 && d > lens[i]) { d -= lens[i]; i++; }
+      const u = Math.min(1, d / lens[i]);
+      const px = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * u, py = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * u;
+      if (t < run) {
+        ctx.fillStyle = th.bg; ctx.strokeStyle = th.fg; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(px, py, 11, 0, TAU); ctx.fill(); ctx.stroke();
+      } else {
+        // the false success: a ring spreads from the check
+        const k = (t - run) / (LOOP - run);
+        ctx.strokeStyle = th.fg; ctx.lineWidth = HAIR; ctx.globalAlpha = 1 - k;
+        ctx.beginPath(); ctx.arc(xs[3], cy, r + k * 70, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
+      }
+    }
     ctx.restore();
   },
 
@@ -1257,8 +1319,13 @@ const DIAGRAMS = {
     ctx.restore();
     items.forEach(([name, ins], i) => {
       const top = y + i * rowH + gap;
+      const on = live() && i === beat() % items.length;
+      if (on) {   // a dot in the margin follows the same four beats as the loop slide
+        ctx.save(); ctx.fillStyle = th.fg; ctx.globalAlpha = Math.min(1, beatF() * 6, (1 - beatF()) * 6);
+        ctx.beginPath(); ctx.arc(box.x - 28, top + nameSize * 0.6, 6, 0, TAU); ctx.fill(); ctx.restore();
+      }
       drawRich(ctx, layoutRich(ctx, name, box.w, nameSize, -0.02), box.x, top, nameSize, 1.15, th.fg, -0.02);
-      drawRich(ctx, layoutRich(ctx, ins, box.w, insSize, -0.01), box.x, top + nameSize * 1.15 + 10, insSize, 1.25, th.muted, -0.01);
+      drawRich(ctx, layoutRich(ctx, ins, box.w, insSize, -0.01), box.x, top + nameSize * 1.15 + 10, insSize, 1.25, on ? th.fg : th.muted, -0.01);
     });
   },
 };
