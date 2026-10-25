@@ -9,13 +9,13 @@
       "type": "image",
       "file": "p/how-to-audit-an-ai-generated-ui/01.png",
       "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/01.png",
-      "alt": "Slide 1 of 5. How to audit AI-generated UI."
+      "alt": "Slide 1 of 5. A screen a model wrote in seconds. How to audit AI-generated UI. A screenshot of an app in a window."
     },
     {
       "type": "image",
       "file": "p/how-to-audit-an-ai-generated-ui/02.png",
       "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/02.png",
-      "alt": "Slide 2 of 5. Screen slide"
+      "alt": "Slide 2 of 5. Three checks before it ships. A screenshot of an app in a window, with 3 numbered marks: Hierarchy, States, System."
     },
     {
       "type": "image",
@@ -27,7 +27,7 @@
       "type": "image",
       "file": "p/how-to-audit-an-ai-generated-ui/04.png",
       "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/04.png",
-      "alt": "Slide 4 of 5. Glyph slide"
+      "alt": "Slide 4 of 5. The words \"Trust then verify\", drawn large by hand."
     },
     {
       "type": "image",

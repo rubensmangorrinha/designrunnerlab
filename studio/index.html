@@ -2055,12 +2055,26 @@ $("json-import").onclick = () => {
 document.addEventListener("keydown", e => { if (e.key === "Escape") $("json-modal").hidden = true; });
 
 /* Alt text for Buffer, built from the words on the slide. */
-const ALT_KEYS = ["eyebrow", "intro", "headline", "sub", "number", "caption", "body", "title", "word", "inner", "left", "right", "note", "col1", "col2", "aside", "cta"];
+const ALT_KEYS = ["eyebrow", "intro", "descriptor", "headline", "sub", "number", "caption", "body", "title", "word", "inner", "left", "right", "note", "col1", "col2", "aside", "cta"];
+const cleanAlt = t => t.replace(/\*\*|~~|\(\(|\)\)|\{\{|\}\}|[\[\]_]/g, "").replace(/\s+/g, " ").trim();
+const sentence = t => /[.!?:→]$/.test(t) ? t : t + ".";
+/* What the picture shows, for templates whose point isn't the text. */
+const ALT_PICTURE = {
+  screen: s => {
+    const labels = String(s.marks || "").split("\n").map(l => l.split(",").slice(2).join(",").trim()).filter(Boolean);
+    return "A screenshot of an app in a window" + (labels.length ? `, with ${labels.length} numbered marks: ${labels.join(", ")}.` : ".");
+  },
+  glyph: s => {
+    const g = String(s.glyph || "").replace(/\s+/g, " ").trim();
+    if (!g) return "";
+    return /[a-z]{3,}/i.test(g) ? `The words "${g}", drawn large by hand.` : `A hand-drawn kaomoji, ${g}, as the whole post.`;
+  },
+};
 function altText(sl, n, total) {
-  const words = ALT_KEYS.map(k => typeof sl[k] === "string" ? sl[k] : "")
-    .map(t => t.replace(/\*\*|~~|\(\(|\)\)|\{\{|\}\}|[\[\]_]/g, "").replace(/\s+/g, " ").trim())
-    .filter(Boolean).map(t => /[.!?:→]$/.test(t) ? t : t + ".").join(" ");
-  return (`Slide ${n} of ${total}. ` + (words || TEMPLATES[sl.template].name + " slide")).slice(0, 900);
+  const words = ALT_KEYS.map(k => typeof sl[k] === "string" ? cleanAlt(sl[k]) : "").filter(Boolean).map(sentence);
+  const picture = ALT_PICTURE[sl.template] ? ALT_PICTURE[sl.template](sl) : "";
+  if (picture) words.push(picture);
+  return (`Slide ${n} of ${total}. ` + (words.join(" ") || TEMPLATES[sl.template].name + " slide")).slice(0, 900);
 }
 
 /* Render API used by tools/render-posts.js:

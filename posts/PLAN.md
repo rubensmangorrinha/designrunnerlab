@@ -37,21 +37,25 @@ Already out: How this feed gets made (17 Oct), Free AI courses (21 Oct), Podcast
 
 Keep the week's post dates in the JSON in step with Buffer: Buffer is what posts, the JSON is what the site and the renderer read.
 
-## Voice, without a face
+## The reel: slides full-frame, Ruben in a Loom bubble
 
-An AI avatar is out: designers spot the uncanny lip-sync first, and the feed's identity is the marks and the type. Voice is different. A narrated version of a carousel keeps the slides as the picture and adds a track underneath, and nothing on screen pretends to be a person.
+A full-frame AI avatar is out: designers spot the uncanny lip-sync first, and the feed's identity is the marks and the type. A Loom-style reel is a different thing. The slides fill the frame and do the work; the avatar sits in a small round bubble in a corner, the way a screen recording with a webcam does. At that size the tells shrink to nothing, and the format is one everyone already reads as "a person walking me through their screen". That is the version to try, not voice alone and not a talking head.
 
-**What it is.** A reel twin of a studio carousel: the slide loops stitched into one continuous video, each slide held for as long as its line of narration, voice on top. It goes out as a separate post, not instead of the carousel. Instagram plays each carousel slide's audio on its own, so voice only works on a single video.
+**What it is.** A reel twin of a studio carousel, posted on its own, not instead of the carousel. One continuous video: the slide loops stitched end to end, each held for its line of narration, with the avatar bubble bottom-left (or wherever the slide's type isn't) talking it through. Instagram plays each carousel slide's audio on its own, so this only works as a single video.
+
+**Rules that keep it honest.**
+- The bubble is small, roughly a fifth of the frame width, and never over the slide's text.
+- The script sounds like Ruben: the caption cut to 45 to 60 seconds, one or two sentences per slide, run through the voice profile. A cloned voice from a two-minute recording, not a stock voice.
+- Say it once in the caption: made with an AI twin. The feed is about building with these tools, so the disclosure is on brand, and it turns "is that fake?" into "how did he do that?". Set Buffer's `isAiGenerated` flag on the reel so Instagram labels it too.
 
 **How it's made.**
-1. Script: the caption, cut to 45 to 60 seconds, one or two sentences per slide. It has to sound like Ruben; the voice profile does the rest.
-2. Voice: HeyGen, voice only. A cloned voice from a two-minute recording beats a stock voice, since the point is that it sounds like the account. Export the track as WAV or MP3. HyperFrames (HeyGen's HTML video tool) can also take the studio's slides straight in, since they are already HTML, if stitching by hand gets old.
-3. Picture: `ffmpeg` concatenates `site/p/<name>/01.mp4 … NN.mp4`, each looped to its line's length, then muxes the voice track. Add a `tools/narrate.js` once the first one works by hand.
-4. Post: `node tools/push-to-buffer.js <name>-reel --at …`. A single video goes out as a reel already.
+1. Avatar and voice in HeyGen: the script, the cloned voice, the avatar on a plain background, exported as one video.
+2. Picture: `ffmpeg` concatenates `site/p/<name>/01.mp4 … NN.mp4`, each looped to its line's length, then overlays the avatar in a circular mask and muxes its audio. HyperFrames (HeyGen's HTML video tool) can take the studio's slides straight in, since they are already HTML, if stitching by hand gets old. A `tools/reel.js` once the first one works.
+3. Post: `node tools/push-to-buffer.js <name>-reel --at …`. A single video goes out as a reel already.
 
-**When.** The first one takes the open Thursday 19 Nov slot: narrate whichever carousel reached furthest in the three weeks before. Compare its reach to the carousel's over seven days. If the reel wins, every studio post from December gets a reel twin two days after the carousel; if not, the idea goes back in the drawer.
+**When.** The first one takes the open Thursday 19 Nov slot: the carousel that reached furthest in the three weeks before gets the reel. Compare its reach to the carousel's over seven days. If the reel wins, every studio post from December gets a reel twin two days after the carousel; if not, the idea goes back in the drawer. Nothing of this is needed for today's post.
 
 ## Loose ends
 
-- Slides that use the Screen or Glyph templates get generic alt text ("Screen slide", "Glyph slide"). Worth a real line each in `tools/render-posts.js` or the studio before the audit post goes out.
+- Alt text now describes Screen slides (the marks' labels) and Glyph slides (the words, or the kaomoji) and includes the top line of Classic slides. Posts rendered before 25 Oct carry the old alt text until they are rendered again.
 - Instagram re-encodes video; check the first video post for banding on the dark backgrounds before raising motion further.
