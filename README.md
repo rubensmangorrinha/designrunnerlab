@@ -44,6 +44,7 @@ The motion is tuned to about half the website's intensity. Frame 0 is always the
   "name": "Why do most posts fail?",
   "purpose": "view",
   "motion": 0.1,
+  "date": "2026-10-28",
   "caption": "Instagram caption…",
   "slides": [
     { "template": "cover", "top": "none", "headline": "Your\nContent\nFunnel Is\nLeaking.", "note": "• No clear CTA", "cta": "Find out more →" },
@@ -101,7 +102,7 @@ The studio warns you when a colour breaks the rule.
 
 ## The lab website (`site/`)
 
-- **Links:** the Gumroad links, edited directly in the HTML. A hypnotic looping @ sits beside the heading.
+- **Links:** grouped by the Instagram post they came from. Each entry shows the post's cover slide, its date and its title, then the Gumroad links and "Read more about it". Edit `LINKS` in `site/index.html`. The cover, title and date come from `site/p/posts.js`, which `tools/render-posts.js` writes from `posts/*.json`. Give every post a `date` (YYYY-MM-DD) so people can match it to what they saw. A hypnotic looping @ sits beside the heading.
 - **Read:** an infinite gallery you drag around. It drifts to a stop when you let go, horizontal trackpad swipes pan it, and the cards are reachable with Tab. Clicking a card scales it into an overlay with close-ups, what's inside, a Free or Extended choice and the Gumroad button. A List view is one click away.
 - **Articles (`#<slug>`):** after the title and first paragraph, a Three.js scene acts out the topic as you scroll, lit by a light that follows the mouse:
   - `digest`: six tabs fold into one brief.

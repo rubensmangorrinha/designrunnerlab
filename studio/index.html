@@ -1481,6 +1481,8 @@ function renderInspector() {
         <div class="hint">${PURPOSES[se.purpose].rule}</div></div>
       <div class="field"><div class="label">Colour</div>${swatchRow("series", se.theme, false)}
         ${PURPOSES[se.purpose].allowed.includes(se.theme) ? "" : `<div class="warn">${THEMES[se.theme].name} breaks the colour rule for “${PURPOSES[se.purpose].name}”. Use ${PURPOSES[se.purpose].allowed.map(t => THEMES[t].name).join(" or ")}.</div>`}</div>
+      <div class="field"><label for="series-date">Post date</label><input type="text" id="series-date" placeholder="2026-10-28" value="${esc(se.date || "")}">
+        <div class="hint">The day it goes live. The website uses it so people can find the post.</div></div>
       <div class="field"><label for="series-motion">Motion <span id="series-motion-v">${Math.round((se.motion || 0) * 100)}%</span></label>
         <input type="range" id="series-motion" min="0" max="100" step="10" value="${Math.round((se.motion || 0) * 100)}">
         <div class="hint">${se.motion ? "Slides export as 6-second MP4 loops." : "0% exports still PNGs."} Ramp it up 10% per post.</div></div>
@@ -1518,6 +1520,7 @@ $("inspector").addEventListener("input", e => {
   const el = e.target, se = series(), sl = slide();
   if (el.id === "series-name") { se.name = el.value; scheduleThumbs(); save(); return; }
   if (el.id === "series-caption") { se.caption = el.value; save(); return; }
+  if (el.id === "series-date") { se.date = el.value.trim(); save(); return; }
   if (el.id === "series-motion") {
     se.motion = Number(el.value) / 100; $("series-motion-v").textContent = el.value + "%";
     el.nextElementSibling.textContent = (se.motion ? "Slides export as 6-second MP4 loops." : "0% exports still PNGs.") + " Ramp it up 10% per post.";
@@ -1698,14 +1701,14 @@ function toast(msg) {
  *  Carousel JSON: the portable format posts/*.json uses               *
  * ------------------------------------------------------------------ */
 function toJSON(se) {
-  return { name: se.name, purpose: se.purpose, theme: se.theme, motion: se.motion || 0, caption: se.caption || "",
+  return { name: se.name, purpose: se.purpose, theme: se.theme, motion: se.motion || 0, date: se.date || "", caption: se.caption || "",
     slides: se.slides.map(({ id, rev, ...rest }) => rest) };
 }
 function fromJSON(o) {
   if (!o || !Array.isArray(o.slides) || !o.slides.length) throw new Error("The JSON needs a \"slides\" list with at least one slide.");
   const theme = THEMES[o.theme] ? o.theme : (PURPOSES[o.purpose] ? PURPOSES[o.purpose].theme : "cream");
   return { id: newId(), name: o.name || "Imported carousel", theme, purpose: PURPOSES[o.purpose] ? o.purpose : purposeFromTheme(theme),
-    motion: Math.max(0, Math.min(1, Number(o.motion) || 0)),
+    motion: Math.max(0, Math.min(1, Number(o.motion) || 0)), date: o.date || "",
     caption: o.caption || "", slides: o.slides.map(sl => makeSlide({ ...sl })) };
 }
 function openJSON(text) {

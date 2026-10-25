@@ -78,6 +78,33 @@ h1 { font-size: clamp(30px, 4.4vw, 64px); font-weight: 400; letter-spacing: -0.0
 .links .u { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; overflow-wrap: anywhere; }
 .links a:hover .u, .links a:focus-visible .u { color: var(--ink); }
 
+/* links grouped by post: the cover people saw on Instagram, its date, then everything that belongs to it */
+.plist { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.prow { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 20px; padding-block: 22px; border-bottom: 1px solid var(--rule); }
+.prow.solo { grid-template-columns: minmax(0, 1fr); }
+.prow .thumb { display: block; width: 76px; aspect-ratio: 4 / 5; border-radius: 6px; overflow: hidden; background: #2c2c2b; outline: 1px solid var(--rule); outline-offset: -1px; }
+.prow .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.prow .from { font-size: 13px; color: var(--muted); letter-spacing: .02em; }
+.prow .ptitle { font-size: 22px; line-height: 1.2; margin: 3px 0 12px; letter-spacing: -0.01em; }
+.prow ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.prow ul a { display: grid; gap: 3px; text-decoration: none; }
+.prow .t { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; font-size: 17px; }
+.prow .tag { font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+.prow .tag.paid { color: var(--red); }
+.prow .u { color: var(--muted); font-size: 16px; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; overflow-wrap: anywhere; }
+.prow ul a:hover .u, .prow ul a:focus-visible .u { color: var(--ink); }
+.prow .more { font-size: 17px; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+@media (min-width: 960px) {
+  .plist { display: grid; grid-template-columns: 1fr 1fr; column-gap: clamp(32px, 5vw, 96px); border-top: 0; }
+  .prow:nth-child(-n+2) { border-top: 1px solid var(--rule); }
+  .prow { grid-template-columns: 96px minmax(0, 1fr); }
+  .prow .thumb { width: 96px; }
+}
+/* "from the post" chip on articles and previews */
+.frompost { display: inline-flex; gap: 12px; align-items: center; text-decoration: none; color: var(--muted); font-size: 14px; }
+.frompost img { width: 40px; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 4px; display: block; outline: 1px solid var(--rule); outline-offset: -1px; }
+.frompost b { display: block; color: var(--ink); font-weight: 500; font-size: 15px; }
+
 /* hypnotic @: nested @s counter-rotating forever */
 .hypno { position: relative; display: inline-block; width: var(--s, 64px); height: var(--s, 64px); flex: none; }
 .hypno i {
@@ -274,23 +301,7 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
       <h1 id="links-h">Get your link</h1>
       <span class="hypno" aria-hidden="true" style="--s:58px"><i>@</i><i>@</i><i>@</i><i>@</i><i>@</i></span>
     </div>
-    <ul class="links">
-      <li><a href="https://mangorrinha.gumroad.com/l/Designcompanion" target="_blank" rel="noopener">
-        <span class="t"><span>About AX vs UX read the article.</span></span>
-        <span class="u">mangorrinha.gumroad.com/l/<wbr>Designcompanion</span></a></li>
-      <li><a href="https://mangorrinha.gumroad.com/l/morning-digest" target="_blank" rel="noopener">
-        <span class="t"><span>The morning digest script from the post.</span><span class="tag">free</span></span>
-        <span class="u">mangorrinha.gumroad.com/l/<wbr>morning-digest</span></a></li>
-      <li><a href="https://mangorrinha.gumroad.com/l/morning-digest-extended" target="_blank" rel="noopener">
-        <span class="t"><span>Morning digest, extended. Every connector plus priority scoring.</span><span class="tag paid">$19</span></span>
-        <span class="u">mangorrinha.gumroad.com/l/<wbr>morning-digest-extended</span></a></li>
-      <li><a href="https://mangorrinha.gumroad.com/l/workflow-lab" target="_blank" rel="noopener">
-        <span class="t"><span>Workflow lab starter. Prompts and tokens for UI states.</span><span class="tag">free</span></span>
-        <span class="u">mangorrinha.gumroad.com/l/<wbr>workflow-lab</span></a></li>
-      <li><a href="https://mangorrinha.gumroad.com/l/workflow-lab-extended" target="_blank" rel="noopener">
-        <span class="t"><span>Workflow lab, the full kit.</span><span class="tag paid">$29</span></span>
-        <span class="u">mangorrinha.gumroad.com/l/<wbr>workflow-lab-extended</span></a></li>
-    </ul>
+    <ul class="plist" id="links-list"></ul>
   </section>
 
   <section data-view="read" aria-labelledby="read-h" hidden>
@@ -327,6 +338,7 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
   </footer>
 </div>
 
+<script src="p/posts.js"></script>
 <script src="gallery.js"></script>
 <script src="topic-scene.js"></script>
 <script src="meadow.js"></script>
@@ -344,9 +356,37 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
    *  inside: what the download contains (shown in the gallery)      *
    *  get: [label, url, price] tiers, free first                     *
    * ============================================================== */
+  /* ============================================================== *
+   *  LINKS, grouped by the Instagram post they came from.           *
+   *  post: slug in posts/ (gives the cover thumbnail, title, date)  *
+   *  read: article slug for "Read more about it"                    *
+   *  links: [label, url, tag]  tag: "free", a price, or ""          *
+   *  Newest first. Entries without a post show as plain links.      *
+   * ============================================================== */
+  const LINKS = [
+    {
+      post: "first-thing-in-the-morning", read: "morning-digest",
+      links: [
+        ["The morning digest script", "https://mangorrinha.gumroad.com/l/morning-digest", "free"],
+        ["Extended: every connector plus priority scoring", "https://mangorrinha.gumroad.com/l/morning-digest-extended", "$19"],
+      ],
+    },
+    {
+      post: "the-ai-product-designer-shift", read: "designer-shift",
+      links: [
+        ["Workflow lab starter", "https://mangorrinha.gumroad.com/l/workflow-lab", "free"],
+        ["Workflow lab, the full kit", "https://mangorrinha.gumroad.com/l/workflow-lab-extended", "$29"],
+      ],
+    },
+    {
+      post: "your-design-system-is-now-a-prompt", read: "design-system-prompt",
+      links: [["About AX vs UX, read the article", "https://mangorrinha.gumroad.com/l/Designcompanion", ""]],
+    },
+  ];
+
   const ARTICLES = [
     {
-      slug: "morning-digest", kind: "Giveaway", read: "5 min", style: "dark",
+      slug: "morning-digest", post: "first-thing-in-the-morning", kind: "Giveaway", read: "5 min", style: "dark",
       title: "First thing in the morning?",
       lede: "Writing a daily morning digest script so you don't have to check six different tabs before 9 AM.",
       topic: { scene: "digest", from: "Six tabs", to: "One brief" },
@@ -367,7 +407,7 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
       ],
     },
     {
-      slug: "designer-shift", kind: "Perspective", read: "6 min", style: "light",
+      slug: "designer-shift", post: "the-ai-product-designer-shift", kind: "Perspective", read: "6 min", style: "light",
       title: "The AI Product Designer Shift",
       lede: "Stop treating AI like a chatbot. Product design is shifting to workflow architecture.",
       topic: { scene: "architect", from: "Pushing pixels", to: "Designing the system" },
@@ -387,7 +427,7 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
       ],
     },
     {
-      slug: "design-system-prompt", kind: "Perspective", read: "4 min", style: "dark",
+      slug: "design-system-prompt", post: "your-design-system-is-now-a-prompt", kind: "Perspective", read: "4 min", style: "dark",
       title: "Your design system is now a prompt",
       lede: "Components used to be the system. Now the rules are.",
       topic: { scene: "system", from: "Components", to: "Rules an agent can read" },
@@ -408,6 +448,36 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
   const num = i => String(i + 1).padStart(2, "0");
   const hypno = s => `<span class="hypno" style="--s:${s}px"><i>@</i><i>@</i><i>@</i><i>@</i><i>@</i></span>`;
   $("#logo").innerHTML = SVG.logo;
+
+  /* ---------- the Instagram post a link or article came from ---------- */
+  const POSTS = window.POSTS || {};
+  const fmtDate = d => {
+    if (!d) return "";
+    const t = new Date(d + "T12:00:00");
+    return isNaN(t) ? d : t.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  };
+  const fromLabel = p => ["From the post", fmtDate(p.date)].filter(Boolean).join(" · ");
+  function fromPost(slug) {
+    const p = POSTS[slug]; if (!p) return "";
+    return `<span class="frompost">${p.cover ? `<img src="${esc(p.cover)}" alt="">` : ""}<span>${esc(fromLabel(p))}<b>${esc(p.name)}</b></span></span>`;
+  }
+  const linkItem = ([t, url, tag]) => `<li><a href="${esc(url)}" target="_blank" rel="noopener">
+    <span class="t"><span>${esc(t)}</span>${tag ? `<span class="tag ${tag === "free" ? "" : "paid"}">${esc(tag)}</span>` : ""}</span>
+    <span class="u">${esc(url.replace(/^https:\/\//, ""))}</span></a></li>`;
+  function renderLinks() {
+    $("#links-list").innerHTML = LINKS.map(g => {
+      const p = POSTS[g.post];
+      const art = g.read && ARTICLES.find(a => a.slug === g.read);
+      const more = art ? `<li><a class="more" href="#${art.slug}">Read more about it →</a></li>` : "";
+      if (!p) return `<li class="prow solo"><div><ul>${g.links.map(linkItem).join("")}${more}</ul></div></li>`;
+      return `<li class="prow">
+        <a class="thumb" href="${art ? "#" + art.slug : esc(g.links[0][1])}" aria-label="${esc(p.name)}">${p.cover ? `<img src="${esc(p.cover)}" alt="Cover of the post: ${esc(p.name)}">` : ""}</a>
+        <div><div class="from">${esc(fromLabel(p))}</div><div class="ptitle">${esc(p.name)}</div>
+        <ul>${g.links.map(linkItem).join("")}${more}</ul></div>
+      </li>`;
+    }).join("");
+  }
+  renderLinks();
 
   /* ---------- cards ---------- */
   function cardHTML(a, i) {
@@ -441,7 +511,7 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
         <p class="lede">${esc(a.lede)}</p>
         <div class="excerpt">${firstH ? `<h3>${esc(firstH[1])}</h3>` : ""}${paras.map(p => `<p>${p[1]}</p>`).join("")}</div>
         <a class="btn solid go-read" href="#${a.slug}">Continue reading →</a>
-        ${free ? `<p class="later">There's a free template at the end of the article.</p>` : ""}
+        ${free || POSTS[a.post] ? `<div class="later">${POSTS[a.post] ? fromPost(a.post) : ""}${free ? `<p style="margin:12px 0 0">There's a free template at the end of the article.</p>` : ""}</div>` : ""}
       </div>`;
   }
 
@@ -489,6 +559,7 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
       <div class="meta"><span class="pill">${esc(a.kind)}</span><span>${esc(a.read)} read</span></div>
       <h1>${esc(a.title)}</h1>
       <p class="lede">${esc(a.lede)}</p>
+      ${a.post && POSTS[a.post] ? `<p style="margin:-14px auto 30px">${fromPost(a.post)}</p>` : ""}
       ${a.topic ? `<figure class="ts" id="ts"><div class="ts-stage"></div>
         <figcaption><span class="ts-a">${esc(a.topic.from)}</span><span class="arr">→</span><em class="ts-b">${esc(a.topic.to)}</em></figcaption></figure>` : ""}
       ${a.body.map(block).join("")}
