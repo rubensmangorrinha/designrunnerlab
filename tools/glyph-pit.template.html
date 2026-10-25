@@ -10,14 +10,16 @@
   One file. Open it in a browser and play.
 
   The effect: the brand's hand-drawn glyphs are real rigid bodies (Matter.js physics).
-    move the mouse  -> the cursor is a force field; your swipe speed becomes wind,
-                       and gravity leans toward the side the cursor is on
-    drag            -> grab a glyph and throw it (no ceiling: it flies off and falls back)
-    click empty     -> shockwave ring + a new glyph pops up from the floor
-    click a glyph   -> it jumps
-    scroll          -> the whole pit gets shaken by your scroll speed
-    touch           -> tap for the shockwave; page scrolling keeps working
-    reduced motion  -> the pile settles once and stays still
+    the runner      -> hops along the floor by itself, turns at the walls,
+                       and leaps away when your cursor gets close
+    the rose        -> stands upright, blooms on a loop and sways
+    move the mouse  -> a soft force field pushes the glyphs; swipe speed becomes wind
+    drag            -> grab anything and throw it (no ceiling: it flies off and falls back)
+    click empty     -> a ring + one new glyph pops up from the floor
+    click a piece   -> it jumps
+    scroll          -> the floor gets nudged by your scroll speed
+    touch           -> tap for the ring; page scrolling keeps working
+    reduced motion  -> everything settles once and stays still
 
   Built from tools/glyph-pit.template.html + site/glyph-pit.js by tools/build-site.py.
 -->
@@ -39,7 +41,7 @@ html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "
 }
 .title h1 { margin: 0; font-weight: 400; font-size: clamp(48px, 10vw, 150px); line-height: 0.95; letter-spacing: -0.045em; }
 .title p { margin: 18px 0 0; color: var(--muted); font-size: 18px; }
-.hint { position: absolute; top: 24px; left: max(24px, 5vw); font-family: "Caveat Brush", cursive; font-size: 24px; color: var(--muted); pointer-events: none; z-index: 1; }
+.hint { position: absolute; top: 24px; left: max(24px, 5vw); font-size: 15px; color: var(--muted); pointer-events: none; z-index: 1; }
 
 /* Something to scroll past, so the scroll shake has a reason to happen. */
 .below { max-width: 640px; margin: 0 auto; padding: 120px 24px 60vh; font-size: 20px; line-height: 1.5; color: var(--muted); }
@@ -73,14 +75,20 @@ const SVG = /*__SVG__*/{};
 
 GlyphPit.mount(document.getElementById("pit"), {
   ink: "#ece8de",
-  red: "#e0301e",
   font: '"Caveat Brush", cursive',
-  max: 70,
-  glyphs: [
-    { svg: SVG.qp, h: 56 }, { svg: SVG.eq, h: 62 }, { svg: SVG.lab, h: 120 },
-    { svg: SVG.bookmark, h: 140 }, { svg: SVG.logo, h: 34 },
-    { text: "@", h: 80, color: "#e0301e" }, { text: "<3", h: 60 }, { text: "*", h: 60 },
+  // The cast: a few characters with a life of their own.
+  // The runner and the rose are animated SVGs, embedded as data URIs.
+  cast: [
+    { src: "/*__RUNNER__*/", w: 212, h: 160, role: "runner" },
+    { svg: SVG.qp, h: 90 },
+    { src: "/*__ROSE__*/", w: 82, h: 340, role: "rose" },
+    { svg: SVG.lab, h: 190 },
+    { svg: SVG.eq, h: 96 },
+    { svg: SVG.bookmark.replace("var(--red)", "#e0301e"), h: 210 },
+    { text: "@", h: 100, color: "#e0301e" },
   ],
+  // What a click on the empty floor can bring in.
+  spawn: [{ svg: SVG.qp, h: 70 }, { svg: SVG.eq, h: 76 }, { text: "@", h: 80, color: "#e0301e" }, { text: "*", h: 70 }],
 });
 </script>
 </body>

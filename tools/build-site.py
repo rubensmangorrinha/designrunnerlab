@@ -26,6 +26,11 @@ site.write_text(html)
 
 pit = (ROOT / "site" / "glyph-pit.js").read_text()
 tpl = (ROOT / "tools" / "glyph-pit.template.html").read_text()
-out = tpl.replace("/*__GLYPH_PIT__*/", pit).replace("/*__SVG__*/{}", blob)
+from urllib.parse import quote
+def data_uri(name):
+    svg_text = (ROOT / "site" / "assets" / name).read_text()
+    return "data:image/svg+xml;charset=utf-8," + quote(svg_text, safe="")
+out = (tpl.replace("/*__GLYPH_PIT__*/", pit).replace("/*__SVG__*/{}", blob)
+          .replace("/*__RUNNER__*/", data_uri("runner-cream.svg")).replace("/*__ROSE__*/", data_uri("rose-bloom.svg")))
 (ROOT / "experiments" / "glyph-pit.html").write_text(out)
 print("built site/index.html and experiments/glyph-pit.html")
