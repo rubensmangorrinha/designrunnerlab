@@ -13,6 +13,10 @@
  *                 01.jpg, 02.jpg, ...            first frame, used as the video thumbnail
  *   buffer.json   caption + media URLs + alt text, ready for Buffer's create_post
  *
+ * Slides designed elsewhere (Figma exports) skip the studio: list them in
+ * "images" (paths from the repo root) with one "alt" line each, and they are
+ * copied in as 01.png, 02.png, ... with the same thumb.jpg and buffer.json.
+ *
  * Set SITE_URL to where site/ is deployed so the URLs in buffer.json are real:
  *   SITE_URL=https://designrunnerlab.com node tools/render-posts.js
  */
@@ -67,7 +71,11 @@ async function main() {
     fs.mkdirSync(outDir, { recursive: true });
     for (const f of fs.readdirSync(outDir)) if (/\.(png|jpg|mp4)$/.test(f)) fs.unlinkSync(path.join(outDir, f));
 
-    const stills = await page.evaluate(j => window.PostStudio.render(j), json);
+    const stills = json.images
+      ? json.images.map((f, i) => ({ n: i + 1, file: path.join(ROOT, f),
+          png: "data:image/png;base64," + fs.readFileSync(path.join(ROOT, f)).toString("base64"),
+          alt: `Slide ${i + 1} of ${json.images.length}. ${(json.alt || [])[i] || ""}`.trim() }))
+      : await page.evaluate(j => window.PostStudio.render(j), json);
     // small cover thumbnail for the website's Links page
     const thumb = await page.evaluate(src => new Promise(res => {
       const im = new Image();
@@ -79,8 +87,14 @@ async function main() {
     const motion = Number(json.motion) || 0;
     let media;
 
-    if (motion > 0 && !ffmpeg) console.warn(`  ${slug}: motion is ${motion * 100}% but ffmpeg isn't installed, so slides stay still.`);
-    if (motion > 0 && ffmpeg) {
+    if (json.images) {
+      media = stills.map(s => {
+        const name = String(s.n).padStart(2, "0") + ".png";
+        fs.copyFileSync(s.file, path.join(outDir, name));
+        return { type: "image", file: `p/${slug}/${name}`, url: `${SITE_URL}/p/${slug}/${name}`, alt: s.alt };
+      });
+    } else if (motion > 0 && !ffmpeg) console.warn(`  ${slug}: motion is ${motion * 100}% but ffmpeg isn't installed, so slides stay still.`);
+    else if (motion > 0 && ffmpeg) {
       const info = await page.evaluate(j => window.PostStudio.prepare(j), json);
       const frames = Math.round(info.loop * info.fps);
       media = [];

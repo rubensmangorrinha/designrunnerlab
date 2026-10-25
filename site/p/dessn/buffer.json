@@ -1,0 +1,33 @@
+{
+  "slug": "dessn",
+  "name": "Design directly in your codebase",
+  "purpose": "learn",
+  "motion": 0,
+  "caption": "Design directly in your codebase. Dessn connects to your repo and builds a design canvas from your real components. It is read-only, so nothing is pushed back. One tool, explained. More new tools: link in bio.",
+  "media": [
+    {
+      "type": "image",
+      "file": "p/dessn/01.png",
+      "url": "https://designrunnerlab.vercel.app/p/dessn/01.png",
+      "alt": "Slide 1 of 4. Design directly in your codebase. Dessn turns a real codebase into a design canvas in one click."
+    },
+    {
+      "type": "image",
+      "file": "p/dessn/02.png",
+      "url": "https://designrunnerlab.vercel.app/p/dessn/02.png",
+      "alt": "Slide 2 of 4. Dessn website: turn your codebase into a design canvas in one click."
+    },
+    {
+      "type": "image",
+      "file": "p/dessn/03.png",
+      "url": "https://designrunnerlab.vercel.app/p/dessn/03.png",
+      "alt": "Slide 3 of 4. What it does: connects to your repo and builds a design canvas from your real components. How you use it: design visually, collaborate live, and prompt AI to explore layouts. Good to know: it is read-only, so nothing is pushed back to your repo."
+    },
+    {
+      "type": "image",
+      "file": "p/dessn/04.png",
+      "url": "https://designrunnerlab.vercel.app/p/dessn/04.png",
+      "alt": "Slide 4 of 4. LAB. One tool, explained. More new tools: link in bio."
+    }
+  ]
+}

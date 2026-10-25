@@ -1,0 +1,33 @@
+{
+  "slug": "mcp-explained-for-designers",
+  "name": "MCP, explained for designers",
+  "purpose": "learn",
+  "motion": 0,
+  "caption": "MCP, explained for designers. A standard way for AI tools to connect to your apps and data: one connection, many tools, no copy-paste. Try it first: connect one tool you already use and ask for a summary.",
+  "media": [
+    {
+      "type": "image",
+      "file": "p/mcp-explained-for-designers/01.png",
+      "url": "https://designrunnerlab.vercel.app/p/mcp-explained-for-designers/01.png",
+      "alt": "Slide 1 of 4. MCP, explained for designers. Your AI tools can plug into the rest of your stack."
+    },
+    {
+      "type": "image",
+      "file": "p/mcp-explained-for-designers/02.png",
+      "url": "https://designrunnerlab.vercel.app/p/mcp-explained-for-designers/02.png",
+      "alt": "Slide 2 of 4. What it is: a standard way for AI tools to connect to your apps and data. Why it matters: one connection, many tools, no copy-paste. Try it first: connect one tool you already use and ask for a summary."
+    },
+    {
+      "type": "image",
+      "file": "p/mcp-explained-for-designers/03.png",
+      "url": "https://designrunnerlab.vercel.app/p/mcp-explained-for-designers/03.png",
+      "alt": "Slide 3 of 4. Connect once. Use everywhere."
+    },
+    {
+      "type": "image",
+      "file": "p/mcp-explained-for-designers/04.png",
+      "url": "https://designrunnerlab.vercel.app/p/mcp-explained-for-designers/04.png",
+      "alt": "Slide 4 of 4. LAB. Stop guessing what works. Check out the docs: link in bio."
+    }
+  ]
+}

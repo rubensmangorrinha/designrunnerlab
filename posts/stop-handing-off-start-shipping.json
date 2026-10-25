@@ -1,0 +1,46 @@
+{
+  "name": "Stop handing off. Start shipping",
+  "purpose": "view",
+  "theme": "cream",
+  "date": "2026-11-05",
+  "caption": "Stop Handing Off, Start Shipping. The boundary between design and code is blurring fast. Here's how product design workflows are evolving:\n\nOld way: Exporting specs and waiting for the build.\nNew way: Working in the real codebase and reviewing what ships.\n\nThe last mile is design, too. Are you currently editing in the codebase or sticking to standard design handoffs? Drop your setup below.",
+  "slides": [
+    {
+      "bg": "flat",
+      "seed": 3,
+      "top": "text",
+      "glyph": "q(*_*)p",
+      "intro": "The boundary is blurring.",
+      "headline": "Stop handing off.\nStart shipping.",
+      "sub": "",
+      "scale": 100,
+      "template": "cover",
+      "theme": null
+    },
+    {
+      "header": "",
+      "body": "**Old way:**\nExporting specs and waiting for the build.\n\n**New way:**\nWorking in the real codebase and reviewing what ships.",
+      "glyph": "(—▽—)",
+      "showGlyph": true,
+      "spread": false,
+      "template": "breakdown",
+      "theme": null
+    },
+    {
+      "glyph": "The last mile\nis design too",
+      "small": "",
+      "caption": "",
+      "size": 110,
+      "template": "glyph",
+      "theme": null
+    },
+    {
+      "mark": "lab",
+      "glyph": "q(*_*)p",
+      "aside": "",
+      "cta": "**Explore the workflow lab.**\nLink in bio.",
+      "template": "outro",
+      "theme": null
+    }
+  ]
+}

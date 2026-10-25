@@ -1,0 +1,46 @@
+{
+  "name": "How to audit an AI-generated UI",
+  "purpose": "view",
+  "theme": "charcoal",
+  "date": "2026-10-29",
+  "caption": "Auditing AI-generated UI isn't about re-designing from scratch, it's about spot-checking key details. Here's a quick 3-step framework to review AI UI components before they go live:\n\nHierarchy: Can you tell what matters in three seconds?\nStates: Check empty, error, loading, and long-text cases.\nSystem: Compare spacing, typography, and color against your core design tokens.\n\nTrust the generation, but always verify the details. What's your go-to check when reviewing AI UI design? Let us know below!",
+  "slides": [
+    {
+      "bg": "flat",
+      "seed": 3,
+      "top": "text",
+      "glyph": "q(*_*)p",
+      "intro": "Three checks before it ships.",
+      "headline": "How to audit\nAI-generated UI",
+      "sub": "",
+      "scale": 80,
+      "template": "cover",
+      "theme": null
+    },
+    {
+      "header": "",
+      "body": "**Hierarchy:**\nCan you tell what matters in three seconds?\n\n**States:**\nCheck empty, error, loading, and long-text cases.\n\n**System:**\nCompare spacing, typography, and color against your core design tokens.",
+      "glyph": "q(*_*)p",
+      "showGlyph": true,
+      "spread": false,
+      "template": "breakdown",
+      "theme": null
+    },
+    {
+      "glyph": "Trust\nthen verify",
+      "small": "",
+      "caption": "",
+      "size": 100,
+      "template": "glyph",
+      "theme": null
+    },
+    {
+      "mark": "lab",
+      "glyph": "q(*_*)p",
+      "aside": "",
+      "cta": "**Explore the workflow lab.**\nLink in bio.",
+      "template": "outro",
+      "theme": null
+    }
+  ]
+}

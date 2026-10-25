@@ -1,0 +1,33 @@
+{
+  "slug": "grok-bot",
+  "name": "AI teammates that do the work",
+  "purpose": "learn",
+  "motion": 0,
+  "caption": "AI teammates that do the work. Grok Bot signs into your tools and comes back with finished work. Early beta, needs an eligible plan. One tool, explained. More new tools: link in bio.",
+  "media": [
+    {
+      "type": "image",
+      "file": "p/grok-bot/01.png",
+      "url": "https://designrunnerlab.vercel.app/p/grok-bot/01.png",
+      "alt": "Slide 1 of 4. AI teammates that do the work. Grok Bot signs into your tools and comes back with finished work."
+    },
+    {
+      "type": "image",
+      "file": "p/grok-bot/02.png",
+      "url": "https://designrunnerlab.vercel.app/p/grok-bot/02.png",
+      "alt": "Slide 2 of 4. Grok website: meet Grok Bot."
+    },
+    {
+      "type": "image",
+      "file": "p/grok-bot/03.png",
+      "url": "https://designrunnerlab.vercel.app/p/grok-bot/03.png",
+      "alt": "Slide 3 of 4. What it does: Bots are AI teammates that sign in to your tools and use them like you do. How it works: each Bot gets its own cloud computer and keeps working when your laptop is closed. Good to know: it is in early beta and needs an eligible plan."
+    },
+    {
+      "type": "image",
+      "file": "p/grok-bot/04.png",
+      "url": "https://designrunnerlab.vercel.app/p/grok-bot/04.png",
+      "alt": "Slide 4 of 4. LAB. One tool, explained. More new tools: link in bio."
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "stop-handing-off-start-shipping",
+  "name": "Stop handing off. Start shipping",
+  "purpose": "view",
+  "motion": 0,
+  "caption": "Stop Handing Off, Start Shipping. The boundary between design and code is blurring fast. Here's how product design workflows are evolving:\n\nOld way: Exporting specs and waiting for the build.\nNew way: Working in the real codebase and reviewing what ships.\n\nThe last mile is design, too. Are you currently editing in the codebase or sticking to standard design handoffs? Drop your setup below.",
+  "media": [
+    {
+      "type": "image",
+      "file": "p/stop-handing-off-start-shipping/01.png",
+      "url": "https://designrunnerlab.vercel.app/p/stop-handing-off-start-shipping/01.png",
+      "alt": "Slide 1 of 4. The boundary is blurring. Stop handing off. Start shipping."
+    },
+    {
+      "type": "image",
+      "file": "p/stop-handing-off-start-shipping/02.png",
+      "url": "https://designrunnerlab.vercel.app/p/stop-handing-off-start-shipping/02.png",
+      "alt": "Slide 2 of 4. Old way: Exporting specs and waiting for the build. New way: Working in the real codebase and reviewing what ships."
+    },
+    {
+      "type": "image",
+      "file": "p/stop-handing-off-start-shipping/03.png",
+      "url": "https://designrunnerlab.vercel.app/p/stop-handing-off-start-shipping/03.png",
+      "alt": "Slide 3 of 4. Glyph slide"
+    },
+    {
+      "type": "image",
+      "file": "p/stop-handing-off-start-shipping/04.png",
+      "url": "https://designrunnerlab.vercel.app/p/stop-handing-off-start-shipping/04.png",
+      "alt": "Slide 4 of 4. Explore the workflow lab. Link in bio."
+    }
+  ]
+}

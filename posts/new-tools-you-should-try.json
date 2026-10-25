@@ -2,42 +2,20 @@
   "name": "New tools you should try",
   "purpose": "learn",
   "theme": "blue",
-  "date": "",
-  "caption": "Automated videos, visualizing codebases, agent bots, data storing. Save this one.",
-  "slides": [
-    {
-      "bg": "flat",
-      "seed": 3,
-      "top": "logo",
-      "glyph": "q(*_*)p",
-      "intro": "",
-      "headline": "New tools\nyou should try",
-      "sub": "Automated videos, visualizing codebases, agents bots, data storing, you name it.",
-      "scale": 92,
-      "template": "cover",
-      "theme": null
-    },
-    {
-      "title": "Jitter",
-      "image": null,
-      "split": 44,
-      "template": "showcase",
-      "theme": null
-    },
-    {
-      "header": "",
-      "body": "**Automate Your Motion:**\nMove past manual keyframes.\n\n**AI-Assisted Workflow:**\nSpeed up asset creation and dynamic motion design.\n\n**Ship Faster:**\nSpend less time tweaking, more time launching.",
-      "glyph": "(= =)",
-      "showGlyph": true,
-      "spread": false,
-      "template": "breakdown",
-      "theme": null
-    },
-    {
-      "title": "Save it for later",
-      "showLogo": true,
-      "template": "save",
-      "theme": null
-    }
+  "date": "2026-11-10",
+  "caption": "New tools you should try. Three worth learning: Dessn (design directly in your codebase), Grok Bot (AI teammates that do the work) and Obsidian (private notes you own). Save it for later. More in the lab, link in bio.",
+  "images": [
+    "posts/media/new-tools-you-should-try/01.png",
+    "posts/media/new-tools-you-should-try/02.png",
+    "posts/media/new-tools-you-should-try/03.png",
+    "posts/media/new-tools-you-should-try/04.png",
+    "posts/media/new-tools-you-should-try/05.png"
+  ],
+  "alt": [
+    "New tools you should try. Automated videos, visualizing codebases, agent bots, data storing, you name it.",
+    "Dessn: turn your codebase into a design canvas in one click.",
+    "Grok: meet Grok Bot, AI teammates you can give real work to.",
+    "Obsidian: sharpen your thinking. The free and flexible app for your private thoughts.",
+    "Save it for later."
   ]
 }

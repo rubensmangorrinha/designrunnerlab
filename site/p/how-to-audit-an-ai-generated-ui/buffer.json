@@ -1,0 +1,33 @@
+{
+  "slug": "how-to-audit-an-ai-generated-ui",
+  "name": "How to audit an AI-generated UI",
+  "purpose": "view",
+  "motion": 0,
+  "caption": "Auditing AI-generated UI isn't about re-designing from scratch, it's about spot-checking key details. Here's a quick 3-step framework to review AI UI components before they go live:\n\nHierarchy: Can you tell what matters in three seconds?\nStates: Check empty, error, loading, and long-text cases.\nSystem: Compare spacing, typography, and color against your core design tokens.\n\nTrust the generation, but always verify the details. What's your go-to check when reviewing AI UI design? Let us know below!",
+  "media": [
+    {
+      "type": "image",
+      "file": "p/how-to-audit-an-ai-generated-ui/01.png",
+      "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/01.png",
+      "alt": "Slide 1 of 4. Three checks before it ships. How to audit AI-generated UI."
+    },
+    {
+      "type": "image",
+      "file": "p/how-to-audit-an-ai-generated-ui/02.png",
+      "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/02.png",
+      "alt": "Slide 2 of 4. Hierarchy: Can you tell what matters in three seconds? States: Check empty, error, loading, and long-text cases. System: Compare spacing, typography, and color against your core design tokens."
+    },
+    {
+      "type": "image",
+      "file": "p/how-to-audit-an-ai-generated-ui/03.png",
+      "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/03.png",
+      "alt": "Slide 3 of 4. Glyph slide"
+    },
+    {
+      "type": "image",
+      "file": "p/how-to-audit-an-ai-generated-ui/04.png",
+      "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/04.png",
+      "alt": "Slide 4 of 4. Explore the workflow lab. Link in bio."
+    }
+  ]
+}

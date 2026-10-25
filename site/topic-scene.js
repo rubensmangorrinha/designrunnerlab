@@ -11,6 +11,8 @@
  *   architect  scattered pixels snap into an ordered grid
  *   system     UI components flatten into lines of written rules
  *   agents     a screen built for eyes rearranges into the read-decide-act-check loop
+ *   hub        six tools wired one by one (plus copy-paste) settle onto one shared connection
+ *   graph      loose note cards shrink into dots joined by links
  *
  *   TopicScene.mount(element, "digest") -> { destroy() }
  */
@@ -24,7 +26,54 @@
 
   /* Shapes live in a 14 x 7 unit world centred on 0,0.
      Each entry: { p:[x,y], s:[w,h], r:rotation, d:depth 0-1 (parallax), c:colour } for before (a) and after (b). */
+  /* A thin bar from point to point, so links can be drawn with the same rounded rects. */
+  function bar(x1, y1, x2, y2, t, d, c) {
+    var dx = x2 - x1, dy = y2 - y1;
+    return { p: [(x1 + x2) / 2, (y1 + y2) / 2], s: [Math.sqrt(dx * dx + dy * dy), t], r: Math.atan2(dy, dx), d: d, c: c };
+  }
+
   var STORIES = {
+    hub: function () {
+      var a = [], b = [], i;
+      // six tools around the AI, each wired on its own -> sitting in a row on one connection
+      var spots = [[-5.0, -1.9], [-1.9, -2.5], [2.3, -2.4], [5.0, -1.4], [4.3, 2.3], [-4.4, 2.1]];
+      for (i = 0; i < 6; i++) {
+        var tx = spots[i][0], ty = spots[i][1];
+        var rx = (i - 2.5) * 1.75;
+        a.push({ p: [tx, ty], s: [1.2, 0.8], r: (i - 2.5) * 0.06, d: 0.2 + (i % 3) * 0.3, c: INK });
+        b.push({ p: [rx, -1.9], s: [1.3, 0.8], r: 0, d: 0.5, c: INK });
+        a.push(bar(tx, ty, 0, 0.6, 0.04, 0.4, DIM));
+        b.push(bar(rx, -1.5, rx, -0.75, 0.05, 0.5, DIM));
+      }
+      // the AI in the middle
+      a.push({ p: [0, 0.6], s: [2.2, 1.3], r: 0, d: 0.6, c: INK });
+      b.push({ p: [0, 1.75], s: [2.6, 1.2], r: 0, d: 0.5, c: INK });
+      // two red copy-paste scraps -> the shared connection and its single link down
+      a.push({ p: [-1.6, 2.3], s: [0.7, 0.45], r: -0.3, d: 0.9, c: RED });
+      b.push({ p: [0, -0.7], s: [10.0, 0.14], r: 0, d: 0.5, c: RED });
+      a.push({ p: [1.7, -1.4], s: [0.6, 0.4], r: 0.25, d: 0.9, c: RED });
+      b.push({ p: [0, 0.4], s: [0.06, 1.5], r: 0, d: 0.5, c: RED });
+      return { a: a, b: b };
+    },
+
+    graph: function () {
+      var r = rng(5), a = [], b = [], i;
+      var nodes = [[-4.2, -1.2], [-2.6, 0.9], [-1.1, -1.6], [0, 0.2], [1.3, -1.3], [1.6, 1.6], [3.1, -0.2], [4.4, 1.3], [-3.6, 2.2], [0.3, 2.4], [4.0, -2.0], [-1.6, 2.0]];
+      var links = [[0, 1], [1, 3], [2, 3], [3, 4], [3, 5], [4, 6], [6, 7], [1, 8], [5, 9], [6, 10], [9, 11], [2, 0]];
+      // loose lines of text -> the links between notes (drawn first, so dots sit on top)
+      links.forEach(function (l) {
+        var A = nodes[l[0]], B = nodes[l[1]];
+        a.push({ p: [(r() - 0.5) * 12, (r() - 0.5) * 5.4], s: [0.9, 0.08], r: 0, d: r(), c: DIM });
+        b.push(bar(A[0], A[1], B[0], B[1], 0.05, 0.5, DIM));
+      });
+      // notes as loose cards -> dots in a graph, the centre note red
+      nodes.forEach(function (n, k) {
+        a.push({ p: [(r() - 0.5) * 12, (r() - 0.5) * 5.4], s: [1.3, 0.85], r: (r() - 0.5) * 0.5, d: r(), c: k === 3 ? RED : INK });
+        b.push({ p: n, s: [k === 3 ? 0.5 : 0.34, k === 3 ? 0.5 : 0.34], r: 0, d: 0.5, c: k === 3 ? RED : INK });
+      });
+      return { a: a, b: b };
+    },
+
     agents: function () {
       var a = [], b = [];
       // before: a screen for a person (header, hero, text, two buttons, avatar)

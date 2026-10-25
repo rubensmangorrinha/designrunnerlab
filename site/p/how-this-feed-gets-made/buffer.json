@@ -8,20 +8,26 @@
     {
       "type": "image",
       "file": "p/how-this-feed-gets-made/01.png",
-      "url": "https://YOUR-SITE/p/how-this-feed-gets-made/01.png",
-      "alt": "Slide 1 of 3. Templates, rules, and a queue. How this feed gets made."
+      "url": "https://designrunnerlab.vercel.app/p/how-this-feed-gets-made/01.png",
+      "alt": "Slide 1 of 4. How this feed gets made. Templates, rules, and a queue."
     },
     {
       "type": "image",
       "file": "p/how-this-feed-gets-made/02.png",
-      "url": "https://YOUR-SITE/p/how-this-feed-gets-made/02.png",
-      "alt": "Slide 2 of 3. Templates: Seven layouts, four colours, one typeface. Rules: Headline bottom left. Glyph top left. Nothing centred unless it is the only thing. Queue: One carousel a day, drafted the night before."
+      "url": "https://designrunnerlab.vercel.app/p/how-this-feed-gets-made/02.png",
+      "alt": "Slide 2 of 4. The Templates: four colours, one per category, built once. The Rules: every post follows the same cover and carousel logic. The Queue: exported, scheduled, and left alone."
     },
     {
       "type": "image",
       "file": "p/how-this-feed-gets-made/03.png",
-      "url": "https://YOUR-SITE/p/how-this-feed-gets-made/03.png",
-      "alt": "Slide 3 of 3. Texture slide"
+      "url": "https://designrunnerlab.vercel.app/p/how-this-feed-gets-made/03.png",
+      "alt": "Slide 3 of 4. The system is the product."
+    },
+    {
+      "type": "image",
+      "file": "p/how-this-feed-gets-made/04.png",
+      "url": "https://designrunnerlab.vercel.app/p/how-this-feed-gets-made/04.png",
+      "alt": "Slide 4 of 4. LAB. Explore the workflow lab. Link in bio."
     }
   ]
 }

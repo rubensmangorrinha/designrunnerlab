@@ -6,6 +6,12 @@ window.POSTS = {
     "purpose": "view",
     "cover": "p/aux-vs-ux/thumb.jpg"
   },
+  "dessn": {
+    "name": "Design directly in your codebase",
+    "date": "",
+    "purpose": "learn",
+    "cover": "p/dessn/thumb.jpg"
+  },
   "dive-club": {
     "name": "Dive Club",
     "date": "",
@@ -24,15 +30,33 @@ window.POSTS = {
     "purpose": "learn",
     "cover": "p/free-ai-courses/thumb.jpg"
   },
+  "grok-bot": {
+    "name": "AI teammates that do the work",
+    "date": "",
+    "purpose": "learn",
+    "cover": "p/grok-bot/thumb.jpg"
+  },
   "how-this-feed-gets-made": {
     "name": "How this feed gets made",
     "date": "",
     "purpose": "view",
     "cover": "p/how-this-feed-gets-made/thumb.jpg"
   },
+  "how-to-audit-an-ai-generated-ui": {
+    "name": "How to audit an AI-generated UI",
+    "date": "2026-10-29",
+    "purpose": "view",
+    "cover": "p/how-to-audit-an-ai-generated-ui/thumb.jpg"
+  },
+  "mcp-explained-for-designers": {
+    "name": "MCP, explained for designers",
+    "date": "2026-11-03",
+    "purpose": "learn",
+    "cover": "p/mcp-explained-for-designers/thumb.jpg"
+  },
   "new-tools-you-should-try": {
     "name": "New tools you should try",
-    "date": "",
+    "date": "2026-11-10",
     "purpose": "learn",
     "cover": "p/new-tools-you-should-try/thumb.jpg"
   },
@@ -41,6 +65,18 @@ window.POSTS = {
     "date": "",
     "purpose": "listen",
     "cover": "p/podcasts-worth-your-commute/thumb.jpg"
+  },
+  "sharpen-your-thinking": {
+    "name": "Sharpen your thinking",
+    "date": "2026-10-27",
+    "purpose": "learn",
+    "cover": "p/sharpen-your-thinking/thumb.jpg"
+  },
+  "stop-handing-off-start-shipping": {
+    "name": "Stop handing off. Start shipping",
+    "date": "2026-11-05",
+    "purpose": "view",
+    "cover": "p/stop-handing-off-start-shipping/thumb.jpg"
   },
   "the-ai-product-designer-shift": {
     "name": "The AI Product Designer Shift",

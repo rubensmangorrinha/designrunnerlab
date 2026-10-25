@@ -55,6 +55,16 @@ The motion is tuned to about half the website's intensity. Frame 0 is always the
 
 `purpose` sets the colour (see below). Any slide can override it with `"theme"`. Fields you leave out use the template's defaults. Images can be data URLs (from the studio) or paths and URLs the studio can load.
 
+Slides designed in Figma skip the studio. Put the exports in `posts/media/<slug>/` and list them instead of `slides`, with one alt line per slide:
+
+```json
+{ "name": "MCP, explained for designers", "purpose": "learn", "date": "2026-11-03", "caption": "…",
+  "images": ["posts/media/mcp-explained-for-designers/01.png", "…"],
+  "alt": ["MCP, explained for designers. Your AI tools can plug into the rest of your stack.", "…"] }
+```
+
+The renderer copies them into `site/p/<slug>/` with the same `thumb.jpg` and `buffer.json`.
+
 ---
 
 ## The system
@@ -109,17 +119,21 @@ The studio warns you when a colour breaks the rule.
 
 - **Links:** grouped by the Instagram post they came from. Each entry shows the post's cover slide, its date and its title, then the Gumroad links and "Read more about it". Edit `LINKS` in `site/index.html`. The cover, title and date come from `site/p/posts.js`, which `tools/render-posts.js` writes from `posts/*.json`. Give every post a `date` (YYYY-MM-DD) so people can match it to what they saw. Only add a Gumroad link when something real is attached; a post without one just gets "Read more about it". A hypnotic looping @ sits beside the heading.
 - **Read:** an infinite gallery you drag around. It drifts to a stop when you let go, horizontal trackpad swipes pan it, and the cards are reachable with Tab. Clicking a card scales it into an overlay with close-ups, what's inside, a Free or Extended choice and the Gumroad button. A List view is one click away.
-- **Articles (`#<slug>`):** after the title and first paragraph, a Three.js scene acts out the topic as you scroll, lit by a light that follows the mouse:
+- **Articles (`#<slug>`):** after the title and first paragraph, a flat 2D scene acts out the topic as you scroll, with a little mouse parallax (`site/topic-scene.js`):
+  - `agents`: a screen for eyes rearranges into the read, decide, act, check loop.
   - `digest`: six tabs fold into one brief.
-  - `architect`: pixels assemble into a system.
+  - `architect`: pixels assemble into a grid.
   - `system`: components flatten into written rules.
+  - `hub`: tools wired one by one settle onto one shared connection.
+  - `graph`: loose notes shrink into dots joined by links.
 
   Pick one per article with `topic.scene`.
+- **Scheduled posts:** a post with a future `date` stays hidden, along with its Links entry and its article, until that day, so articles can go in ahead of the Buffer queue. Add `?preview` to the URL to see everything.
 - **About:** the about text with the blooming rose.
 - **Footer:** a meadow of blooming roses swaying in the wind. Moving the cursor through them pushes a gust.
 - **Runner:** the running logo is the loading screen, and it leaps across a quick wipe on every page change.
 
-Everything respects reduced motion. Three.js is vendored in `site/vendor/`. Edit `ARTICLES` in `site/index.html` to add articles.
+Everything respects reduced motion. Edit `ARTICLES` in `site/index.html` to add articles.
 
 After editing the SVGs in `assets/`, run `python3 tools/build-site.py`. It also rebuilds `experiments/glyph-pit.html`, the standalone physics toy, from `experiments/glyph-pit.js`.
 

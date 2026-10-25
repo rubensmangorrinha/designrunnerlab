@@ -1,0 +1,27 @@
+{
+  "slug": "sharpen-your-thinking",
+  "name": "Sharpen your thinking",
+  "purpose": "learn",
+  "motion": 0,
+  "caption": "Sharpen your thinking. Obsidian is a free, flexible app that keeps your notes as plain files on your device, linked together. Research, references and ideas in one searchable place.",
+  "media": [
+    {
+      "type": "image",
+      "file": "p/sharpen-your-thinking/01.png",
+      "url": "https://designrunnerlab.vercel.app/p/sharpen-your-thinking/01.png",
+      "alt": "Slide 1 of 3. Sharpen your thinking. Obsidian keeps your notes as plain files on your device."
+    },
+    {
+      "type": "image",
+      "file": "p/sharpen-your-thinking/02.png",
+      "url": "https://designrunnerlab.vercel.app/p/sharpen-your-thinking/02.png",
+      "alt": "Slide 2 of 3. What it does: Keeps your notes as plain files on your device, linked together. How you use it: Link ideas, tag them, and explore the connections in a graph view. Why designers care: Research, references and ideas in one searchable place."
+    },
+    {
+      "type": "image",
+      "file": "p/sharpen-your-thinking/03.png",
+      "url": "https://designrunnerlab.vercel.app/p/sharpen-your-thinking/03.png",
+      "alt": "Slide 3 of 3. One tool, explained. More new tools: link in bio."
+    }
+  ]
+}

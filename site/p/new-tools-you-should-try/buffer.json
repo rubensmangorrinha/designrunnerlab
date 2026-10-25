@@ -3,31 +3,37 @@
   "name": "New tools you should try",
   "purpose": "learn",
   "motion": 0,
-  "caption": "Automated videos, visualizing codebases, agent bots, data storing. Save this one.",
+  "caption": "New tools you should try. Three worth learning: Dessn (design directly in your codebase), Grok Bot (AI teammates that do the work) and Obsidian (private notes you own). Save it for later. More in the lab, link in bio.",
   "media": [
     {
       "type": "image",
       "file": "p/new-tools-you-should-try/01.png",
-      "url": "https://YOUR-SITE/p/new-tools-you-should-try/01.png",
-      "alt": "Slide 1 of 4. New tools you should try. Automated videos, visualizing codebases, agents bots, data storing, you name it."
+      "url": "https://designrunnerlab.vercel.app/p/new-tools-you-should-try/01.png",
+      "alt": "Slide 1 of 5. New tools you should try. Automated videos, visualizing codebases, agent bots, data storing, you name it."
     },
     {
       "type": "image",
       "file": "p/new-tools-you-should-try/02.png",
-      "url": "https://YOUR-SITE/p/new-tools-you-should-try/02.png",
-      "alt": "Slide 2 of 4. Jitter."
+      "url": "https://designrunnerlab.vercel.app/p/new-tools-you-should-try/02.png",
+      "alt": "Slide 2 of 5. Dessn: turn your codebase into a design canvas in one click."
     },
     {
       "type": "image",
       "file": "p/new-tools-you-should-try/03.png",
-      "url": "https://YOUR-SITE/p/new-tools-you-should-try/03.png",
-      "alt": "Slide 3 of 4. Automate Your Motion: Move past manual keyframes. AI-Assisted Workflow: Speed up asset creation and dynamic motion design. Ship Faster: Spend less time tweaking, more time launching."
+      "url": "https://designrunnerlab.vercel.app/p/new-tools-you-should-try/03.png",
+      "alt": "Slide 3 of 5. Grok: meet Grok Bot, AI teammates you can give real work to."
     },
     {
       "type": "image",
       "file": "p/new-tools-you-should-try/04.png",
-      "url": "https://YOUR-SITE/p/new-tools-you-should-try/04.png",
-      "alt": "Slide 4 of 4. Save it for later."
+      "url": "https://designrunnerlab.vercel.app/p/new-tools-you-should-try/04.png",
+      "alt": "Slide 4 of 5. Obsidian: sharpen your thinking. The free and flexible app for your private thoughts."
+    },
+    {
+      "type": "image",
+      "file": "p/new-tools-you-should-try/05.png",
+      "url": "https://designrunnerlab.vercel.app/p/new-tools-you-should-try/05.png",
+      "alt": "Slide 5 of 5. Save it for later."
     }
   ]
 }

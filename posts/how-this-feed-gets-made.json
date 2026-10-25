@@ -4,41 +4,16 @@
   "theme": "charcoal",
   "date": "",
   "caption": "Templates, rules, and a queue. That's the whole machine.",
-  "slides": [
-    {
-      "bg": "flat",
-      "seed": 3,
-      "top": "text",
-      "glyph": "q(*_*)p",
-      "intro": "Templates, rules, and a queue.",
-      "headline": "How this feed\ngets made",
-      "sub": "",
-      "scale": 100,
-      "template": "cover",
-      "theme": null
-    },
-    {
-      "header": "",
-      "body": "**Templates:**\nSeven layouts, four colours, one typeface.\n\n**Rules:**\nHeadline bottom left. Glyph top left. Nothing centred unless it is the only thing.\n\n**Queue:**\nOne carousel a day, drafted the night before.",
-      "glyph": "@->--->---",
-      "showGlyph": true,
-      "spread": false,
-      "template": "breakdown",
-      "theme": null
-    },
-    {
-      "glyph": "",
-      "glyphPos": "center",
-      "vertical": false,
-      "card": null,
-      "caption": "",
-      "style": "glitch",
-      "density": 64,
-      "warp": 16,
-      "seed": 41,
-      "image": null,
-      "template": "texture",
-      "theme": null
-    }
+  "images": [
+    "posts/media/how-this-feed-gets-made/01.png",
+    "posts/media/how-this-feed-gets-made/02.png",
+    "posts/media/how-this-feed-gets-made/03.png",
+    "posts/media/how-this-feed-gets-made/04.png"
+  ],
+  "alt": [
+    "How this feed gets made. Templates, rules, and a queue.",
+    "The Templates: four colours, one per category, built once. The Rules: every post follows the same cover and carousel logic. The Queue: exported, scheduled, and left alone.",
+    "The system is the product.",
+    "LAB. Explore the workflow lab. Link in bio."
   ]
 }

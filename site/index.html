@@ -381,6 +381,13 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
    *  Newest first. Entries without a post show as plain links.      *
    * ============================================================== */
   const LINKS = [
+    { post: "new-tools-you-should-try", read: "new-tools", links: [] },
+    { post: "dessn", read: "new-tools", links: [] },
+    { post: "grok-bot", read: "new-tools", links: [] },
+    { post: "stop-handing-off-start-shipping", read: "stop-handing-off", links: [] },
+    { post: "mcp-explained-for-designers", read: "mcp-for-designers", links: [["Model Context Protocol docs", "https://modelcontextprotocol.io", ""]] },
+    { post: "how-to-audit-an-ai-generated-ui", read: "audit-ai-ui", links: [] },
+    { post: "sharpen-your-thinking", read: "obsidian", links: [["Obsidian", "https://obsidian.md", "free"]] },
     { post: "aux-vs-ux", read: "aux-vs-ux", links: [] },
     { post: "first-thing-in-the-morning", read: "morning-digest", links: [] },
     { post: "the-ai-product-designer-shift", read: "designer-shift", links: [] },
@@ -389,6 +396,131 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
   ];
 
   const ARTICLES = [
+    {
+      slug: "new-tools", post: "new-tools-you-should-try", kind: "Tools", read: "2 min", style: "dark",
+      title: "New tools you should try",
+      lede: "Three tools I think are worth learning right now: Dessn, Grok Bot and Obsidian. They do very different jobs, which is part of why I put them together.",
+      topic: { scene: "digest", from: "Ten open tabs", to: "Three worth keeping" },
+      body: [
+        ["p", "I keep a running list of tools I've tried or want to try. Most of them don't survive a week. These three stayed on it, and when I looked at why, they had more in common than the categories suggest."],
+        ["h", "Dessn: design directly in your codebase"],
+        ["p", "Dessn connects to your repo and builds a design canvas from your real components. You design visually, collaborate live, and prompt AI to explore layouts, all on top of the components that actually ship."],
+        ["p", "The detail I'd take from it is the one on the \"good to know\" slide: it's read-only, so nothing is pushed back to your repo. That sounds like a limitation. For a designer exploring in someone else's codebase it's the opposite, because you can try ten layouts without anyone worrying about what you broke."],
+        ["p", "Exploring on real components changes what a mockup can lie about."],
+        ["h", "Grok Bot: AI teammates that do the work"],
+        ["p", "Grok Bot's pitch is that Bots are AI teammates that sign in to your tools and use them like you do. Each Bot gets its own cloud computer and keeps working when your laptop is closed, then comes back with finished work."],
+        ["p", "Two honest caveats from their own page: it's in early beta, and it needs an eligible plan. I'd still look at it, mostly as a reference for where agent products are heading. If a Bot uses your tools the way you do, every tool you've designed becomes something an agent has to read. That's the same question I wrote about in <a href=\"#aux-vs-ux\">AUX vs UX</a>."],
+        ["h", "Obsidian: private notes you own"],
+        ["p", "Obsidian is free and keeps your notes as plain files on your device, linked together. You link ideas, tag them, and explore the connections in a graph view."],
+        ["p", "It's the least new of the three, and I included it on purpose. Plain files are the format every AI tool can already read. Your notes stop being locked inside an app and become something you can point anything at. I wrote a <a href=\"#obsidian\">longer piece on it</a>."],
+        ["h", "What they have in common"],
+        ["p", "Each one moves the work closer to where the real thing lives. Dessn puts design on the components that ship, Grok Bot puts the agent inside the tools you already use, and Obsidian keeps your thinking in files you own instead of a database you rent."],
+        ["p", "If I had to pick one to start with this week, I'd pick whichever one touches the work you repeat most. For me that's the codebase."],
+        ["p", "Real components, real tools, real files. The useful tools are the ones that stop pretending."],
+      ],
+      inside: [],
+      get: [],
+    },
+    {
+      slug: "stop-handing-off", post: "stop-handing-off-start-shipping", kind: "Perspective", read: "2 min", style: "light",
+      title: "Stop handing off. Start shipping",
+      lede: "The boundary between design and code is blurring fast. If you still finish your work at the export button, this is about the part you're leaving to someone else.",
+      topic: { scene: "system", from: "Specs and a handoff", to: "The real codebase" },
+      body: [
+        ["p", "For most of my career the job ended at handoff. I exported specs, annotated the edge cases I remembered, and waited for the build. Then I reviewed a staging link and filed the differences as tickets."],
+        ["h", "The old way had a gap built in"],
+        ["compare", "Old way", "Exporting specs and waiting for the build.", "New way", "Working in the real codebase and reviewing what ships."],
+        ["p", "The gap wasn't anyone's fault. A spec is a description of a screen, and descriptions leave room. The developer fills that room with reasonable guesses, and some of those guesses are design decisions nobody made on purpose."],
+        ["p", "A handoff isn't a finish line, it's where decisions start getting made by default."],
+        ["h", "What changed for me"],
+        ["p", "This website is the clearest example I have. I didn't design it in a file and hand it over. It was built directly in code, and I reviewed every round on the live deploy."],
+        ["p", "Almost every useful piece of feedback came from looking at the shipped version. The article column mixed centred and left-aligned text, which no mockup would have shown me because the mockup didn't have the real content. The gallery felt too small at real screen sizes. A font that looked fine as a title fell apart as small text. None of those were spec problems. They were last-mile problems."],
+        ["h", "How I review what ships"],
+        ["p", "If you're moving from reviewing mockups to reviewing builds, the review itself has to change. This is the checklist I use now:"],
+        ["pre", "ship review\nopen: the real deploy, not a screenshot\nwidths: phone, laptop, one very wide screen\ncontent: longest real title, empty list, one broken image\nstates: loading, error, first visit, returning visit\nmotion: reduced-motion on, then off\ntype: smallest text on the page, at arm's length\nalignment: one left edge per column, no exceptions\nfix: small things in the code myself, the rest as notes with a screenshot"],
+        ["p", "Three things to notice. It starts with the real deploy, because a screenshot hides exactly the things this list is looking for. Content is tested with the worst real case, not the nicest one. And the last line splits the work, so I fix what's quick and leave the rest to whoever owns it."],
+        ["h", "The caveat"],
+        ["p", "Not every designer should be committing to production code, and not every team wants that. There's a middle ground. Tools like Dessn build a design canvas from the real components and stay read-only, so you get to explore on what ships without pushing anything back."],
+        ["p", "Even if you never touch the code, the last mile is design too. Someone is making those decisions either way."],
+        ["p", "Are you editing in the codebase already, or still working through handoffs? I'm curious which part of the last mile you'd want to own first."],
+      ],
+      inside: [],
+      get: [],
+    },
+    {
+      slug: "mcp-for-designers", post: "mcp-explained-for-designers", kind: "Explainer", read: "2 min", style: "dark",
+      title: "MCP, explained for designers",
+      lede: "This is for designers who keep hearing about MCP and haven't found an explanation that isn't written for engineers. Your AI tools can plug into the rest of your stack. Here's what that means in practice.",
+      topic: { scene: "hub", from: "Copy, paste, repeat", to: "One connection" },
+      body: [
+        ["p", "MCP stands for Model Context Protocol. It's a standard way for AI tools to connect to your apps and data. That's the whole idea, and it's simpler than the name."],
+        ["h", "What it replaces"],
+        ["p", "Before MCP, getting your work into an AI tool meant copy-paste. You copied a Figma frame description, a ticket, a doc, and pasted it into a chat. The assistant only knew what you remembered to paste, and it went stale the moment the source changed."],
+        ["p", "With MCP, the app exposes what it can share and what it can do, and any assistant that speaks MCP can use it. One connection, many tools. You stop being the clipboard between your apps."],
+        ["h", "Why designers should care"],
+        ["p", "Most of what a designer works with already lives in tools: design files, tickets, docs, analytics, the deployed site. When the assistant can read those directly, the questions you can ask change. \"Summarise the open feedback on this flow\" stops being a copy-paste exercise and becomes one sentence."],
+        ["p", "It also works the other way. MCP connections can take actions, not just read. That's where the design question gets interesting, because every action an assistant can take on your behalf is an interface someone has to design for an agent."],
+        ["h", "What it looked like building this site"],
+        ["p", "This website was built with an assistant that had Figma, Vercel and Buffer connected. It didn't all work. The Figma connection could see the file but didn't have edit access to the frames I pointed it at, so I sent screenshots instead. The Vercel connection couldn't create the project, so I clicked through the dashboard myself."],
+        ["p", "Even so, the parts that connected saved the most tedious steps. A connection is only as useful as the permissions behind it."],
+        ["h", "Try it first"],
+        ["p", "Don't start by connecting everything. Connect one tool you already use every day and ask for a summary. This is the prompt I'd use for the first one:"],
+        ["pre", "You're connected to [tool].\nWithout changing anything, tell me:\n1. what you can read from it\n2. what you could change, if I asked\n3. a summary of [one project or file] in 5 bullets\nIf you can't reach something, say exactly what and why."],
+        ["p", "Three things to notice. \"Without changing anything\" keeps the first session read-only, so you learn what it can do before it does anything. Asking what it could change shows you the permissions you actually granted. And the last line turns a silent failure into an answer you can fix."],
+        ["p", "If you want to go further, the <a href=\"https://modelcontextprotocol.io\" target=\"_blank\" rel=\"noopener\">MCP docs</a> are the place to start."],
+        ["p", "Connect once. Use everywhere. Start with the tool you open first every morning."],
+      ],
+      inside: [],
+      get: [],
+    },
+    {
+      slug: "audit-ai-ui", post: "how-to-audit-an-ai-generated-ui", kind: "Perspective", read: "2 min", style: "dark",
+      title: "How to audit an AI-generated UI",
+      lede: "This is for anyone reviewing screens a model wrote. Auditing AI-generated UI isn't about redesigning from scratch. It's about spot-checking the details that generation gets wrong most quietly.",
+      topic: { scene: "architect", from: "A generated screen", to: "A checked one" },
+      body: [
+        ["p", "The first time I reviewed generated UI properly, I did it the slow way. I rebuilt the screen in my head, compared every choice to what I would have done, and rewrote half of it. It took longer than designing it myself, which defeats the point."],
+        ["h", "Two bad habits"],
+        ["p", "I see two reactions to generated UI. One is to accept it because it looks finished. The other is to redesign it because it isn't yours. Both skip the actual job, which is checking whether it holds up."],
+        ["p", "Generated UI usually looks right on the happy path. The problems hide where nobody prompted: the empty table, the error message, the user with a forty-character surname. Looking finished and being finished are different tests."],
+        ["h", "Three checks"],
+        ["p", "<strong>Hierarchy.</strong> Can you tell what matters in three seconds? Look at the screen, look away, and say what it's for. If the primary action doesn't jump out, nothing else on this list matters yet."],
+        ["p", "<strong>States.</strong> Check empty, error, loading and long-text cases. These are the states a model is least likely to design unless you asked, and the ones users meet first on a bad day."],
+        ["p", "<strong>System.</strong> Compare spacing, typography and colour against your core design tokens. Generated code loves a value that's almost right, a 14px where your scale says 13 or 15. One drift is invisible. Fifty make the product feel off without anyone being able to say why."],
+        ["p", "Hierarchy, states, system. Each one catches what the last one can't."],
+        ["h", "The checklist I paste into reviews"],
+        ["pre", "audit: ai-generated ui\nhierarchy\n  [ ] primary action obvious in 3 seconds\n  [ ] one H1, headings in order\nstates\n  [ ] empty: says what to do next\n  [ ] error: says what went wrong and how to fix it\n  [ ] loading: no layout jump when content arrives\n  [ ] long text: longest real value, not lorem ipsum\nsystem\n  [ ] spacing only from the scale\n  [ ] type only from the type tokens\n  [ ] colour only from the palette, contrast checked\nverdict: ship / fix listed items / regenerate"],
+        ["p", "Three things to notice. Every line is a yes or no, so two reviewers reach the same answer. The states section asks for real values, because lorem ipsum hides the exact bug it's there to find. And the verdict has a third option, regenerate, because sometimes fixing costs more than asking again with a better prompt."],
+        ["h", "The caveat"],
+        ["p", "This catches drift, not bad ideas. A screen can pass every check and still solve the wrong problem. That review is still yours, and it should happen before generation, in the prompt, not after."],
+        ["p", "Trust the generation, but verify the details. What's the one check you'd add to that list that a model keeps getting wrong for you?"],
+      ],
+      inside: [],
+      get: [],
+    },
+    {
+      slug: "obsidian", post: "sharpen-your-thinking", kind: "Tool", read: "2 min", style: "dark",
+      title: "Sharpen your thinking",
+      lede: "This is about Obsidian, a free, flexible app that keeps your notes as plain files on your device, linked together. If your research lives in five apps and you can never find the reference you saved last month, it might fit you.",
+      topic: { scene: "graph", from: "Notes in pieces", to: "Notes linked together" },
+      body: [
+        ["p", "Designers collect a lot. Screenshots, articles, interview notes, half-formed ideas from the shower. The collecting is easy. Finding it again when you need it is where it falls apart."],
+        ["h", "What it does"],
+        ["p", "Obsidian keeps your notes as plain files on your device, linked together. Every note is a text file in a folder you choose. No account is needed to start, and nothing has to leave your computer."],
+        ["p", "That one decision matters more than any feature. If the app disappears tomorrow, the notes are still there and still readable. Plain files outlive the apps that open them."],
+        ["h", "How you use it"],
+        ["p", "You link ideas, tag them, and explore the connections in a graph view. A link is just a note's name in double brackets. Write about onboarding, mention [[empty states]], and the two notes are now connected in both directions."],
+        ["p", "The graph view is the part people screenshot, and it's nice to look at. The links are the part that does the work. A month later, opening one note shows you everything you once thought was related to it."],
+        ["h", "Why designers care"],
+        ["p", "Research, references and ideas end up in one searchable place. That alone would be enough. There's a second reason that matters more to me now: plain files are something every AI tool can read. Your notes become context you can point an assistant at, instead of something locked in an app it can't open."],
+        ["p", "A simple template helps more than any plugin. This is the shape I'd use for a design reference:"],
+        ["pre", "# [What it is, in a few words]\nsource: [link]\nsaved: [date]\ntags: #reference #[pattern]\n\nwhy I saved it:\n[one sentence, written now, not later]\n\nwhat I'd steal:\n[one specific thing]\n\nrelated: [[note]] [[note]]"],
+        ["p", "Three things to notice. \"Why I saved it\" is written at the moment of saving, because that reason is the first thing you forget. \"What I'd steal\" forces one specific quality instead of a vague \"nice\". And the related links are what turn a pile of references into the graph."],
+        ["p", "It's free, so the cost of trying is an evening. Start with one folder and one template, and link two notes before you add a third."],
+      ],
+      inside: [],
+      get: [],
+    },
     {
       slug: "aux-vs-ux", post: "aux-vs-ux", kind: "Perspective", read: "4 min", style: "dark",
       title: "AUX vs UX",
@@ -526,6 +658,11 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
 
   /* ---------- the Instagram post a link or article came from ---------- */
   const POSTS = window.POSTS || {};
+  /* Posts scheduled in Buffer appear here on their post date, together with
+     their article. Add ?preview to the URL to see everything ahead of time. */
+  const today = new Date().toISOString().slice(0, 10);
+  const live = slug => /[?&]preview\b/.test(location.search) || !(POSTS[slug] && POSTS[slug].date > today);
+  for (const list of [LINKS, ARTICLES]) for (let i = list.length - 1; i >= 0; i--) if (list[i].post && !live(list[i].post)) list.splice(i, 1);
   const fmtDate = d => {
     if (!d) return "";
     const t = new Date(d + "T12:00:00");
@@ -546,7 +683,7 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
       const more = art ? `<li><a class="more" href="#${art.slug}">Read more about it →</a></li>` : "";
       if (!p) return `<li class="prow solo"><div><ul>${g.links.map(linkItem).join("")}${more}</ul></div></li>`;
       return `<li class="prow">
-        <a class="thumb" href="${art ? "#" + art.slug : esc(g.links[0][1])}" aria-label="${esc(p.name)}">${p.cover ? `<img src="${esc(p.cover)}" alt="Cover of the post: ${esc(p.name)}">` : ""}</a>
+        <a class="thumb" href="${art ? "#" + art.slug : g.links.length ? esc(g.links[0][1]) : esc(p.cover)}" aria-label="${esc(p.name)}">${p.cover ? `<img src="${esc(p.cover)}" alt="Cover of the post: ${esc(p.name)}">` : ""}</a>
         <div><div class="from">${esc(fromLabel(p))}</div><div class="ptitle">${esc(p.name)}</div>
         <ul>${g.links.map(linkItem).join("")}${more}</ul></div>
       </li>`;

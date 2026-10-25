@@ -1,0 +1,19 @@
+{
+  "name": "MCP, explained for designers",
+  "purpose": "learn",
+  "theme": "blue",
+  "date": "2026-11-03",
+  "caption": "MCP, explained for designers. A standard way for AI tools to connect to your apps and data: one connection, many tools, no copy-paste. Try it first: connect one tool you already use and ask for a summary.",
+  "images": [
+    "posts/media/mcp-explained-for-designers/01.png",
+    "posts/media/mcp-explained-for-designers/02.png",
+    "posts/media/mcp-explained-for-designers/03.png",
+    "posts/media/mcp-explained-for-designers/04.png"
+  ],
+  "alt": [
+    "MCP, explained for designers. Your AI tools can plug into the rest of your stack.",
+    "What it is: a standard way for AI tools to connect to your apps and data. Why it matters: one connection, many tools, no copy-paste. Try it first: connect one tool you already use and ask for a summary.",
+    "Connect once. Use everywhere.",
+    "LAB. Stop guessing what works. Check out the docs: link in bio."
+  ]
+}

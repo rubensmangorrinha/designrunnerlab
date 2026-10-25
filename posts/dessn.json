@@ -1,0 +1,19 @@
+{
+  "name": "Design directly in your codebase",
+  "purpose": "learn",
+  "theme": "blue",
+  "date": "",
+  "caption": "Design directly in your codebase. Dessn connects to your repo and builds a design canvas from your real components. It is read-only, so nothing is pushed back. One tool, explained. More new tools: link in bio.",
+  "images": [
+    "posts/media/dessn/01.png",
+    "posts/media/dessn/02.png",
+    "posts/media/dessn/03.png",
+    "posts/media/dessn/04.png"
+  ],
+  "alt": [
+    "Design directly in your codebase. Dessn turns a real codebase into a design canvas in one click.",
+    "Dessn website: turn your codebase into a design canvas in one click.",
+    "What it does: connects to your repo and builds a design canvas from your real components. How you use it: design visually, collaborate live, and prompt AI to explore layouts. Good to know: it is read-only, so nothing is pushed back to your repo.",
+    "LAB. One tool, explained. More new tools: link in bio."
+  ]
+}
