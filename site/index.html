@@ -382,12 +382,12 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
    * ============================================================== */
   const LINKS = [
     { post: "new-tools-you-should-try", read: "new-tools", links: [] },
-    { post: "dessn", read: "new-tools", links: [] },
-    { post: "grok-bot", read: "new-tools", links: [] },
     { post: "stop-handing-off-start-shipping", read: "stop-handing-off", links: [] },
     { post: "mcp-explained-for-designers", read: "mcp-for-designers", links: [["Model Context Protocol docs", "https://modelcontextprotocol.io", ""]] },
     { post: "how-to-audit-an-ai-generated-ui", read: "audit-ai-ui", links: [] },
     { post: "sharpen-your-thinking", read: "obsidian", links: [["Obsidian", "https://obsidian.md", "free"]] },
+    { post: "dessn", read: "new-tools", links: [] },
+    { post: "grok-bot", read: "new-tools", links: [] },
     { post: "aux-vs-ux", read: "aux-vs-ux", links: [] },
     { post: "first-thing-in-the-morning", read: "morning-digest", links: [] },
     { post: "the-ai-product-designer-shift", read: "designer-shift", links: [] },
@@ -440,7 +440,7 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
         ["pre", "ship review\nopen: the real deploy, not a screenshot\nwidths: phone, laptop, one very wide screen\ncontent: longest real title, empty list, one broken image\nstates: loading, error, first visit, returning visit\nmotion: reduced-motion on, then off\ntype: smallest text on the page, at arm's length\nalignment: one left edge per column, no exceptions\nfix: small things in the code myself, the rest as notes with a screenshot"],
         ["p", "Three things to notice. It starts with the real deploy, because a screenshot hides exactly the things this list is looking for. Content is tested with the worst real case, not the nicest one. And the last line splits the work, so I fix what's quick and leave the rest to whoever owns it."],
         ["h", "The caveat"],
-        ["p", "Not every designer should be committing to production code, and not every team wants that. There's a middle ground. Tools like Dessn build a design canvas from the real components and stay read-only, so you get to explore on what ships without pushing anything back."],
+        ["p", "Not every designer should be committing to production code, and not every team wants that. There's a middle ground. Tools like <a href=\"#new-tools\">Dessn</a> build a design canvas from the real components and stay read-only, so you get to explore on what ships without pushing anything back."],
         ["p", "Even if you never touch the code, the last mile is design too. Someone is making those decisions either way."],
         ["p", "Are you editing in the codebase already, or still working through handoffs? I'm curious which part of the last mile you'd want to own first."],
       ],
@@ -658,11 +658,6 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
 
   /* ---------- the Instagram post a link or article came from ---------- */
   const POSTS = window.POSTS || {};
-  /* Posts scheduled in Buffer appear here on their post date, together with
-     their article. Add ?preview to the URL to see everything ahead of time. */
-  const today = new Date().toISOString().slice(0, 10);
-  const live = slug => /[?&]preview\b/.test(location.search) || !(POSTS[slug] && POSTS[slug].date > today);
-  for (const list of [LINKS, ARTICLES]) for (let i = list.length - 1; i >= 0; i--) if (list[i].post && !live(list[i].post)) list.splice(i, 1);
   const fmtDate = d => {
     if (!d) return "";
     const t = new Date(d + "T12:00:00");

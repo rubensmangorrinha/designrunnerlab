@@ -128,7 +128,6 @@ The studio warns you when a colour breaks the rule.
   - `graph`: loose notes shrink into dots joined by links.
 
   Pick one per article with `topic.scene`.
-- **Scheduled posts:** a post with a future `date` stays hidden, along with its Links entry and its article, until that day, so articles can go in ahead of the Buffer queue. Add `?preview` to the URL to see everything.
 - **About:** the about text with the blooming rose.
 - **Footer:** a meadow of blooming roses swaying in the wind. Moving the cursor through them pushes a gust.
 - **Runner:** the running logo is the loading screen, and it leaps across a quick wipe on every page change.
