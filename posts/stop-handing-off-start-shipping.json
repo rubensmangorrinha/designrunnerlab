@@ -1,8 +1,9 @@
 {
   "name": "Stop handing off. Start shipping",
   "purpose": "view",
-  "theme": "cream",
+  "motion": 0.7,
   "date": "2026-11-05",
+  "theme": "cream",
   "caption": "Stop Handing Off, Start Shipping. The boundary between design and code is blurring fast. Here's how product design workflows are evolving:\n\nOld way: Exporting specs and waiting for the build.\nNew way: Working in the real codebase and reviewing what ships.\n\nThe last mile is design, too. Are you currently editing in the codebase or sticking to standard design handoffs? Drop your setup below.",
   "slides": [
     {

@@ -1,8 +1,9 @@
 {
   "name": "Dive Club",
   "purpose": "listen",
+  "motion": 0.8,
+  "date": "2026-11-11",
   "theme": "red",
-  "date": "",
   "caption": "The best founders to listen to. Search Diveclub on Spotify.",
   "slides": [
     {

@@ -1,8 +1,9 @@
 {
   "name": "First thing in the morning?",
   "purpose": "giveaway",
+  "motion": 0.9,
+  "date": "2026-11-12",
   "theme": "charcoal",
-  "date": "",
   "caption": "A tiny script that reads six tabs so you don't have to. The free version is in the lab, link in bio.",
   "slides": [
     {

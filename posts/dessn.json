@@ -1,8 +1,8 @@
 {
   "name": "Design directly in your codebase",
   "purpose": "learn",
+  "date": "2026-11-17",
   "theme": "blue",
-  "date": "",
   "caption": "Design directly in your codebase. Dessn connects to your repo and builds a design canvas from your real components. It is read-only, so nothing is pushed back. One tool, explained. More new tools: link in bio.",
   "images": [
     "posts/media/dessn/01.png",

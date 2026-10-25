@@ -1,8 +1,9 @@
 {
   "name": "Sharpen your thinking",
   "purpose": "learn",
-  "theme": "blue",
+  "motion": 0.3,
   "date": "2026-10-27",
+  "theme": "blue",
   "caption": "Sharpen your thinking. Obsidian is a free, flexible app that keeps your notes as plain files on your device, linked together. Research, references and ideas in one searchable place.",
   "slides": [
     {

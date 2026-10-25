@@ -1,8 +1,9 @@
 {
   "name": "How to audit an AI-generated UI",
   "purpose": "view",
-  "theme": "charcoal",
+  "motion": 0.5,
   "date": "2026-10-29",
+  "theme": "charcoal",
   "caption": "Auditing AI-generated UI isn't about redesigning from scratch. It's about spot-checking the details generation gets wrong quietly.\n\nThree checks before it ships:\n\nHierarchy: can you tell what matters in three seconds?\nStates: check empty, error, loading and long-text cases.\nSystem: compare spacing, typography and colour against your design tokens.\n\nTrust the generation, but verify the details.\n\nI turned this into the checklist I paste into every review. Comment AUDIT and I'll send it to you.\n\nWhat's your go-to check when reviewing AI UI?",
   "slides": [
     {

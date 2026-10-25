@@ -1,8 +1,8 @@
 {
   "name": "MCP, explained for designers",
   "purpose": "learn",
-  "theme": "blue",
   "date": "2026-11-03",
+  "theme": "blue",
   "caption": "MCP, explained for designers. A standard way for AI tools to connect to your apps and data: one connection, many tools, no copy-paste. Try it first: connect one tool you already use and ask for a summary.",
   "images": [
     "posts/media/mcp-explained-for-designers/01.png",

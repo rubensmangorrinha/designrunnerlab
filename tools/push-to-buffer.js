@@ -7,6 +7,7 @@
  *   BUFFER_DRL_API_KEY=... node tools/push-to-buffer.js <slug> --now        # publish right away
  *   BUFFER_DRL_API_KEY=... node tools/push-to-buffer.js <slug> --at 2026-11-03T18:00:00+01:00
  *   node tools/push-to-buffer.js <slug> --dry-run                           # print the payload, send nothing
+ *   BUFFER_DRL_API_KEY=... node tools/push-to-buffer.js <slug> --update <post id>   # replace an existing post's slides and caption
  *
  * It reads site/p/<slug>/buffer.json (written by tools/render-posts.js), finds the
  * Instagram channel on the Buffer account the key belongs to, and creates one post:
@@ -18,6 +19,8 @@
  *
  * Options:
  *   --channel <id|service|name>   pick a channel when the account has more than one
+ *   --update <post id>            edit that Buffer post instead of creating one. Its slot stays
+ *                                 as it is unless --at, --now or --draft is also given.
  *   --list-channels               print the channels the key can see, then exit
  */
 const fs = require("fs");
@@ -28,7 +31,7 @@ const API = "https://api.buffer.com";
 const KEY = process.env.BUFFER_DRL_API_KEY || process.env.BUFFER_API_KEY || "";
 
 function parseArgs(argv) {
-  const o = { slug: "", mode: "addToQueue", draft: false, dueAt: "", channel: "", dryRun: false, listChannels: false };
+  const o = { slug: "", mode: "", draft: false, dueAt: "", channel: "", dryRun: false, listChannels: false, update: "" };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--draft") o.draft = true;
@@ -36,6 +39,7 @@ function parseArgs(argv) {
     else if (a === "--next") o.mode = "shareNext";
     else if (a === "--at") { o.mode = "customScheduled"; o.dueAt = argv[++i] || ""; }
     else if (a === "--channel") o.channel = argv[++i] || "";
+    else if (a === "--update") o.update = argv[++i] || "";
     else if (a === "--dry-run") o.dryRun = true;
     else if (a === "--list-channels") o.listChannels = true;
     else if (a.startsWith("--")) die(`Unknown option ${a}`);
@@ -108,7 +112,7 @@ function buildInput(buffer, channel, opts) {
     channelId: channel.id,
     text: buffer.caption || "",
     assets,
-    mode: opts.mode,
+    mode: opts.mode || "addToQueue",
     schedulingType: "automatic",
     source: "designrunnerlab/tools/push-to-buffer.js",
   };
@@ -117,6 +121,20 @@ function buildInput(buffer, channel, opts) {
   if (channel.service === "instagram") input.metadata = { instagram: { type, shouldShareToFeed: true } };
   return input;
 }
+
+const EDIT_POST = `
+  mutation DrlEditPost($input: EditPostInput!) {
+    editPost(input: $input) {
+      __typename
+      ... on PostActionSuccess { post { id status dueAt shareMode channel { displayName service } } }
+      ... on MutationError { message }
+    }
+  }`;
+
+const POST_QUERY = `
+  query DrlPost($id: PostId!) {
+    post(input: { id: $id }) { id status dueAt channel { id displayName service } }
+  }`;
 
 const CREATE_POST = `
   mutation DrlCreatePost($input: CreatePostInput!) {
@@ -153,16 +171,29 @@ async function main() {
 
   if (!KEY) die("Set BUFFER_DRL_API_KEY (the key from the Design Runner Lab Buffer account). Nothing was sent.");
   const { email, channels } = await loadChannels();
-  const channel = pickChannel(channels, opts.channel);
-  const input = buildInput(buffer, channel, opts);
 
-  const d = await gql(CREATE_POST, { input });
-  const r = d.createPost;
+  let r, verb = "";
+  if (opts.update) {
+    /* Edit in place: same post id and slot, new slides and caption. */
+    const existing = (await gql(POST_QUERY, { id: opts.update })).post;
+    const channel = channels.find(c => c.id === existing.channel.id) || existing.channel;
+    const full = buildInput(buffer, channel, opts);
+    const input = { id: existing.id, text: full.text, assets: full.assets, metadata: full.metadata, source: full.source };
+    if (opts.mode) input.mode = opts.mode;
+    if (opts.dueAt) input.dueAt = opts.dueAt;
+    if (opts.draft) input.saveToDraft = true;
+    r = (await gql(EDIT_POST, { input })).editPost;
+    verb = "updated, ";
+  } else {
+    const channel = pickChannel(channels, opts.channel);
+    r = (await gql(CREATE_POST, { input: buildInput(buffer, channel, opts) })).createPost;
+  }
   if (r.__typename !== "PostActionSuccess") die(`Buffer refused the post (${r.__typename}): ${r.message}`);
   const p = r.post;
   const when = p.dueAt ? ` for ${p.dueAt}` : "";
-  const kind = (buffer.media || []).length > 1 ? "carousel" : input.metadata ? input.metadata.instagram.type : "post";
-  console.log(`✓ ${buffer.slug}: ${kind} ${p.status}${when} on ${p.channel.displayName} (${p.channel.service}) as ${email}`);
+  const m = buffer.media || [];
+  const kind = m.length > 1 ? "carousel" : m[0].type === "video" ? "reel" : "post";
+  console.log(`✓ ${buffer.slug}: ${kind} ${verb}${p.status}${when} on ${p.channel.displayName} (${p.channel.service}) as ${email}`);
   console.log(`  post ${p.id} · ${media(buffer)}`);
 }
 
