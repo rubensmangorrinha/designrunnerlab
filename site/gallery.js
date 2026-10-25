@@ -6,6 +6,8 @@
  *   - Horizontal trackpad swipes pan too; vertical scrolling stays with the page.
  *   - Tab onto a card and the wall glides to centre it. Enter opens it.
  *   - Click a card: it scales up into a detail overlay (FLIP transition).
+ *   - Zoom out to see more of the wall: pinch on a trackpad, Ctrl/Cmd + wheel,
+ *     the - and + keys, or the zoom buttons. Zooming adds cards to fill the view.
  *
  *   Gallery.mount(stage, {
  *     items:  [...],                 // clickable entries
@@ -32,9 +34,16 @@
      *  Each slot keeps its card; panning only moves and wraps slots.    *
      * ---------------------------------------------------------------- */
     var slots = [], cols = 0, rows = 0, W = 0, H = 0;
+    var zoom = 1, Wv = 0, Hv = 0;   // Wv/Hv: the area the wall covers before scaling
+    var ZMIN = 0.4, ZMAX = 1.25;
     function build() {
       W = stage.clientWidth; H = stage.clientHeight;
-      var c = Math.ceil(W / pitchX) + 2, r = Math.ceil(H / pitchY) + 2;
+      Wv = W / zoom; Hv = H / zoom;
+      // the world is laid out at full size, then scaled around the stage centre
+      world.style.width = Wv + "px"; world.style.height = Hv + "px";
+      world.style.left = (W - Wv) / 2 + "px"; world.style.top = (H - Hv) / 2 + "px";
+      world.style.transform = "scale(" + zoom + ")";
+      var c = Math.ceil(Wv / pitchX) + 2, r = Math.ceil(Hv / pitchY) + 2;
       if (c === cols && r === rows) return;
       cols = c; rows = r;
       world.innerHTML = ""; slots = [];
@@ -116,11 +125,11 @@
       if (!dragging) return;
       var dx = e.clientX - last.x, dy = e.clientY - last.y, now = performance.now();
       var dt = Math.max(1, now - last.t);
-      pan.x += dx; pan.y += dy;
+      pan.x += dx / zoom; pan.y += dy / zoom;
       moved += Math.abs(dx) + Math.abs(dy);
       // velocity in px per frame, smoothed
-      vel.x = vel.x * 0.6 + (dx / dt) * 16 * 0.4;
-      vel.y = vel.y * 0.6 + (dy / dt) * 16 * 0.4;
+      vel.x = vel.x * 0.6 + (dx / zoom / dt) * 16 * 0.4;
+      vel.y = vel.y * 0.6 + (dy / zoom / dt) * 16 * 0.4;
       last = { x: e.clientX, y: e.clientY, t: now };
     });
     function end(e) {
@@ -134,22 +143,34 @@
     }
     stage.addEventListener("pointerup", end);
     stage.addEventListener("pointercancel", end);
-    // Horizontal trackpad swipes pan; vertical wheel stays with the page.
+    /* Zoom around the stage centre; the wall refills to cover the new view. */
+    var zoomLabel = null;
+    function setZoom(z) {
+      z = Math.max(ZMIN, Math.min(ZMAX, z));
+      if (Math.abs(z - zoom) < 0.001) return;
+      zoom = z;
+      build(); place();
+      if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + "%";
+    }
+    // Pinch on a trackpad (and Ctrl/Cmd + wheel) zooms; horizontal swipes pan; vertical wheel stays with the page.
     stage.addEventListener("wheel", function (e) {
+      if (e.ctrlKey || e.metaKey) { e.preventDefault(); setZoom(zoom * Math.exp(-e.deltaY * 0.01)); return; }
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
       e.preventDefault();
-      target = null; pan.x -= e.deltaX; vel.x = -e.deltaX * 0.3; kick();
+      target = null; pan.x -= e.deltaX / zoom; vel.x = -e.deltaX * 0.3 / zoom; kick();
     }, { passive: false });
     // Keyboard: focusing a card glides it to the centre; Enter or Space opens it.
     stage.addEventListener("focusin", function (e) {
       var s = slots.find(function (q) { return q.el === e.target; });
       if (!s) return;
-      target = { x: pan.x + (W / 2 - cellW / 2 - s.x), y: pan.y + (H / 2 - cellH / 2 - s.y) };
+      target = { x: pan.x + (Wv / 2 - cellW / 2 - s.x), y: pan.y + (Hv / 2 - cellH / 2 - s.y) };
       if (reduce) { pan = target; target = null; place(); } else kick();
     });
     stage.addEventListener("keydown", function (e) {
       var step = { ArrowLeft: [pitchX, 0], ArrowRight: [-pitchX, 0], ArrowUp: [0, pitchY], ArrowDown: [0, -pitchY] }[e.key];
       if (step && e.target === stage) { e.preventDefault(); target = { x: pan.x + step[0], y: pan.y + step[1] }; kick(); }
+      if (e.key === "-" || e.key === "_") { e.preventDefault(); setZoom(zoom / 1.2); }
+      if (e.key === "+" || e.key === "=") { e.preventDefault(); setZoom(zoom * 1.2); }
       if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("gal-card")) { e.preventDefault(); open(e.target); }
     });
 
@@ -202,6 +223,16 @@
       if (e.target.closest("a[href^='#']")) close();
     });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+
+    // zoom buttons, glass, bottom right
+    var zc = document.createElement("div");
+    zc.className = "gal-zoom";
+    zc.innerHTML = '<button type="button" aria-label="Zoom out">−</button><span aria-live="polite">100%</span><button type="button" aria-label="Zoom in">+</button>';
+    zc.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+    zc.children[0].onclick = function () { setZoom(zoom / 1.25); };
+    zc.children[2].onclick = function () { setZoom(zoom * 1.25); };
+    zoomLabel = zc.children[1];
+    stage.appendChild(zc);
 
     new ResizeObserver(function () { build(); place(); }).observe(stage);
     build(); place();
