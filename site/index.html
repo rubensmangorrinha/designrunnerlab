@@ -136,7 +136,7 @@ h1 { font-size: clamp(30px, 4.4vw, 64px); font-weight: 400; letter-spacing: -0.0
 .gal-stage {
   position: relative; overflow: hidden; height: max(520px, calc(100vh - 230px)); height: max(520px, calc(100svh - 230px)); cursor: grab;
   border-block: 1px solid var(--rule);
-  background-color: #1b1b1b; background-image: radial-gradient(#3a3a38 1px, transparent 1.4px); background-size: 24px 24px;
+  background-color: #1b1b1b;
   touch-action: pan-y; user-select: none; -webkit-user-select: none;
 }
 .gal-stage.is-dragging { cursor: grabbing; }
@@ -152,14 +152,9 @@ h1 { font-size: clamp(30px, 4.4vw, 64px); font-weight: 400; letter-spacing: -0.0
 .gal-zoom span { min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
 .gal-card { position: absolute; left: 0; top: 0; padding: 0; border: 0; background: none; text-align: left; cursor: inherit; border-radius: 22px; }
 .gal-card > .card { width: 100%; height: 100%; aspect-ratio: auto; transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; }
-.gal-card:not(.gal-decor):hover > .card, .gal-card:focus-visible > .card { transform: translateY(-8px) rotate(-.6deg); box-shadow: 0 24px 50px rgba(0,0,0,.45); }
+.gal-card:hover > .card, .gal-card:focus-visible > .card { transform: translateY(-8px) rotate(-.6deg); box-shadow: 0 24px 50px rgba(0,0,0,.45); }
 .gal-card:focus-visible { outline: none; }
 .gal-card:focus-visible > .card { outline: 2px solid var(--red); outline-offset: 4px; }
-.gal-decor { display: grid; place-items: center; border-radius: 22px; }
-.gal-decor.tile-red { background: #c42112; }
-.gal-decor.tile-line { box-shadow: inset 0 0 0 1px var(--rule); }
-.gal-decor svg { width: 58%; height: auto; color: var(--ink); }
-.gal-decor img { width: 64%; height: auto; }
 .gal-hud {
   position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 2; pointer-events: none;
   padding: 8px 16px; border-radius: 999px; font-size: 13px; color: var(--ink);
@@ -178,6 +173,8 @@ h1 { font-size: clamp(30px, 4.4vw, 64px); font-weight: 400; letter-spacing: -0.0
 .card.light .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; height: 32%; }
 .card.light .tiles span { border-radius: 14px; display: grid; place-items: center; overflow: hidden; }
 .card.light .tiles span svg { width: 62%; height: auto; }
+.card.cover { background: var(--card-dark); box-shadow: inset 0 0 0 1px #333; }
+.card.cover img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; user-select: none; }
 .card.dark { background: var(--card-dark); color: var(--ink); padding: 22px; box-shadow: inset 0 0 0 1px #333; }
 .card.dark .pill { background: var(--ink); color: var(--card-dark); border-color: var(--ink); font-size: 12px; padding: 5px 13px; }
 .card.dark .hd { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
@@ -688,6 +685,9 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
 
   /* ---------- cards ---------- */
   function cardHTML(a, i) {
+    // the real Instagram cover when the article came from a post
+    const post = POSTS[a.post];
+    if (post && (post.card || post.cover)) return `<div class="card cover"><img src="${esc(post.card || post.cover)}" alt="Cover of the post: ${esc(post.name)}" draggable="false"></div>`;
     if (a.style === "light") {
       const words = a.lede.split(" "), cut = Math.ceil(words.length * 0.55);
       return `<div class="card light">
@@ -723,12 +723,6 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
   }
 
   /* ---------- read view ---------- */
-  const DECOR = [
-    SVG.lab,
-    hypno(150),
-    `<img src="assets/runner-cream.svg" alt="">`,
-    SVG.eq,
-  ];
   let gallery = null;
   let layout = "gallery";
   try { layout = localStorage.getItem("drl-read-layout") || "gallery"; } catch (e) {}
@@ -740,11 +734,10 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
     if (layout === "gallery" && !gallery) {
       const small = innerWidth < 600;
       gallery = Gallery.mount($("#gallery"), {
-        items: ARTICLES, decor: DECOR, cardHTML, detailHTML,
-        cell: small ? { w: 240, h: 312, gap: 16 } : { w: 290, h: 378, gap: 22 },
+        items: ARTICLES, cardHTML, detailHTML,
+        // 4:5, the Instagram post shape
+        cell: small ? { w: 240, h: 300, gap: 16 } : { w: 296, h: 370, gap: 22 },
       });
-      // art tiles alternate between red, outlined and plain
-      $("#gallery").querySelectorAll(".gal-decor").forEach((d, k) => d.classList.add(["tile-red", "tile-line", "tile-plain"][k % 3]));
     }
   }
   document.querySelector(".switch").addEventListener("click", e => {
