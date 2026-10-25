@@ -1,0 +1,23 @@
+{
+  "slug": "how-this-feed-gets-made",
+  "name": "How this feed gets made",
+  "purpose": "view",
+  "caption": "Templates, rules, and a queue. That's the whole machine.",
+  "images": [
+    {
+      "file": "p/how-this-feed-gets-made/01.png",
+      "url": "https://YOUR-SITE/p/how-this-feed-gets-made/01.png",
+      "alt": "Slide 1 of 3. Templates, rules, and a queue.. How this feed gets made"
+    },
+    {
+      "file": "p/how-this-feed-gets-made/02.png",
+      "url": "https://YOUR-SITE/p/how-this-feed-gets-made/02.png",
+      "alt": "Slide 2 of 3. Templates: Seven layouts, four colours, one typeface. Rules: Headline bottom left. Glyph top left. Nothing centred unless it is the only thing. Queue: One carousel a day, drafted the night before."
+    },
+    {
+      "file": "p/how-this-feed-gets-made/03.png",
+      "url": "https://YOUR-SITE/p/how-this-feed-gets-made/03.png",
+      "alt": "Slide 3 of 3. Texture slide"
+    }
+  ]
+}

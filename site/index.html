@@ -8,7 +8,7 @@
 <meta name="description" content="Links, templates and articles from @designrunnerlab.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
 <style>
 /* Layout: one narrow column, like the Figma frames: logo, Links/About switch, then the list.
    Under it, full-bleed, the glyph pit: a physics toy that only lives in the space nobody reads.
@@ -70,6 +70,58 @@ h1 { font-size: clamp(30px, 6vw, 38px); font-weight: 400; letter-spacing: -0.02e
 .about-glyph { display: block; width: min(320px, 80%); height: auto; margin: 0 0 36px; }
 .about p { margin: 0; max-width: 34ch; }
 
+/* read: list + grid + article */
+.read-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 26px; }
+.read-head h1 { margin: 0; }
+.switch { display: flex; gap: 14px; font-size: 16px; }
+.switch button { background: none; border: 0; padding: 0; color: var(--muted); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.switch button[aria-pressed="true"] { color: var(--ink); }
+.alist { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.alist li { border-bottom: 1px solid var(--rule); }
+.alist a { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding-block: 16px; text-decoration: none; }
+.alist .n { color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+.alist .k { color: var(--muted); font-size: 15px; white-space: nowrap; }
+.alist a:hover .ti { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+.cards-wrap { width: min(1040px, 100vw - 32px); position: relative; left: 50%; transform: translateX(-50%); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 18px; }
+.card { border-radius: 22px; text-decoration: none; display: flex; flex-direction: column; aspect-ratio: 4 / 5.2; max-width: 100%; overflow: hidden; position: relative; transition: transform .25s ease; }
+.card:hover { transform: translateY(-4px); }
+.card .pill { display: inline-block; border: 1px solid currentColor; border-radius: 999px; padding: 3px 12px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+/* light "introduction" card */
+.card.light { background: #f3f1ea; color: #1b1b1b; padding: 26px 10px 10px; align-items: center; text-align: center; }
+.card.light .q { font-size: clamp(20px, 2.1vw, 25px); line-height: 1.12; letter-spacing: -0.03em; margin: 22px 18px 0; text-wrap: balance; }
+.card.light .q span { color: #a6a49d; }
+.card.light .by { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin: auto 0 18px; }
+.card.light .by svg { height: 14px; width: auto; }
+.card.light .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; height: 34%; }
+.card.light .tiles span { border-radius: 14px; display: grid; place-items: center; overflow: hidden; }
+.card.light .tiles span svg { width: 62%; height: auto; }
+/* dark "section" card */
+.card.dark { background: #161616; color: #ece8de; padding: 24px; box-shadow: inset 0 0 0 1px #333; }
+.card.dark .pill { background: #ece8de; color: #161616; border-color: #ece8de; font-size: 13px; padding: 5px 14px; }
+.card.dark .big { position: absolute; right: 18px; top: 6px; font-size: clamp(110px, 13vw, 168px); line-height: 1; letter-spacing: -0.06em; font-weight: 400; }
+.card.dark .blurb { margin: auto 0 0 auto; max-width: 24ch; text-align: right; font-size: 14px; line-height: 1.3; }
+.card.dark .tt { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 28px; }
+.card.dark h3 { margin: 0; font-weight: 400; font-size: clamp(38px, 4.6vw, 54px); line-height: 0.95; letter-spacing: -0.05em; }
+.card.dark .go { flex: none; width: 50px; height: 50px; border: 1px solid #ece8de; border-radius: 50%; display: grid; place-items: center; font-size: 20px; }
+
+.article .back { color: var(--muted); font-size: 16px; }
+.article .meta { display: flex; gap: 12px; align-items: center; margin: 26px 0 18px; color: var(--muted); font-size: 15px; }
+.article .meta .pill { border: 1px solid currentColor; border-radius: 999px; padding: 2px 11px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.article h1 { font-size: clamp(40px, 9vw, 64px); line-height: 0.98; letter-spacing: -0.045em; margin-bottom: 26px; }
+.article .lede { font-size: 22px; line-height: 1.3; margin: 0 0 34px; }
+.article h2 { font-size: 26px; font-weight: 500; letter-spacing: -0.02em; margin: 40px 0 10px; }
+.article p, .article ol, .article ul { margin: 0 0 16px; color: #d9d5ca; }
+.article em { font-family: "Instrument Serif", Georgia, serif; font-size: 1.12em; }
+.article .compare { display: grid; gap: 10px; margin: 22px 0 26px; }
+.article .compare div { border: 1px solid var(--rule); border-radius: 14px; padding: 16px 18px; }
+.article .compare div:last-child { border-color: var(--ink); }
+.article .compare b { display: block; font-weight: 600; }
+.article .get { margin-top: 44px; }
+.article .next { display: block; margin-top: 40px; text-decoration: none; border-top: 1px solid var(--rule); padding-top: 18px; }
+.article .next span { color: var(--muted); font-size: 15px; display: block; }
+
 /* glyph pit */
 .pit-wrap { position: relative; margin-top: auto; }
 .pit { position: relative; height: clamp(300px, 42vh, 460px); overflow: hidden; }
@@ -87,6 +139,7 @@ h1 { font-size: clamp(30px, 6vw, 38px); font-weight: 400; letter-spacing: -0.02e
   <a class="logo" href="#links" aria-label="design runner lab" id="logo"></a>
   <nav class="tabs" aria-label="Sections">
     <a href="#links" data-tab="links">Links</a>
+    <a href="#read" data-tab="read">Read</a>
     <a href="#about" data-tab="about">About</a>
   </nav>
 </header>
@@ -114,6 +167,19 @@ h1 { font-size: clamp(30px, 6vw, 38px); font-weight: 400; letter-spacing: -0.02e
     </ul>
   </section>
 
+  <section data-view="read" aria-labelledby="read-h" hidden>
+    <div class="read-head">
+      <h1 id="read-h">Read</h1>
+      <div class="switch" role="group" aria-label="Layout">
+        <button type="button" data-layout="list" aria-pressed="true">List</button>
+        <button type="button" data-layout="grid" aria-pressed="false">Grid</button>
+      </div>
+    </div>
+    <div id="read-body"></div>
+  </section>
+
+  <article data-view="article" class="article" id="article" hidden></article>
+
   <section data-view="about" class="about" aria-labelledby="about-h" hidden>
     <h1 id="about-h">About us</h1>
     <img class="about-glyph" src="assets/rose-bloom-h.svg" alt="" width="1500" height="361">
@@ -139,12 +205,128 @@ h1 { font-size: clamp(30px, 6vw, 38px); font-weight: 400; letter-spacing: -0.02e
 
   document.getElementById("logo").innerHTML = SVG.logo;
 
-  /* Links / About switch on bare hash tokens so each view can be linked from a post. */
+  /* ============================================================== *
+   *  ARTICLES. Edit here. Each post links to #<slug>.              *
+   *  body blocks: ["h", text] ["p", html] ["ol"|"ul", [items]]      *
+   *  ["compare", oldLabel, oldText, newLabel, newText]              *
+   *  get: the Gumroad links shown at the end of the article         *
+   * ============================================================== */
+  const ARTICLES = [
+    {
+      slug: "morning-digest", kind: "Giveaway", read: "5 min", style: "dark",
+      title: "First thing in the morning?",
+      lede: "Writing a daily morning digest script so you don't have to check six different tabs before 9 AM.",
+      body: [
+        ["h", "Six tabs before 9 AM"],
+        ["p", "Calendar, inbox, Slack, the task board, the other task board, and whatever doc someone commented on last night. Every morning starts as a scavenger hunt."],
+        ["h", "The fan-out"],
+        ["p", "The script pulls updates across your calendar, inbox and task boards automatically. It only reads. Nothing gets sent, moved or archived."],
+        ["h", "The brief"],
+        ["p", "A single, scannable summary delivered straight to your DMs before you log on."],
+        ["h", "Set it up in 15 minutes"],
+        ["ol", ["Grab the free version below.", "Connect your calendar and inbox with the guide inside.", "Pick the DM where the brief should land.", "Schedule it for 8:30 AM."]],
+      ],
+      get: [
+        ["The script from the post", "https://mangorrinha.gumroad.com/l/morning-digest", "free"],
+        ["Extended: every connector plus priority scoring", "https://mangorrinha.gumroad.com/l/morning-digest-extended", "$19"],
+      ],
+    },
+    {
+      slug: "designer-shift", kind: "Perspective", read: "6 min", style: "light",
+      title: "The AI Product Designer Shift",
+      lede: "Stop treating AI like a chatbot. Product design is shifting to workflow architecture.",
+      body: [
+        ["h", "The designer becomes the architect"],
+        ["p", "The work moves from drawing every screen to designing the system that draws them."],
+        ["compare", "Old way", "Manually pushing pixels for every screen state.", "New way", "Designing the system logic, prompts, and tokens that generate the UI."],
+        ["h", "What the architect designs"],
+        ["ul", ["<strong>Logic:</strong> which states exist and what moves a user between them.", "<strong>Tokens:</strong> the names and values every generated screen must use.", "<strong>Prompts:</strong> instructions written once and versioned like components.", "<strong>Review loops:</strong> the checklist a generated screen has to pass."]],
+        ["h", "Where to start"],
+        ["p", "Pick one flow you redraw constantly, like empty, loading and error states. Write the rules once, generate, review. That loop is the job, at a smaller scale."],
+      ],
+      get: [
+        ["Workflow lab starter", "https://mangorrinha.gumroad.com/l/workflow-lab", "free"],
+        ["Workflow lab, the full kit", "https://mangorrinha.gumroad.com/l/workflow-lab-extended", "$29"],
+      ],
+    },
+    {
+      slug: "design-system-prompt", kind: "Perspective", read: "4 min", style: "dark",
+      title: "Your design system is now a prompt",
+      lede: "Components used to be the system. Now the rules are.",
+      body: [
+        ["h", "Components were the contract"],
+        ["p", "For ten years the design system lived in a library. You copied a component and inherited its decisions."],
+        ["h", "Rules are the new contract"],
+        ["p", "An agent doesn't copy your button. It reads how buttons should behave and writes one. If those rules only live in someone's head, every generated screen drifts."],
+        ["compare", "Before", "A library of components everyone copied by hand.", "Now", "Tokens, rules and examples an agent can read and apply on its own."],
+      ],
+      get: [["AX vs UX, the full article", "https://mangorrinha.gumroad.com/l/Designcompanion", ""]],
+    },
+  ];
+
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const num = i => String(i + 1).padStart(2, "0");
+  let layout = "list";
+  try { layout = localStorage.getItem("drl-read-layout") || "list"; } catch (e) {}
+
+  function card(a, i) {
+    if (a.style === "light") {
+      const words = a.lede.split(" "), cut = Math.ceil(words.length * 0.55);
+      return `<a class="card light" href="#${a.slug}">
+        <span class="pill">${esc(a.kind)}</span>
+        <p class="q">${esc(a.title)}. ${esc(words.slice(0, cut).join(" "))} <span>${esc(words.slice(cut).join(" "))}</span></p>
+        <span class="by">${SVG.logo}</span>
+        <span class="tiles"><span style="background:#222;color:#ece8de">${SVG.lab}</span><span style="background:#c42112;color:#ece8de">${SVG.qp}</span></span>
+      </a>`;
+    }
+    return `<a class="card dark" href="#${a.slug}">
+      <span><span class="pill">${esc(a.kind)} ${i + 1}</span></span>
+      <span class="big" aria-hidden="true">${num(i)}</span>
+      <p class="blurb">${esc(a.lede)}</p>
+      <span class="tt"><h3>${esc(a.title)}</h3><span class="go" aria-hidden="true">↙</span></span>
+    </a>`;
+  }
+  function renderRead() {
+    document.querySelectorAll("[data-layout]").forEach(b => b.setAttribute("aria-pressed", b.dataset.layout === layout));
+    document.getElementById("read-body").innerHTML = layout === "grid"
+      ? `<div class="cards-wrap"><div class="cards">${ARTICLES.map(card).join("")}</div></div>`
+      : `<ul class="alist">${ARTICLES.map((a, i) => `<li><a href="#${a.slug}"><span class="n">${num(i)}</span><span class="ti">${esc(a.title)}</span><span class="k">${esc(a.read)}</span></a></li>`).join("")}</ul>`;
+  }
+  document.querySelector(".switch").addEventListener("click", e => {
+    const b = e.target.closest("[data-layout]"); if (!b) return;
+    layout = b.dataset.layout;
+    try { localStorage.setItem("drl-read-layout", layout); } catch (err) {}
+    renderRead();
+  });
+
+  function renderArticle(a) {
+    const i = ARTICLES.indexOf(a), next = ARTICLES[(i + 1) % ARTICLES.length];
+    const block = b => b[0] === "h" ? `<h2>${esc(b[1])}</h2>` : b[0] === "p" ? `<p>${b[1]}</p>`
+      : b[0] === "ol" || b[0] === "ul" ? `<${b[0]}>${b[1].map(x => `<li>${x}</li>`).join("")}</${b[0]}>`
+      : b[0] === "compare" ? `<div class="compare"><div><b><s>${esc(b[1])}:</s></b>${esc(b[2])}</div><div><b>${esc(b[3])}:</b>${esc(b[4])}</div></div>` : "";
+    document.getElementById("article").innerHTML = `
+      <a class="back" href="#read">← All articles</a>
+      <div class="meta"><span class="pill">${esc(a.kind)}</span><span>${esc(a.read)} read</span></div>
+      <h1>${esc(a.title)}</h1>
+      <p class="lede">${esc(a.lede)}</p>
+      ${a.body.map(block).join("")}
+      <div class="get"><h2>Get the template</h2><ul class="links">${a.get.map(([t, url, tag]) => `
+        <li><a href="${esc(url)}" target="_blank" rel="noopener"><span class="t"><span>${esc(t)}</span>${tag ? `<span class="tag ${tag === "free" ? "" : "paid"}">${esc(tag)}</span>` : ""}</span>
+        <span class="u">${esc(url.replace(/^https:\/\//, ""))}</span></a></li>`).join("")}</ul></div>
+      <a class="next" href="#${next.slug}"><span>Next</span>${esc(next.title)} →</a>`;
+  }
+
+  /* Views on bare hash tokens: #links, #read, #about, or an article slug. */
   function show() {
-    const tab = location.hash === "#about" ? "about" : "links";
+    const key = location.hash.slice(1);
+    const art = ARTICLES.find(a => a.slug === key);
+    const tab = art ? "article" : ["read", "about"].includes(key) ? key : "links";
+    if (tab === "read") renderRead();
+    if (art) { renderArticle(art); document.title = art.title + " · design runner lab"; } else document.title = "design runner lab";
     document.querySelectorAll("[data-view]").forEach(v => { v.hidden = v.dataset.view !== tab; });
+    const nav = tab === "article" ? "read" : tab;
     document.querySelectorAll("[data-tab]").forEach(a => {
-      if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+      if (a.dataset.tab === nav) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
   }
   addEventListener("hashchange", () => { show(); scrollTo(0, 0); });

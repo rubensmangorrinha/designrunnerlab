@@ -1,0 +1,28 @@
+{
+  "slug": "dive-club",
+  "name": "Dive Club",
+  "purpose": "listen",
+  "caption": "The best founders to listen to. Search Diveclub on Spotify.",
+  "images": [
+    {
+      "file": "p/dive-club/01.png",
+      "url": "https://YOUR-SITE/p/dive-club/01.png",
+      "alt": "Slide 1 of 4. The best founders to listen."
+    },
+    {
+      "file": "p/dive-club/02.png",
+      "url": "https://YOUR-SITE/p/dive-club/02.png",
+      "alt": "Slide 2 of 4. Real-World Playbooks: Breaking down what worked, what failed, and how they pivoted under pressure. High-Signal Dialogue: Conversations designed to make you raise your own bar for your next build."
+    },
+    {
+      "file": "p/dive-club/03.png",
+      "url": "https://YOUR-SITE/p/dive-club/03.png",
+      "alt": "Slide 3 of 4. Glyph slide"
+    },
+    {
+      "file": "p/dive-club/04.png",
+      "url": "https://YOUR-SITE/p/dive-club/04.png",
+      "alt": "Slide 4 of 4. Great conversations don't just inform. They make you want to raise your own bar.. Listen on Spotify. Search Diveclub"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "slug": "first-thing-in-the-morning",
+  "name": "First thing in the morning?",
+  "purpose": "giveaway",
+  "caption": "A tiny script that reads six tabs so you don't have to. The free version is in the lab, link in bio.",
+  "images": [
+    {
+      "file": "p/first-thing-in-the-morning/01.png",
+      "url": "https://YOUR-SITE/p/first-thing-in-the-morning/01.png",
+      "alt": "Slide 1 of 4. Writing a daily morning digest script so you don't have to check six different tabs before 9 AM.. First thing in the morning?"
+    },
+    {
+      "file": "p/first-thing-in-the-morning/02.png",
+      "url": "https://YOUR-SITE/p/first-thing-in-the-morning/02.png",
+      "alt": "Slide 2 of 4. The Fan-Out: Pulls updates across your calendar, inbox, and task boards automatically. The Brief: A single, scannable summary delivered straight to your DMs before you log on."
+    },
+    {
+      "file": "p/first-thing-in-the-morning/03.png",
+      "url": "https://YOUR-SITE/p/first-thing-in-the-morning/03.png",
+      "alt": "Slide 3 of 4. Photo slide"
+    },
+    {
+      "file": "p/first-thing-in-the-morning/04.png",
+      "url": "https://YOUR-SITE/p/first-thing-in-the-morning/04.png",
+      "alt": "Slide 4 of 4. I'm giving away the exact script I use to generate this digest.. Grab it in the lab (link in bio)."
+    }
+  ]
+}

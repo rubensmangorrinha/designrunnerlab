@@ -1,0 +1,47 @@
+{
+  "name": "The AI Product Designer Shift",
+  "purpose": "view",
+  "theme": "cream",
+  "caption": "Stop treating AI like a chatbot. The full breakdown is in the lab, link in bio.",
+  "slides": [
+    {
+      "bg": "flat",
+      "seed": 3,
+      "top": "text",
+      "glyph": "q(*_*)p",
+      "intro": "Stop treating AI like a chatbot. How product design is shifting to workflow architecture.",
+      "headline": "The AI\nProduct\nDesigner Shift",
+      "sub": "",
+      "scale": 100,
+      "template": "cover",
+      "theme": null
+    },
+    {
+      "header": "",
+      "image": null,
+      "height": 34,
+      "bleed": false,
+      "credit": "Photo: Pedram Mansouri on Unsplash",
+      "body": "The designer\nbecomes the **architect.**",
+      "template": "photo",
+      "theme": null
+    },
+    {
+      "header": "",
+      "body": "~~**Old way:**~~\nManually pushing pixels for every screen state.\n\n**New way:**\nDesigning the system logic, prompts, and tokens that generate the UI.",
+      "glyph": "q(*_*)p",
+      "showGlyph": false,
+      "spread": true,
+      "template": "breakdown",
+      "theme": null
+    },
+    {
+      "mark": "logo",
+      "glyph": "q(*_*)p",
+      "aside": "",
+      "cta": "**Explore the workflow lab.**\nLink in bio.",
+      "template": "outro",
+      "theme": null
+    }
+  ]
+}

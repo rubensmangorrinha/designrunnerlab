@@ -1,0 +1,48 @@
+{
+  "name": "Dive Club",
+  "purpose": "listen",
+  "theme": "red",
+  "caption": "The best founders to listen to. Search Diveclub on Spotify.",
+  "slides": [
+    {
+      "glyph": "q(*_*)p",
+      "glyphPos": "top",
+      "vertical": false,
+      "card": null,
+      "caption": "The best founders\nto listen.",
+      "style": "glitch",
+      "density": 64,
+      "warp": 16,
+      "seed": 5,
+      "image": null,
+      "template": "texture",
+      "theme": null
+    },
+    {
+      "header": "",
+      "body": "**Real-World Playbooks:**\nBreaking down what worked, what failed, and how they pivoted under pressure.\n\n**High-Signal Dialogue:**\nConversations designed to make you raise your own bar for your next build.",
+      "glyph": "q(*_*)p",
+      "showGlyph": true,
+      "spread": false,
+      "template": "breakdown",
+      "theme": null
+    },
+    {
+      "glyph": "@->--->---",
+      "small": "",
+      "caption": "",
+      "size": 100,
+      "template": "glyph",
+      "vertical": true,
+      "theme": null
+    },
+    {
+      "mark": "lab",
+      "glyph": "q(*_*)p",
+      "aside": "Great conversations don't just inform.\nThey make you want to raise your own bar.",
+      "cta": "Listen on Spotify. **Search Diveclub**",
+      "template": "outro",
+      "theme": null
+    }
+  ]
+}

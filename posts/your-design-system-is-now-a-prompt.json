@@ -1,0 +1,37 @@
+{
+  "name": "Your design system is now a prompt",
+  "purpose": "view",
+  "theme": "cream",
+  "caption": "Components used to be the system. Now the rules are.",
+  "slides": [
+    {
+      "bg": "flat",
+      "seed": 3,
+      "top": "text",
+      "glyph": "q(*_*)p",
+      "intro": "Components used to be the system.",
+      "headline": "Your design\nsystem is now\na prompt",
+      "sub": "",
+      "scale": 100,
+      "template": "cover",
+      "theme": null
+    },
+    {
+      "header": "",
+      "body": "**Before:**\nA library of components everyone copied by hand.\n\n**Now:**\nTokens, rules and examples an agent can read and apply on its own.",
+      "glyph": "(—▽—)",
+      "showGlyph": true,
+      "spread": false,
+      "template": "breakdown",
+      "theme": null
+    },
+    {
+      "glyph": "¯\\_(ツ)_/¯",
+      "small": "<3",
+      "caption": "",
+      "size": 100,
+      "template": "glyph",
+      "theme": null
+    }
+  ]
+}

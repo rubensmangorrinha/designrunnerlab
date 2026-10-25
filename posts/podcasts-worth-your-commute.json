@@ -1,0 +1,51 @@
+{
+  "name": "Podcasts worth your commute",
+  "purpose": "listen",
+  "theme": "red",
+  "caption": "Three shows for designers building with AI. Which one is on your queue?",
+  "slides": [
+    {
+      "bg": "silk",
+      "seed": 3,
+      "top": "glyph",
+      "glyph": "q(*_*)p",
+      "intro": "",
+      "headline": "The best\nfounders\nto listen.",
+      "sub": "While you spend 45 minutes\naligning a 2px stroke.",
+      "scale": 100,
+      "template": "cover",
+      "theme": null
+    },
+    {
+      "header": "",
+      "body": "**The Input:**\nHearing how other builders break molds, scale products, and rethink their approach from scratch.\n\n**The Urge:**\nThe immediate itch to close Figma, scrap your current roadmap, and build something entirely different.",
+      "glyph": "q(*_*)p",
+      "showGlyph": true,
+      "spread": false,
+      "template": "breakdown",
+      "theme": null
+    },
+    {
+      "glyph": "@->--->---",
+      "glyphPos": "center",
+      "vertical": true,
+      "card": null,
+      "caption": "",
+      "style": "glitch",
+      "density": 64,
+      "warp": 16,
+      "seed": 11,
+      "image": null,
+      "template": "texture",
+      "theme": null
+    },
+    {
+      "mark": "lab",
+      "glyph": "q(*_*)p",
+      "aside": "Great conversations don't just inform.\nThey make you want to raise your own bar.",
+      "cta": "Listen on Spotify: [Growthmates]\nExplore it: Link in caption",
+      "template": "outro",
+      "theme": null
+    }
+  ]
+}

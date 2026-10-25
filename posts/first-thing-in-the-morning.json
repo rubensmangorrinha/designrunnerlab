@@ -1,0 +1,47 @@
+{
+  "name": "First thing in the morning?",
+  "purpose": "giveaway",
+  "theme": "charcoal",
+  "caption": "A tiny script that reads six tabs so you don't have to. The free version is in the lab, link in bio.",
+  "slides": [
+    {
+      "bg": "flat",
+      "seed": 3,
+      "top": "text",
+      "glyph": "q(*_*)p",
+      "intro": "Writing a daily morning digest script so you don't have to check six different tabs before 9 AM.",
+      "headline": "First thing in\nthe morning?",
+      "sub": "",
+      "scale": 100,
+      "template": "cover",
+      "theme": null
+    },
+    {
+      "header": "design runner.lab",
+      "body": "**The Fan-Out:**\nPulls updates across your calendar, inbox, and task boards automatically.\n\n**The Brief:**\nA single, scannable summary delivered straight to your DMs before you log on.",
+      "glyph": "q(*_*)p",
+      "showGlyph": false,
+      "spread": false,
+      "template": "breakdown",
+      "theme": null
+    },
+    {
+      "header": "design runner.lab",
+      "image": null,
+      "height": 46,
+      "bleed": true,
+      "credit": "Screenshot: the digest landing in Slack at 8:30 AM.",
+      "body": "",
+      "template": "photo",
+      "theme": null
+    },
+    {
+      "mark": "lab",
+      "glyph": "q(*_*)p",
+      "aside": "I'm giving away the exact script I use to generate this digest.",
+      "cta": "Grab it in the lab (link in bio).",
+      "template": "outro",
+      "theme": null
+    }
+  ]
+}

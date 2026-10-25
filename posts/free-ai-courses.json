@@ -1,0 +1,51 @@
+{
+  "name": "Free AI courses",
+  "purpose": "learn",
+  "theme": "blue",
+  "caption": "Free official courses, no code needed. Start with fluency, then go deeper.",
+  "slides": [
+    {
+      "bg": "flat",
+      "seed": 3,
+      "top": "glyph",
+      "glyph": "(= =)",
+      "intro": "",
+      "headline": "Learning AI\ntools where\nto start",
+      "sub": "Anthropic actually\nbuilt a curriculum for it.",
+      "scale": 100,
+      "template": "cover",
+      "theme": null
+    },
+    {
+      "header": "",
+      "body": "**Claude Academy:**\nFree official courses covering AI fluency, prompt patterns, and human-agent workflows.\n\n**Deep Dives:**\nMoving past basic chat into API architecture, system design, and the Model Context Protocol (MCP).",
+      "glyph": "(= =)",
+      "showGlyph": true,
+      "spread": false,
+      "template": "breakdown",
+      "theme": null
+    },
+    {
+      "glyph": "",
+      "glyphPos": "center",
+      "vertical": false,
+      "card": null,
+      "caption": "",
+      "style": "stretch",
+      "density": 80,
+      "warp": 22,
+      "seed": 23,
+      "image": null,
+      "template": "texture",
+      "theme": null
+    },
+    {
+      "mark": "lab",
+      "glyph": "q(*_*)p",
+      "aside": "Stop guessing what works.\nLearn how the systems are actually engineered to operate.",
+      "cta": "Check out the courses:\n[Claude Academy]",
+      "template": "outro",
+      "theme": null
+    }
+  ]
+}

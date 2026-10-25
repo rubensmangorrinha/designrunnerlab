@@ -1,0 +1,76 @@
+{
+  "name": "Why do most posts fail?",
+  "purpose": "view",
+  "theme": "cream",
+  "caption": "Most posts don't fail because of the algorithm. Here's what's actually leaking. Full breakdown in the lab, link in bio.",
+  "slides": [
+    {
+      "bg": "flat",
+      "seed": 3,
+      "top": "none",
+      "glyph": "q(*_*)p",
+      "intro": "",
+      "headline": "Your\nContent\nFunnel Is\nLeaking.",
+      "sub": "",
+      "scale": 112,
+      "template": "cover",
+      "upper": false,
+      "note": "• No clear CTA\n• You're speaking to the wrong stage of awareness\n• Inconsistent follow-up",
+      "cta": "Find out more →",
+      "theme": null
+    },
+    {
+      "eyebrow": "design runner lab",
+      "label2": "",
+      "headline": "Why do most posts fail? →\n_And no, it's not the algorithm's fault._",
+      "number": "91%",
+      "caption": "of posts get zero meaningful engagement.",
+      "template": "stat",
+      "theme": null
+    },
+    {
+      "eyebrow": "Workflow & systems",
+      "headline": "Notion is our brain.\nHere's why.",
+      "number": "01",
+      "col1": "How we use it\nContent calendar\nClient portal\nSwipe file library",
+      "col2": "Don't get lost in apps\nOnboarding templates\nOne app. Infinite uses.",
+      "image": null,
+      "template": "index",
+      "theme": null
+    },
+    {
+      "mark": "*",
+      "headline": "Build trust\nwith _Templates_",
+      "upper": true,
+      "left": "Show clients how you work.",
+      "right": "Post frameworks, swipe files, checklists, screenshots. They reveal your process and build authority.",
+      "template": "centered",
+      "theme": null
+    },
+    {
+      "labels": "Avoid these 3 red flags | Too many buzzwords | Inconsistent branding | No…",
+      "word": "PORT-",
+      "size": 430,
+      "image": null,
+      "sub": "Your portfolio, read in 6 seconds.",
+      "template": "bleed",
+      "theme": null
+    },
+    {
+      "image": null,
+      "title": "How to handle\nclient revisions\neffectively",
+      "inner": "**Systems protect sanity.**\nSet limits upfront\nUse Loom videos for clarity\nHave a kill fee",
+      "seed": 12,
+      "template": "card",
+      "theme": null
+    },
+    {
+      "mark": "logo",
+      "glyph": "q(*_*)p",
+      "aside": "",
+      "cta": "**Explore the workflow lab.**\nLink in bio.",
+      "template": "outro",
+      "theme": null
+    }
+  ]
+}
