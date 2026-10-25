@@ -22,7 +22,7 @@
   --rule: #3a3a38;
   --red: #e0301e;
   --sans: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
-  --hand: "HV Smegs 2", "HV Smegs 1", "Comic Sans MS", cursive;
+  /* HV Smegs only appears at display sizes (the pit glyphs); small text stays in Instrument Sans. */
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -62,7 +62,7 @@ h1 { font-size: clamp(30px, 6vw, 38px); font-weight: 400; letter-spacing: -0.02e
 .links li:first-child a { padding-top: 0; }
 .links .t { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; }
 .links .t > span:first-child { max-width: 26ch; min-width: 0; }
-.links .tag { font-family: var(--hand); font-size: 22px; color: var(--muted); white-space: nowrap; line-height: 1; }
+.links .tag { font-size: 14px; font-weight: 500; letter-spacing: 0.02em; color: var(--muted); white-space: nowrap; line-height: 1; }
 .links .tag.paid { color: var(--red); }
 .links .u { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; overflow-wrap: anywhere; }
 .links a:hover .u, .links a:focus-visible .u { color: var(--ink); }
@@ -127,7 +127,7 @@ h1 { font-size: clamp(30px, 6vw, 38px); font-weight: 400; letter-spacing: -0.02e
 .pit { position: relative; height: clamp(300px, 42vh, 460px); overflow: hidden; }
 .pit-hint {
   position: absolute; left: 50%; top: 18px; transform: translateX(-50%);
-  font-family: var(--hand); font-size: 22px; color: var(--muted); pointer-events: none; white-space: nowrap;
+  font-size: 14px; color: var(--muted); pointer-events: none; white-space: nowrap;
 }
 .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 16px 28px; font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); }
 .foot a { color: var(--muted); }
