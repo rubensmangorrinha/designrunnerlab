@@ -9,25 +9,31 @@
       "type": "image",
       "file": "p/how-to-audit-an-ai-generated-ui/01.png",
       "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/01.png",
-      "alt": "Slide 1 of 4. Three checks before it ships. How to audit AI-generated UI."
+      "alt": "Slide 1 of 5. How to audit AI-generated UI."
     },
     {
       "type": "image",
       "file": "p/how-to-audit-an-ai-generated-ui/02.png",
       "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/02.png",
-      "alt": "Slide 2 of 4. Hierarchy: Can you tell what matters in three seconds? States: Check empty, error, loading, and long-text cases. System: Compare spacing, typography, and color against your core design tokens."
+      "alt": "Slide 2 of 5. Screen slide"
     },
     {
       "type": "image",
       "file": "p/how-to-audit-an-ai-generated-ui/03.png",
       "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/03.png",
-      "alt": "Slide 3 of 4. Glyph slide"
+      "alt": "Slide 3 of 5. Hierarchy: The banner and two filled buttons all shout. What matters in three seconds? States: A long name breaks the row. The activity panel is empty with no message. System: The second button has its own radius, size and colour. Check it against your tokens."
     },
     {
       "type": "image",
       "file": "p/how-to-audit-an-ai-generated-ui/04.png",
       "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/04.png",
-      "alt": "Slide 4 of 4. Explore the workflow lab. Link in bio."
+      "alt": "Slide 4 of 5. Glyph slide"
+    },
+    {
+      "type": "image",
+      "file": "p/how-to-audit-an-ai-generated-ui/05.png",
+      "url": "https://designrunnerlab.vercel.app/p/how-to-audit-an-ai-generated-ui/05.png",
+      "alt": "Slide 5 of 5. The full checklist I paste into reviews. Comment AUDIT and I'll send it. Or find it: Link in bio."
     }
   ]
 }

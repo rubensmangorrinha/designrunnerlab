@@ -95,6 +95,7 @@ The studio warns you when a colour breaks the rule.
 | Cover | Glyph, logo or intro line on top; headline on the bottom edge. Options: uppercase, mono note, corner link, arrow pill, silk or stretch background. |
 | Breakdown | `**Label:**` points, or Old way / New way. |
 | Photo | Framed photo or screenshot with a credit line. |
+| Screen | A real screenshot in a window on the colour field, with numbered red marks (`x%, y%, Label` per line, measured on the screenshot) and their labels as a legend underneath. Use it to show exactly what you mean, like the audit post. Local paths work, relative to `studio/`. |
 | Texture | Glitch waves, silk folds or light stretch, generated per theme. |
 | Stat | Big accent number with the claim above it. |
 | Index | Mono eyebrow, big "01", two mini lists, photo. |

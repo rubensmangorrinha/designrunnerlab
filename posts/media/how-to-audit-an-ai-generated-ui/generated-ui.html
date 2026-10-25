@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- A deliberately typical AI-generated dashboard, used as the example screen in the audit post.
+     Its flaws are on purpose: two competing primary buttons, a long name that breaks the row,
+     an empty panel with no empty state, and off-scale spacing and type. -->
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.4 Inter, "Helvetica Neue", Arial, sans-serif; color: #1f2430; background: #f6f7fb; width: 1200px; height: 780px; overflow: hidden; }
+  .top { display: flex; align-items: center; gap: 24px; padding: 18px 32px; background: #fff; border-bottom: 1px solid #e6e8ef; }
+  .logo { font-weight: 700; font-size: 20px; color: #5b4cf0; }
+  .nav { display: flex; gap: 22px; color: #6b7280; font-size: 15px; }
+  .nav b { color: #1f2430; font-weight: 600; }
+  .av { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#f6a,#a7f); }
+  .wrap { padding: 28px 32px; }
+  .banner { background: linear-gradient(90deg,#5b4cf0,#9a5cf5); color: #fff; border-radius: 14px; padding: 18px 22px; display: flex; align-items: center; gap: 16px; margin-bottom: 26px; }
+  .banner h3 { margin: 0; font-size: 20px; } .banner p { margin: 2px 0 0; opacity: .85; font-size: 14px; }
+  .banner button { margin-left: auto; background: #fff; color: #5b4cf0; border: 0; border-radius: 10px; padding: 11px 18px; font-weight: 700; font-size: 15px; }
+  .head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .head h1 { margin: 0; font-size: 28px; margin-right: auto; }
+  .btn { border: 0; border-radius: 10px; padding: 12px 20px; font-weight: 700; font-size: 15px; color: #fff; }
+  .b1 { background: #5b4cf0; } .b2 { background: #6a5cf2; border-radius: 6px; font-size: 14px; padding: 13px 17px; }
+  .grid { display: grid; grid-template-columns: 1fr 330px; gap: 24px; }
+  .card { background: #fff; border: 1px solid #e6e8ef; border-radius: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; table-layout: fixed; }
+  th { text-align: left; color: #8a90a0; font-weight: 500; font-size: 13px; padding: 14px 18px; border-bottom: 1px solid #eef0f5; }
+  td { padding: 15px 18px; border-bottom: 1px solid #eef0f5; vertical-align: top; }
+  td:first-child { width: 46%; font-weight: 600; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 13px; font-weight: 600; }
+  .ok { background: #e3f7ec; color: #1c8a4a; } .wip { background: #fff2dc; color: #b26b00; } .late { background: #fde7e7; color: #c0362c; }
+  .long { word-break: break-all; line-height: 1.25; }
+  .side h4 { margin: 0; padding: 16px 18px; font-size: 16px; border-bottom: 1px solid #eef0f5; }
+  .empty { height: 300px; }
+  .stat { padding: 13px 18px; display: flex; justify-content: space-between; font-size: 15px; border-top: 1px solid #eef0f5; }
+</style>
+<div class="top"><span class="logo">Flowly</span><span class="nav"><b>Projects</b><span>Team</span><span>Reports</span><span>Settings</span></span><span class="av"></span></div>
+<div class="wrap">
+  <div class="banner"><div><h3>Upgrade to Flowly Pro ✨</h3><p>Unlock unlimited projects, AI insights and priority support.</p></div><button>Upgrade now</button></div>
+  <div class="head"><h1>Projects</h1><button class="btn b1">+ New project</button><button class="btn b2">Import projects</button></div>
+  <div class="grid">
+    <div class="card"><table>
+      <tr><th>Name</th><th>Owner</th><th>Status</th><th>Due</th></tr>
+      <tr><td>Website redesign</td><td>Ana M.</td><td><span class="pill ok">On track</span></td><td>Nov 12</td></tr>
+      <tr><td class="long">Q4_customer_onboarding_research_synthesis_FINAL_v3_(do-not-delete)</td><td>Jordan K.</td><td><span class="pill wip">In progress</span></td><td>Nov 20</td></tr>
+      <tr><td>Mobile checkout</td><td>Sam R.</td><td><span class="pill late">Late</span></td><td>Oct 30</td></tr>
+      <tr><td>Design tokens audit</td><td>Lee P.</td><td><span class="pill ok">On track</span></td><td>Dec 2</td></tr>
+    </table></div>
+    <div class="card side"><h4>Recent activity</h4><div class="empty"></div><div class="stat"><span>Active projects</span><b>4</b></div></div>
+  </div>
+</div>

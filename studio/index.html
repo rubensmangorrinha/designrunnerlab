@@ -533,6 +533,18 @@ const TEMPLATES = {
     ],
     defaults: { title: "Product", image: null, split: 44 },
   },
+  screen: {
+    name: "Screen",
+    desc: "A real screenshot in a window on the colour field, with numbered marks on the parts that matter.",
+    fields: [
+      { k: "descriptor", label: "Top line", type: "textarea", rows: 2 },
+      { k: "image", label: "Screenshot", type: "image" },
+      { k: "marks", label: "Marks", type: "textarea", rows: 4, hint: "One per line: <code>x%, y%, Label</code>, measured on the screenshot." },
+      { k: "headline", label: "Headline", type: "textarea", rows: 2 },
+      { k: "scale", label: "Headline size", type: "range", min: 50, max: 140 },
+    ],
+    defaults: { descriptor: "What to look at.", image: null, marks: "30, 20, First thing\n70, 60, Second thing", headline: "", scale: 100 },
+  },
   save: {
     name: "Save",
     desc: "Logo, a short line and the bookmark ribbon with a hand-drawn arrow. Closes tool lists.",
@@ -1607,6 +1619,67 @@ const LAYOUTS = {
       ctx.fillText("Inspector → Screenshot", W / 2, bandH + (H - bandH) * 0.5 + 60);
       ctx.textAlign = "left";
     }
+  },
+
+  screen(ctx, s, th) {
+    let top = M;
+    if (s.descriptor && s.descriptor.trim()) {
+      const dl = layoutRich(ctx, s.descriptor, W - 2 * M, 50, -0.015);
+      drawRich(ctx, dl, M, M, 50, 1.2, th.fg, -0.015);
+      top = M + richHeight(dl, 50, 1.2) + 56;
+    }
+    let bottom = H - M;
+    if (s.headline && s.headline.trim()) {
+      const fit = fitText(ctx, s.headline, W - 2 * M, 300, Math.round(104 * (s.scale || 100) / 100), 48, 1.02, -0.04);
+      const hh = richHeight(fit.lines, fit.size, 1.02);
+      drawRich(ctx, fit.lines, M - fit.size * 0.03, bottom - hh + fit.size * 0.08, fit.size, 1.02, th.fg, -0.04);
+      bottom -= hh + 64;
+    }
+    // the window: a light title bar with three dots, the screenshot below it at full width.
+    // It is as tall as the screenshot needs (cropped at the bottom if there's no room), centred in the space.
+    const im = getImage(s.image), bar = 44, r = 26, w = W - 2 * M, x = M;
+    const room = Math.max(200, bottom - top);
+    const h = im ? Math.min(room, bar + im.height * w / im.width) : room;
+    const y = top + (room - h) / 2;
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,.28)"; ctx.shadowBlur = 50; ctx.shadowOffsetY = 18;
+    ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill();
+    ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.clip();
+    ctx.fillStyle = "#ecebe6"; ctx.fillRect(x, y, w, bar);
+    ["#d8d6cf", "#d8d6cf", "#d8d6cf"].forEach((c, i) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + 30 + i * 24, y + bar / 2, 7, 0, 7); ctx.fill(); });
+    let map = null;
+    if (im) {
+      const k = w / im.width;
+      ctx.drawImage(im, x, y + bar, w, im.height * k);
+      map = (px, py) => [x + im.width * k * px / 100, y + bar + im.height * k * py / 100];
+    } else {
+      ctx.fillStyle = "#77767a"; ctx.textAlign = "center"; font(ctx, 40, 600);
+      ctx.fillText("Drop a screenshot", x + w / 2, y + h / 2);
+    }
+    ctx.restore();
+    if (!map) return;
+    // numbered dots on the screenshot, with the labels as a legend under the window so nothing is covered
+    const marks = String(s.marks || "").split("\n").map(l => l.split(",")).filter(p => p.length >= 3);
+    marks.forEach((p, i) => {
+      const [mx, my] = map(parseFloat(p[0]), parseFloat(p[1]));
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,.3)"; ctx.shadowBlur = 14; ctx.shadowOffsetY = 5;
+      ctx.fillStyle = "#e1ddd1"; ctx.beginPath(); ctx.arc(mx, my, 31, 0, 7); ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = "#c31f0d"; ctx.beginPath(); ctx.arc(mx, my, 26, 0, 7); ctx.fill();
+      sansText(ctx, String(i + 1), mx, my + 1, 30, "#e1ddd1", "center", 600);
+    });
+    if (!marks.length) return;
+    let lx = M; const ly = Math.min(y + h + 74, H - M - 20);
+    marks.forEach((p, i) => {
+      const label = p.slice(2).join(",").trim();
+      ctx.fillStyle = "#c31f0d"; ctx.beginPath(); ctx.arc(lx + 24, ly, 24, 0, 7); ctx.fill();
+      sansText(ctx, String(i + 1), lx + 24, ly + 1, 28, "#e1ddd1", "center", 600);
+      sansText(ctx, label, lx + 62, ly + 1, 40, th.fg, "left", 400);
+      font(ctx, 40, 400); setSpacing(ctx, 40, -0.01);
+      lx += 62 + ctx.measureText(label).width + 52;
+    });
   },
 
   save(ctx, s, th) {

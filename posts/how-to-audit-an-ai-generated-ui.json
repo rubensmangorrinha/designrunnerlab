@@ -6,20 +6,26 @@
   "caption": "Auditing AI-generated UI isn't about redesigning from scratch. It's about spot-checking the details generation gets wrong quietly.\n\nThree checks before it ships:\n\nHierarchy: can you tell what matters in three seconds?\nStates: check empty, error, loading and long-text cases.\nSystem: compare spacing, typography and colour against your design tokens.\n\nTrust the generation, but verify the details.\n\nI turned this into the checklist I paste into every review. Comment AUDIT and I'll send it to you.\n\nWhat's your go-to check when reviewing AI UI?",
   "slides": [
     {
-      "bg": "flat",
-      "seed": 3,
-      "top": "text",
-      "glyph": "q(*_*)p",
-      "intro": "Three checks before it ships.",
+      "template": "screen",
+      "descriptor": "A screen a model wrote in seconds.",
+      "image": "../posts/media/how-to-audit-an-ai-generated-ui/screen.png",
+      "marks": "",
       "headline": "How to audit\nAI-generated UI",
-      "sub": "",
-      "scale": 80,
-      "template": "cover",
+      "scale": 100,
+      "theme": null
+    },
+    {
+      "template": "screen",
+      "descriptor": "Three checks before it ships.",
+      "image": "../posts/media/how-to-audit-an-ai-generated-ui/screen.png",
+      "marks": "36, 13, Hierarchy\n19, 60, States\n96, 23, System",
+      "headline": "",
+      "scale": 100,
       "theme": null
     },
     {
       "header": "",
-      "body": "**Hierarchy:**\nCan you tell what matters in three seconds?\n\n**States:**\nCheck empty, error, loading, and long-text cases.\n\n**System:**\nCompare spacing, typography, and color against your core design tokens.",
+      "body": "**Hierarchy:**\nThe banner and two filled buttons all shout. What matters in three seconds?\n\n**States:**\nA long name breaks the row. The activity panel is empty with no message.\n\n**System:**\nThe second button has its own radius, size and colour. Check it against your tokens.",
       "glyph": "q(*_*)p",
       "showGlyph": true,
       "spread": false,
@@ -37,8 +43,8 @@
     {
       "mark": "lab",
       "glyph": "q(*_*)p",
-      "aside": "",
-      "cta": "**Explore the workflow lab.**\nLink in bio.",
+      "aside": "The full checklist I paste into reviews.",
+      "cta": "**Comment AUDIT** and I'll send it.\nOr find it: [Link in bio]",
       "template": "outro",
       "theme": null
     }
