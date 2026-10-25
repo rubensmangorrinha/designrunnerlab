@@ -15,6 +15,7 @@
  *     cardHTML(item, index) -> html, // inner markup of a card
  *     detailHTML(item) -> html,      // overlay content
  *     cell: { w: 300, h: 390, gap: 22 },
+ *     zoom: 1,                       // starting zoom
  *   })
  */
 (function () {
@@ -34,7 +35,7 @@
      *  Each slot keeps its card; panning only moves and wraps slots.    *
      * ---------------------------------------------------------------- */
     var slots = [], cols = 0, rows = 0, W = 0, H = 0;
-    var zoom = 1, Wv = 0, Hv = 0;   // Wv/Hv: the area the wall covers before scaling
+    var zoom = opts.zoom || 1, Wv = 0, Hv = 0;   // Wv/Hv: the area the wall covers before scaling
     var ZMIN = 0.4, ZMAX = 1.25;
     function build() {
       W = stage.clientWidth; H = stage.clientHeight;
@@ -227,7 +228,7 @@
     // zoom buttons, glass, bottom right
     var zc = document.createElement("div");
     zc.className = "gal-zoom";
-    zc.innerHTML = '<button type="button" aria-label="Zoom out">−</button><span aria-live="polite">100%</span><button type="button" aria-label="Zoom in">+</button>';
+    zc.innerHTML = '<button type="button" aria-label="Zoom out">−</button><span aria-live="polite">' + Math.round(zoom * 100) + '%</span><button type="button" aria-label="Zoom in">+</button>';
     zc.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
     zc.children[0].onclick = function () { setZoom(zoom / 1.25); };
     zc.children[2].onclick = function () { setZoom(zoom * 1.25); };

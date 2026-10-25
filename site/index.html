@@ -737,6 +737,8 @@ html.is-loading .curtain img { animation: run-across 1.25s cubic-bezier(.45,.05,
         items: ARTICLES, cardHTML, detailHTML,
         // 4:5, the Instagram post shape
         cell: small ? { w: 240, h: 300, gap: 16 } : { w: 296, h: 370, gap: 22 },
+        // phones start zoomed out a little, so more than one column shows
+        zoom: small ? 0.78 : 1,
       });
     }
   }
