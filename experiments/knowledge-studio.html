@@ -137,9 +137,11 @@ p { text-wrap: pretty }
 .month .c-title { min-width: 110px }
 .count { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 220px }
 .count .num { min-width: 28px }
-.count .lbl { font-size: 13px; color: var(--muted); line-height: 1.3; width: 84px; flex-shrink: 0 }
-.ticks { display: flex; gap: 3px; align-items: center; height: 22px; overflow: hidden; flex: 1; min-width: 0 }
-.ticks i { width: 2px; height: 100%; flex-shrink: 0; background: var(--fg); transform-origin: bottom; animation: growY .4s var(--ease) backwards }
+.count .lbl { font-size: 13px; color: var(--muted); line-height: 1.3; width: 96px; flex-shrink: 0 }
+/* one square dot per item, the Studio's own mark for "how much"; only filled dots, since these are counts */
+.ticks { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; flex: 1; min-width: 0 }
+.ticks i { width: 7px; height: 7px; border-radius: 1px; flex-shrink: 0; background: var(--fg); animation: pop .3s var(--ease) backwards }
+.ticks em { font-style: normal; font-size: 13px; color: var(--muted); margin-left: 4px }
 .count.lit .ticks i { background: var(--f1) }
 
 /* Depth map: a row per topic, its dots as solid as it is deep */
@@ -148,10 +150,28 @@ p { text-wrap: pretty }
 .dm-row:hover, .dm-row:focus-visible { background: var(--subtle) }
 .dm-rows.has-on .dm-row:not(:hover):not(:focus-visible) { opacity: .45 }
 .dm-row .nm { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.dm-row canvas { width: 100%; height: 14px; display: block }
+.dm-row .dv { min-width: 0 }
 .dm-row .lv { font-size: 13px; color: var(--muted); text-align: right }
+/* the three depth versions (prototype switch) */
+.dm-seg { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px; padding: 2px 2px 2px 10px; border-radius: 999px; background: var(--subtle); margin-top: 12px; align-self: flex-start; font-size: 13px; color: var(--muted) }
+.dm-seg span { margin-right: 6px }
+.dm-seg button { min-height: 32px; padding: 0 12px; border-radius: 999px; font-size: 13px; color: var(--muted); transition: background-color .18s var(--ease), color .18s var(--ease) }
+.dm-seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg) }
+.dv { display: flex; gap: 3px; align-items: center }
+.dv i { width: 8px; height: 8px; border-radius: 1px; background: var(--border); animation: pop .3s var(--ease) backwards }
+.dv i.on { background: var(--fg) }
+.dv.three { gap: 4px } .dv.three i { width: 14px; height: 14px; border-radius: 2px }
+.dv.big i { width: 12px; height: 12px; border-radius: 2px } .dv.three.big i { width: 22px; height: 22px; border-radius: 3px }
+.dg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: end; margin-top: 20px; flex: 1 }
+.dg-col { display: flex; flex-direction: column; align-items: center; gap: 10px }
+.dg-stack { display: flex; flex-wrap: wrap-reverse; justify-content: center; gap: 5px; width: 98px }
+.dg-sq { width: 28px; height: 28px; border-radius: 4px; background: var(--fg); animation: pop .3s var(--ease) backwards; transition: opacity .2s var(--ease), transform .15s var(--ease) }
+.dg.has-on .dg-sq:not(:hover):not(:focus-visible) { opacity: .3 }
+.dg-lbl { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted) }
+.dg-cap { margin-top: 14px; min-height: 22px; font-size: 13px; color: var(--muted); text-align: center }
+.dg-cap b { font-weight: 500; color: var(--fg) }
 .dm-sep { height: 1px; background: var(--border); margin: 6px 0 }
-@media (max-width: 640px) { .dm-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; min-height: 44px; padding-block: 6px } .dm-row canvas { grid-column: 1 / -1; grid-row: 2 } }
+@media (max-width: 640px) { .dm-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; min-height: 44px; padding-block: 6px } .dm-row .dv { grid-column: 1 / -1; grid-row: 2 } }
 
 /* Grow next (lighter rows) */
 .acc { display: flex; flex-direction: column; margin-top: 8px }
@@ -243,7 +263,6 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
 .p-top { display: flex; align-items: center; justify-content: space-between; gap: 12px }
 .x { width: 40px; height: 40px; border-radius: 10px; display: inline-grid; place-items: center; transition: background-color .18s var(--ease) }
 .x:hover { background: var(--subtle) }
-.shape { width: 100%; height: 40px; display: block; margin: 14px 0 }
 .h2 { font-size: 24px; font-weight: 600; letter-spacing: -.015em; line-height: 1.2 }
 .p-next { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border) }
 .p-acts { display: flex; flex-direction: column; gap: 8px; margin-top: 18px }
@@ -307,17 +326,18 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
 
       <section class="card month rise" aria-labelledby="t-month">
         <h2 class="c-title" id="t-month">This month</h2>
-        <div class="count"><span class="num">11</span><span class="lbl">answers you gave</span><span class="ticks" data-n="11" aria-hidden="true"></span></div>
-        <div class="count"><span class="num">9</span><span class="lbl">replies you checked</span><span class="ticks" data-n="9" aria-hidden="true"></span></div>
-        <div class="count lit"><span class="num">3</span><span class="lbl">levels gained</span><span class="ticks" data-n="3" aria-hidden="true"></span></div>
+        <div class="count lit"><span class="num">3</span><span class="lbl">levels up</span><span class="ticks" data-n="3" aria-hidden="true"></span></div>
+        <div class="count"><span class="num">11</span><span class="lbl">questions you answered</span><span class="ticks" data-n="11" aria-hidden="true"></span></div>
+        <div class="count"><span class="num">9</span><span class="lbl">replies you checked as yours</span><span class="ticks" data-n="9" aria-hidden="true"></span></div>
       </section>
 
       <div class="grid" style="margin-top:12px">
         <section class="card vt-topics" aria-labelledby="t-depth">
           <div class="c-head">
-            <div><h2 class="c-title" id="t-depth">Depth map</h2><p class="c-sub">The more solid the dots, the deeper your mind goes.</p></div>
+            <div><h2 class="c-title" id="t-depth">Depth map</h2><p class="c-sub" id="dm-sub">The more squares filled, the deeper your mind goes.</p></div>
             <p class="small muted vt-levels" style="text-align:right;flex-shrink:0">Design · 31 of 36 levels</p>
           </div>
+          <div class="dm-seg" role="group" aria-label="Prototype: depth map version"><span>Try</span><button type="button" data-dm="bar" aria-pressed="true">Bar of squares</button><button type="button" data-dm="three" aria-pressed="false">Three squares</button><button type="button" data-dm="graph" aria-pressed="false">Graph</button></div>
           <div class="dm-rows" id="dm"></div>
         </section>
         <section class="card rise" style="animation-delay:80ms" aria-labelledby="t-grow">
@@ -408,51 +428,53 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
   function renderMonth() {
     var at = 0;
     document.querySelectorAll(".ticks").forEach(function (el) {
-      var h = ""; for (var k = 0; k < +el.dataset.n; k++) h += '<i style="animation-delay:' + (120 + (at++) * 16) + 'ms"></i>';
+      // up to 20 dots, then "+N": the number already says the exact count; each row lands by about 450ms
+      var n = +el.dataset.n, shown = Math.min(20, n), h = "";
+      for (var k = 0; k < shown; k++) h += '<i style="animation-delay:' + (120 + at * 150 + Math.min(k * 24, 300)) + 'ms"></i>';
+      if (n > shown) h += "<em>+" + (n - shown) + "</em>";
+      at++;
       el.innerHTML = h;
     });
   }
 
   // Depth map: each topic a row; its strip of square dots is as long and as solid as its level
   var ORDER = TOPICS.slice().sort(function (a, b) { return b.level - a.level || b.asked - a.asked; });
+  // Three versions to try: a bar of 18 squares (6 per level), three big squares (one per level), or a graph
+  var dmMode = "bar";
+  try { dmMode = localStorage.getItem("kp-dm") || "bar"; } catch (e) {}
+  function depthMark(t, mode, big, base) {
+    var n = mode === "three" ? 3 : 18, on = mode === "three" ? t.level : t.level * 6, h = '<span class="dv' + (mode === "three" ? " three" : "") + (big ? " big" : "") + '" aria-hidden="true">';
+    for (var k = 0; k < n; k++) h += '<i class="' + (k < on ? "on" : "") + '" style="animation-delay:' + ((base || 0) + Math.min(k, 17) * 14) + 'ms"></i>';
+    return h + "</span>";
+  }
   function renderDepth() {
     var host = $("#dm"), html = "";
+    document.querySelectorAll("[data-dm]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.dm === dmMode)); });
+    $("#dm-sub").textContent = dmMode === "graph" ? "Each square is a topic, stacked by how deep it goes." : "The more squares filled, the deeper your mind goes.";
+    if (dmMode === "graph") {
+      var at = 0;
+      html = '<div class="dg">' + [3, 2, 1].map(function (l) {
+        var list = ORDER.filter(function (t) { return t.level === l; });
+        return '<div class="dg-col"><div class="dg-stack">' + list.map(function (t) {
+          return '<button type="button" class="dg-sq" data-open="' + t.id + '" data-cap="' + esc(t.label) + '" data-lv="' + LV[t.level] + '" aria-label="' + esc(t.label) + ", " + LV[t.level] + '" style="animation-delay:' + (60 + (at++) * 30) + 'ms"></button>';
+        }).join("") + '</div><span class="dg-lbl">' + squares(l, true) + LV[l] + " · " + list.length + "</span></div>";
+      }).join("") + '</div><p class="dg-cap" id="dg-cap">Point at a square to see its topic</p>';
+      host.innerHTML = html;
+      var dg = $(".dg", host), cap = $("#dg-cap");
+      function capOn(e) { var q = e.target.closest(".dg-sq"); dg.classList.toggle("has-on", !!q); cap.innerHTML = q ? "<b>" + q.dataset.cap + "</b> · " + q.dataset.lv : "Point at a square to see its topic"; }
+      dg.addEventListener("pointerover", capOn); dg.addEventListener("focusin", capOn);
+      dg.addEventListener("pointerleave", function () { dg.classList.remove("has-on"); cap.textContent = "Point at a square to see its topic"; });
+      return;
+    }
     ORDER.forEach(function (t, i) {
       if (i && ORDER[i - 1].level !== t.level) html += '<div class="dm-sep" aria-hidden="true"></div>';
-      html += '<button type="button" class="dm-row" data-open="' + t.id + '" aria-label="' + esc(t.label) + ", " + LV[t.level] + '"><span class="nm">' + esc(t.label) + '</span><canvas data-level="' + t.level + '" data-i="' + i + '" aria-hidden="true"></canvas><span class="lv">' + LV[t.level] + "</span></button>";
+      html += '<button type="button" class="dm-row" data-open="' + t.id + '" aria-label="' + esc(t.label) + ", " + LV[t.level] + '"><span class="nm">' + esc(t.label) + "</span>" + depthMark(t, dmMode, false, 60 + i * 30) + '<span class="lv">' + LV[t.level] + "</span></button>";
     });
     host.innerHTML = html;
-    host.addEventListener("pointerover", function (e) { host.classList.toggle("has-on", !!e.target.closest(".dm-row")); });
-    host.addEventListener("pointerleave", function () { host.classList.remove("has-on"); });
-    drawDepth();
+    host.onpointerover = function (e) { host.classList.toggle("has-on", !!e.target.closest(".dm-row")); };
+    host.onpointerleave = function () { host.classList.remove("has-on"); };
   }
-  function drawDepth() { drawStrips(document.querySelectorAll("#dm canvas"), 5, 3); }
-  // One picture of depth everywhere: a strip of square dots, solid up to the topic's level, then crumbling
-  function drawStrips(list, sp, z) {
-    var ink = cssVar("--fg"), dpr = Math.min(2, window.devicePixelRatio || 1);
-    Array.prototype.forEach.call(list, function (cv) {
-      var w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
-      cv.width = w * dpr; cv.height = h * dpr;
-      var ctx = cv.getContext("2d"); ctx.scale(dpr, dpr); ctx.fillStyle = ink;
-      var level = +cv.dataset.level, i = +cv.dataset.i, rnd = seeded(i * 53 + 11), cols = Math.floor(w / sp), rows = Math.floor(h / sp), cells = [];
-      var reach = level / 3; // Deep fills the strip, Solid two thirds, Basics a third
-      for (var c = 0; c < cols; c++) {
-        var xf = c / cols, edge = reach - xf;
-        for (var r = 0; r < rows; r++) {
-          // solid up to the topic's reach, then it crumbles into a few loose dots
-          var on = edge > 0.06 ? rnd() < 0.97 : edge > -0.1 ? rnd() < 0.5 + edge * 4 : rnd() < 0.03;
-          if (on) cells.push({ x: c * sp, y: r * sp + 1, k: c });
-        }
-      }
-      var start = performance.now() + i * 30, dur = reduce ? 0 : 420;
-      (function paint(now) {
-        var p = dur ? Math.max(0, Math.min(1, (now - start) / dur)) : 1, e = 1 - Math.pow(1 - p, 3), upto = e * cols;
-        ctx.clearRect(0, 0, w, h);
-        for (var k = 0; k < cells.length; k++) if (cells[k].k <= upto) ctx.fillRect(cells[k].x, cells[k].y, z, z);
-        if (p < 1) requestAnimationFrame(paint);
-      })(performance.now());
-    });
-  }
+  function drawDepth() {}
 
   function renderGrow() {
     var thin = TOPICS.filter(function (t) { return t.next; }).sort(function (a, b) { return b.asked - a.asked; });
@@ -519,8 +541,8 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
     var n = t.docs.length;
     $("#sheet-in").innerHTML = '<div class="p-top"><span style="display:inline-flex;align-items:center;gap:10px">' + squares(t.level) + '<span class="small muted">' + LV[t.level] + '</span></span>' +
       '<button type="button" class="x" data-act="close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
-      '<canvas class="shape" data-level="' + t.level + '" data-i="' + ORDER.indexOf(t) + '" aria-hidden="true"></canvas>' +
-      '<h2 class="h2" id="p-title">' + esc(t.label) + '</h2><p class="small muted" style="margin-top:4px">Asked ' + times(t.asked) + ' this month</p>' +
+      
+      '<h2 class="h2" id="p-title" style="margin-top:12px">' + esc(t.label) + '</h2><p class="small muted" style="margin-top:4px">Asked ' + times(t.asked) + ' this month</p>' +
       '<div class="p-next"><p class="small muted">' + (t.next ? "To reach " + t.next.to : "At the deepest level") + '</p><p style="margin-top:2px">' + (t.next ? t.next.needs + "." : "A new real case keeps it sharp.") + "</p>" +
       (t.next ? '<div class="bars" style="margin-top:10px" aria-hidden="true">' + [0, 1, 2].map(function (k) { return "<i" + (k < t.next.done ? ' class="on"' : "") + "></i>"; }).join("") + "</div>" : "") + "</div>" +
       '<div class="p-acts"><button type="button" class="btn1" data-act="interview" data-id="' + t.id + '">Start interview</button><button type="button" class="btn2" data-act="offer">' + (t.wf ? "Edit what people can ask you for" : "Map something you deliver") + '</button>' +
@@ -530,7 +552,6 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
         : '<p class="small muted" style="margin-top:6px">Nothing yet. A piece of your work is what takes a topic to Deep.</p>');
     sheet.classList.remove("closing");
     if (!sheet.open) sheet.showModal();
-    drawStrips([$(".shape", sheet)], 8, 6);
   }
   function closeSheet(after) {
     if (!sheet.open) { if (after) after(); return; }
@@ -573,9 +594,10 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
    *  Events                                                             *
    * ------------------------------------------------------------------ */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-open],[data-act],[data-try],[data-verdict],.acc-row");
+    var b = e.target.closest("[data-dm],[data-go],[data-open],[data-act],[data-try],[data-verdict],.acc-row");
     if (!b) return;
     if (b.tagName === "A") e.preventDefault();
+    if (b.dataset.dm) { dmMode = b.dataset.dm; try { localStorage.setItem("kp-dm", dmMode); } catch (err) {} renderDepth(); return; }
     if (b.dataset.go) { go(b.dataset.go); return; }
     if (b.classList.contains("acc-row")) {
       var item = b.parentNode, open = !item.classList.contains("open");
