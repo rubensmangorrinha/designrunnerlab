@@ -6,24 +6,22 @@
 <title>Knowledge Studio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!--
-  KNOWLEDGE STUDIO · the Knowledge tab of Sabli's Mind Studio, round 2 (2026-10-29)
-  ---------------------------------------------------------------------------------
-  After the feature and strategy reviews: one primary action (Start interview on the topic that needs you most),
-  no colour on text, the app's own Try your mind, one place to add work, depth from level only, This month cut.
-  The head is a progress indicator: the mind's % and one segment per level (36), this month's in the field colour.
-  Three variations of the same parts, each leading with something different (switch at the top, or #a #b #c):
-    A  Next step         one card: the topic that needs you most, and Start interview
-    B  Ranked            one list of every topic, the thin ones people ask about first, the top one opened
-    C  Depth vs demand   a petal per topic: dark is how deep it goes, grey is how often people ask
-  Any topic opens the same panel (the app's Sheet: 560px, from the bottom on phones).
-  Tokens are the app's (globals.css); the field colour (Design, CATEGORY_SHADES) only on progress marks.
+  KNOWLEDGE STUDIO · round 3 (2026-10-29): round 1's page, smaller and rearranged, and the way in from Your mind
+  ------------------------------------------------------------------------------------------------------------
+  Ruben kept round 1 (Try your mind and the folders as they were) and asked for: smaller, This month horizontal,
+  a depth map that reads at a glance, a lighter Grow next, and the transition from Your mind.
+    Your mind   the dashboard card: the deepest topics show, the rest fade; tap it to open Knowledge
+    Knowledge   This month (a strip) · Depth map (a row per topic, dots as solid as it is deep) · Grow next ·
+                What people ask · Try your mind · Your work
+  The move between them is a shared-element transition (View Transitions API): the topics block becomes the
+  depth map, the level count travels, the tab pill slides. Without the API, or with reduced motion, it just swaps.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
 <style>
-/* Layout: Studio header and tabs, the progress head, then a two-column grid whose lead card changes per variation. */
+/* Layout: Studio header and tabs; Your mind is the dashboard grid; Knowledge is a strip, then two rows of 2/3 + 1/3, then Your work across. */
 :root {
   --bg: #fafaf7; --surface: #ffffff; --subtle: #f2f2ee; --fg: #0b0b0b; --muted: #5c5c57; --faint: #6b6b65;
-  --border: #e6e6e0; --border-strong: #c9c9c2; --off: #e2e1db; --petal: #e3e2dc; --scrim: rgba(11,11,11,.2);
+  --border: #e6e6e0; --border-strong: #c9c9c2; --scrim: rgba(11,11,11,.2);
   --btn: #0b0b0b; --btn-fg: #ffffff; --btn-hover: #2b2b29;
   --f1: #dc6b25; /* CATEGORY_SHADES.Design — progress marks only */
   --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -31,15 +29,15 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121110; --surface: #191816; --subtle: #22201e; --fg: #eeece8; --muted: #a3a09a; --faint: #96938c;
-  --border: #33302c; --border-strong: #4a4641; --off: #2c2a27; --petal: #3d3a35; --scrim: rgba(0,0,0,.55);
+  --border: #33302c; --border-strong: #4a4641; --scrim: rgba(0,0,0,.55);
   --btn: #eeece8; --btn-fg: #121110; --btn-hover: #d6d3cd; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #121110; --surface: #191816; --subtle: #22201e; --fg: #eeece8; --muted: #a3a09a; --faint: #96938c;
-  --border: #33302c; --border-strong: #4a4641; --off: #2c2a27; --petal: #3d3a35; --scrim: rgba(0,0,0,.55);
+  --border: #33302c; --border-strong: #4a4641; --scrim: rgba(0,0,0,.55);
   --btn: #eeece8; --btn-fg: #121110; --btn-hover: #d6d3cd; color-scheme: dark }
 
 * { box-sizing: border-box }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 var(--sans); -webkit-font-smoothing: antialiased }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--sans); -webkit-font-smoothing: antialiased }
 button, input, textarea { font: inherit; color: inherit }
 button { background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left }
 a { color: inherit; text-decoration: none }
@@ -50,7 +48,7 @@ p { text-wrap: pretty }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
 .small { font-size: 13px } .muted { color: var(--muted) }
 .gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
-@media (min-width: 760px) { .gutter { padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)) } }
+@media (min-width: 760px) { .gutter { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)) } }
 
 /* Motion: one curve; shape first, content after; under 500ms */
 @keyframes rise { from { opacity: 0; transform: translateY(8px); filter: blur(4px) } }
@@ -60,140 +58,173 @@ p { text-wrap: pretty }
 @keyframes fade { from { opacity: 0 } }
 @keyframes blink { 50% { opacity: 0 } }
 .rise { animation: rise .45s var(--ease) backwards }
+/* The move between Your mind and Knowledge */
+::view-transition-group(*) { animation-duration: .45s; animation-timing-function: cubic-bezier(.22,1,.36,1) }
+::view-transition-old(root) { animation: .2s ease-out both vt-out }
+::view-transition-new(root) { animation: .35s cubic-bezier(.22,1,.36,1) .1s both vt-in }
+@keyframes vt-out { to { opacity: 0 } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(6px) } }
+.vt-topics { view-transition-name: topics }
+::view-transition-old(topics), ::view-transition-new(topics), ::view-transition-old(levels), ::view-transition-new(levels) { height: 100%; width: 100%; object-fit: cover; object-position: top left; overflow: clip }
+.vt-levels { view-transition-name: levels }
+.tab[aria-current="page"] { view-transition-name: tab-on }
 
-/* Prototype bar (not product) */
-.proto { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 10px; border-bottom: 1px dashed var(--border-strong); font-size: 13px; color: var(--muted) }
-.seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; background: var(--subtle); max-width: 100%; overflow-x: auto; scrollbar-width: none }
-.seg button { flex-shrink: 0; white-space: nowrap; min-height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13px; color: var(--muted); transition: background-color .18s var(--ease), color .18s var(--ease) }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg) }
-
-/* Studio header (the shell's pill tabs) */
-.top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding-block: 12px; border-bottom: 1px solid var(--border) }
+/* Studio header */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding-block: 10px; border-bottom: 1px solid var(--border) }
 .brand { font-weight: 600 }
 .tabs { display: flex; gap: 4px; overflow-x: auto; max-width: 100%; scrollbar-width: none }
-.tab { flex-shrink: 0; min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); display: inline-flex; align-items: center; transition: background-color .18s var(--ease), color .18s var(--ease) }
+.tab { flex-shrink: 0; min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; transition: background-color .18s var(--ease), color .18s var(--ease) }
 .tab:hover { background: var(--subtle) }
 .tab[aria-current="page"] { background: var(--subtle); color: var(--fg) }
+.tab .new { width: 6px; height: 6px; border-radius: 1px; background: var(--fg) }
 
-.page { max-width: 1120px; margin: 0 auto; padding-block: 32px 64px }
-.h1 { font-size: 32px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2 }
+.page { max-width: 1120px; margin: 0 auto; padding-block: 24px 56px }
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px }
+.h1 { font-size: 24px; font-weight: 600; letter-spacing: -.015em; line-height: 1.25 }
+.num { font-size: 24px; font-weight: 600; letter-spacing: -.015em; line-height: 1.2; font-variant-numeric: tabular-nums }
+.screen[hidden] { display: none }
 
-/* Progress head (after the progress indicator): the %, how it moved, one segment per level */
-.prog { margin-bottom: 24px }
-.prog-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px }
-.prog-num { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
-.prog-num b { font-size: 32px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums }
-.delta { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 13px; font-variant-numeric: tabular-nums }
-.levels { display: grid; grid-template-columns: repeat(36, minmax(0, 1fr)); gap: 3px; height: 36px; margin-top: 16px }
-.levels i { border-radius: 3px; background: var(--off); transform-origin: bottom; animation: growY .4s var(--ease) backwards }
-.levels i.on { background: var(--fg) }
-.levels i.new { background: var(--f1) }
-@media (max-width: 640px) { .levels { gap: 2px; height: 28px } .levels i { border-radius: 2px } }
-
-/* Cards: the dashboard's own (rounded-xl border bg-surface p-5 sm:p-6) */
-.grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start }
-.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0 }
-@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr) } }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; min-width: 0 }
-@media (max-width: 640px) { .card { padding: 20px } }
-.c-head { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap }
-.c-title { font-size: 16px; font-weight: 600 }
-.quiet { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 13px; flex-shrink: 0 }
+/* Cards: the dashboard's own (rounded-xl border bg-surface p-5) */
+.grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: stretch }
+.grid > .wide { grid-column: 1 / -1 }
+.grid.flip { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) }
+@media (max-width: 900px) { .grid, .grid.flip { grid-template-columns: minmax(0, 1fr) } }
+.grid + .grid { margin-top: 12px }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-width: 0; display: flex; flex-direction: column }
+@media (max-width: 640px) { .card { padding: 16px } }
+.c-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px }
+.c-title { font-size: 15px; font-weight: 600 }
+.c-sub { font-size: 13px; color: var(--muted); margin-top: 2px }
+.quiet { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 13px; font-weight: 500; flex-shrink: 0 }
 .quiet span { text-decoration: underline; text-underline-offset: 3px; transition: color .18s var(--ease) }
 .quiet:hover span { color: var(--muted) }
-.btn1 { min-height: 48px; padding: 0 20px; border-radius: 12px; background: var(--btn); color: var(--btn-fg); font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background-color .18s var(--ease), transform .15s var(--ease) }
+.btn1 { min-height: 44px; padding: 0 16px; border-radius: 10px; background: var(--btn); color: var(--btn-fg); font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background-color .18s var(--ease), transform .15s var(--ease) }
 .btn1:hover { background: var(--btn-hover) }
-.btn2 { min-height: 44px; padding: 0 16px; border: 1px solid var(--border-strong); border-radius: 12px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--surface); transition: background-color .18s var(--ease), transform .15s var(--ease) }
+.btn2 { min-height: 40px; padding: 0 14px; border: 1px solid var(--border-strong); border-radius: 10px; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--surface); transition: background-color .18s var(--ease), transform .15s var(--ease) }
 .btn2:hover { background: var(--subtle) }
-.btn1:active, .btn2:active, .row:active { transform: scale(.97) }
+.btn1:active, .btn2:active, .chip:active, .folder:active { transform: scale(.97) }
 
-/* Level squares (LevelSquares) */
+/* Level squares */
 .sq { display: inline-flex; gap: 3px; flex-shrink: 0 }
-.sq i { width: 10px; height: 10px; border-radius: 2px; background: var(--off); animation: pop .3s var(--ease) backwards }
+.sq i { width: 7px; height: 7px; border-radius: 1px; background: var(--border-strong); animation: pop .3s var(--ease) backwards }
 .sq i.on { background: var(--f1) }
-.sq.s i { width: 8px; height: 8px; border-radius: 1.5px }
-/* FillLine */
-.fill { height: 6px; border-radius: 999px; background: var(--subtle); overflow: hidden }
-.fill i { display: block; height: 100%; border-radius: 999px; background: var(--fg); transform-origin: left; animation: grow .45s var(--ease) .1s backwards }
-/* A topic's depth as a small block of square dots: wider and more solid level by level */
-.mass { display: grid; grid-template-columns: repeat(6, 4px); grid-auto-rows: 4px; gap: 2px; flex-shrink: 0 }
-.mass i { width: 4px; height: 4px; border-radius: 1px; background: var(--fg); animation: pop .3s var(--ease) backwards }
-.mass i.off { background: transparent }
+.sq.s i { width: 7px; height: 7px }
 
-/* Next step */
-.next-card { display: flex; flex-direction: column; gap: 16px }
-.h2 { font-size: 24px; font-weight: 600; letter-spacing: -.015em; line-height: 1.2 }
-.next-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted) }
-.next-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px }
+/* ---------- Your mind (dashboard) ---------- */
+.dash { display: grid; gap: 12px; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start }
+@media (max-width: 900px) { .dash { grid-template-columns: minmax(0, 1fr) } }
+.mind-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px }
+.sphere { width: 150px; height: 80px; border-radius: 40px; border: 1px dashed var(--border-strong); display: grid; place-items: center; font-size: 13px; color: var(--faint) }
+.topics-btn { display: block; width: 100%; margin-top: 16px; border-radius: 10px; padding: 4px 0; position: relative }
+.tg { display: block; padding: 10px 0; border-top: 1px solid var(--border); transition: opacity .3s var(--ease) }
+.tg:first-child { border-top: 0 }
+.tg-h { display: flex; align-items: center; gap: 10px 20px; flex-wrap: wrap; font-size: 13px; color: var(--muted) }
+.tg-h > span:not(.sq) { display: inline-flex; align-items: center; gap: 10px }
+.tg .t { display: block; margin-top: 4px; font-size: 15px }
+.topics-btn .go { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; min-height: 36px; font-size: 13px; font-weight: 500 }
+.topics-btn .go span { text-decoration: underline; text-underline-offset: 3px }
+.topics-btn .go svg { transition: transform .2s var(--ease) }
+.topics-btn .go:hover svg { transform: translateX(3px) }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding-top: 14px; border-top: 1px solid var(--border) }
+.stats dt { font-size: 13px; color: var(--muted) }
+.stats dd { margin: 2px 0 0; font-weight: 600 }
+.side { display: flex; flex-direction: column; gap: 12px; opacity: .5 }
+.skel { height: 10px; border-radius: 4px; background: var(--subtle); margin-top: 10px }
 
-/* Topic rows */
-.rows { margin-top: 4px }
-.row { width: 100%; display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 10px 0; border-top: 1px solid var(--border); transition: transform .15s var(--ease) }
-.row .nm { flex: 1; min-width: 0; line-height: 1.35 }
-.row .nm small { display: block; font-size: 13px; color: var(--muted) }
-.row .ask { flex: 0 0 120px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums }
-.row .ask .bar { width: 100%; height: 2px; border-radius: 2px; background: var(--subtle); overflow: hidden }
-.row .ask .bar i { display: block; height: 100%; background: var(--fg); transform-origin: left; animation: grow .45s var(--ease) backwards }
-.row:hover .nm > span { text-decoration: underline; text-underline-offset: 3px }
-@media (max-width: 640px) { .row .ask { flex-basis: 48px } .row .ask .bar { display: none } }
-.row.lead { flex-wrap: wrap; padding: 16px 0 20px }
-.row.lead:hover .nm > span { text-decoration: none }
-.row-lead-body { flex-basis: 100%; padding-left: 50px; display: flex; flex-direction: column; gap: 12px }
-@media (max-width: 640px) { .row-lead-body { padding-left: 0 } }
-.group-h { display: flex; align-items: center; gap: 10px; margin-top: 20px; padding-bottom: 6px; font-size: 13px; color: var(--muted) }
+/* ---------- Knowledge ---------- */
+/* This month: one strip, three counts, a tick for each */
+.month { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 28px; padding-block: 16px }
+.month .c-title { min-width: 110px }
+.count { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 220px }
+.count .num { min-width: 28px }
+.count .lbl { font-size: 13px; color: var(--muted); line-height: 1.3; width: 84px; flex-shrink: 0 }
+.ticks { display: flex; gap: 3px; align-items: center; height: 22px; overflow: hidden; flex: 1; min-width: 0 }
+.ticks i { width: 2px; height: 100%; flex-shrink: 0; background: var(--fg); transform-origin: bottom; animation: growY .4s var(--ease) backwards }
+.count.lit .ticks i { background: var(--f1) }
 
-/* Depth vs demand (C, after the petal chart): dark inner petal = depth, grey outer petal = people asking */
-.petals { position: relative; max-width: 440px; margin: 12px auto 0 }
-.petals svg { display: block; width: 100%; height: auto; overflow: visible }
-.pet { cursor: pointer; outline: none }
-.pet path, .pet text { transition: opacity .2s var(--ease) }
-.petals.has-on .pet:not(.on) path, .petals.has-on .pet:not(.on) text { opacity: .3 }
-.pet .outer { fill: var(--petal); stroke: var(--petal); stroke-width: 8; stroke-linejoin: round }
-.pet .inner { fill: var(--fg); stroke: var(--fg); stroke-width: 6; stroke-linejoin: round }
-.pet:focus-visible .outer { stroke: var(--border-strong) }
-.pet .n { font: 500 13px var(--sans); fill: var(--muted); text-anchor: middle; dominant-baseline: middle; font-variant-numeric: tabular-nums }
-.pet .n.on-ink { fill: var(--btn-fg) }
-.g-out, .g-in { transform-box: view-box; transform-origin: 200px 200px; animation: petal .5s var(--ease) backwards }
-@keyframes petal { from { opacity: 0; transform: scale(.4) } }
-.ptip { position: absolute; left: 0; top: 0; transform: translate(-50%, calc(-100% - 8px)); white-space: nowrap; background: var(--btn); color: var(--btn-fg); font-size: 13px; padding: 4px 10px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .2s var(--ease) }
-.ptip.on { opacity: 1 }
-.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; margin-top: 16px; font-size: 13px; color: var(--muted) }
-.legend span { display: inline-flex; align-items: center; gap: 8px }
-.legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--fg) }
-.legend i.g { background: var(--petal) }
+/* Depth map: a row per topic, its dots as solid as it is deep */
+.dm-rows { margin-top: 12px; position: relative }
+.dm-row { width: calc(100% + 12px); display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 52px; align-items: center; gap: 14px; min-height: 30px; padding: 3px 6px; margin: 0 -6px; border-radius: 8px; transition: background-color .2s var(--ease), opacity .2s var(--ease) }
+.dm-row:hover, .dm-row:focus-visible { background: var(--subtle) }
+.dm-rows.has-on .dm-row:not(:hover):not(:focus-visible) { opacity: .45 }
+.dm-row .nm { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.dm-row canvas { width: 100%; height: 14px; display: block }
+.dm-row .lv { font-size: 13px; color: var(--muted); text-align: right }
+.dm-sep { height: 1px; background: var(--border); margin: 6px 0 }
+@media (max-width: 640px) { .dm-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; min-height: 44px; padding-block: 6px } .dm-row canvas { grid-column: 1 / -1; grid-row: 2 } }
 
-/* Try your mind (TryCard) */
-.try-lead { margin-top: 8px; font-size: 13px; color: var(--muted) }
-.tries { display: flex; flex-direction: column; gap: 12px; margin-top: 16px }
-.tries:empty { display: none }
-.try { border: 1px solid var(--border); border-radius: 10px; padding: 16px; animation: rise .4s var(--ease) backwards }
-.by { display: flex; align-items: center; gap: 8px; margin: 12px 0 6px; font-size: 13px; font-weight: 500 }
-.by img { width: 24px; height: 24px; border-radius: 28%; object-fit: cover }
-.dot { display: inline-block; width: 5px; height: 5px; background: currentColor; border-radius: 1px; margin-left: -5px; transform: translateY(2px) }
+/* Grow next (lighter rows) */
+.acc { display: flex; flex-direction: column; margin-top: 8px }
+.acc-item { border-top: 1px solid var(--border) }
+.acc-item:first-child { border-top: 0 }
+.acc-row { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 10px; padding: 8px 0 }
+.acc-row .name { flex: 1; min-width: 0; line-height: 1.3; font-size: 15px }
+.acc-row .name small { display: block; font-size: 13px; color: var(--muted) }
+.chev { width: 28px; height: 28px; border-radius: 999px; display: inline-grid; place-items: center; flex-shrink: 0; color: var(--muted); transition: transform .3s var(--ease), background-color .18s var(--ease) }
+.acc-row:hover .chev { background: var(--subtle) }
+.acc-item.open .chev { transform: rotate(180deg) }
+.acc-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s var(--ease) }
+.acc-item.open .acc-body { grid-template-rows: 1fr }
+.acc-in { overflow: hidden }
+.acc-in > div { padding: 0 0 14px 37px; display: flex; flex-direction: column; gap: 10px; opacity: 0; transition: opacity .25s var(--ease) }
+.acc-item.open .acc-in > div { opacity: 1; transition-delay: .12s }
+.bars { display: flex; gap: 3px }
+.bars i { flex: 1; height: 4px; border-radius: 999px; background: var(--subtle) }
+.bars i.on { background: var(--f1) }
+.acc-acts { display: flex; gap: 14px; align-items: center; flex-wrap: wrap }
+
+/* What people ask */
+.rank { display: flex; flex-direction: column; margin-top: 10px }
+.rank button { display: block; width: 100%; padding: 7px 0; min-height: 44px }
+.rank .line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px }
+.rank .line b { font-weight: 400; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.rank .line span { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; flex-shrink: 0 }
+.rank .u { display: flex; align-items: center; gap: 8px; margin-top: 5px }
+.rank .u i { display: block; height: 2px; border-radius: 2px; background: var(--fg); transform-origin: left; animation: grow .45s var(--ease) backwards }
+.rank .u em { font-style: normal; font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap }
+.rank button:hover .line b { text-decoration: underline; text-underline-offset: 3px }
+.more { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 8px }
+
+/* Try your mind (kept from round 1) */
+.thread { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; flex: 1; justify-content: flex-end }
+.bubble { max-width: 92%; padding: 10px 14px; border-radius: 16px; background: var(--subtle); animation: rise .4s var(--ease) backwards }
+.bubble.me { align-self: flex-end; background: var(--btn); color: var(--btn-fg); border-bottom-right-radius: 6px }
+.bubble.mind { border-bottom-left-radius: 6px }
+.by { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-bottom: 4px }
+.by img { width: 20px; height: 20px; border-radius: 28%; object-fit: cover }
+.by .dot { width: 5px; height: 5px; border-radius: 1px; background: var(--fg); display: inline-block; margin-left: -3px }
 .thinking .dot { animation: blink 1s steps(1) infinite }
-.verdicts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
-.verdicts .btn2, .verdicts .btn1 { min-height: 40px; font-size: 13px; padding: 0 14px }
-.rewrite { width: 100%; margin-top: 6px; min-height: 120px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--bg); padding: 12px; resize: vertical; line-height: 1.5 }
-.box { margin-top: 16px; border: 1px solid var(--border-strong); border-radius: 16px; background: var(--surface); padding: 10px 10px 10px 14px; transition: border-color .2s var(--ease) }
+.verdict { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap }
+.verdict button { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border-strong); font-size: 13px; background: var(--surface); transition: background-color .18s var(--ease) }
+.verdict button:hover { background: var(--subtle) }
+.chips { display: flex; flex-direction: column; gap: 6px; margin-top: 10px }
+.chip { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; padding: 8px 12px; border-radius: 10px; background: var(--subtle); font-size: 13px; transition: background-color .18s var(--ease), transform .15s var(--ease); animation: rise .4s var(--ease) backwards }
+.chip:hover { background: var(--border) }
+.chip svg { flex-shrink: 0; color: var(--muted) }
+.box { display: flex; align-items: flex-end; gap: 8px; margin-top: 10px; border: 1px solid var(--border-strong); border-radius: 14px; padding: 6px 6px 6px 14px; transition: border-color .2s var(--ease) }
 .box:focus-within { border-color: var(--fg) }
-.box textarea { width: 100%; border: 0; resize: none; background: transparent; outline: none; min-height: 48px; transition: min-height .3s var(--ease); line-height: 1.5 }
-.box textarea:focus { min-height: 84px }
-.box-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px }
-.hint { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border-radius: 999px; background: var(--subtle); font-size: 13px; color: var(--muted); max-width: calc(100% - 52px); transition: background-color .18s var(--ease) }
-.hint span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
-.hint:hover { background: var(--border) }
+.box textarea { font-size: 16px; flex: 1; min-width: 0; border: 0; resize: none; background: transparent; outline: none; min-height: 28px; max-height: 120px; padding: 6px 0 }
 .send { width: 40px; height: 40px; border-radius: 999px; background: var(--btn); color: var(--btn-fg); display: inline-grid; place-items: center; flex-shrink: 0; transition: opacity .18s var(--ease), transform .15s var(--ease) }
 .send:disabled { opacity: .3; cursor: default }
 
-/* Your work (rows, one place to add) */
-.drop { width: 100%; margin-top: 16px; min-height: 72px; border-radius: 12px; background: var(--subtle); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--muted); text-align: center; padding: 12px; transition: background-color .2s var(--ease) }
-.drop:hover, .drop.flash { background: var(--border) }
-.work-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; border-top: 1px solid var(--border) }
-.work-row:first-child { border-top: 0 }
-.work-row span:last-child { font-size: 13px; color: var(--muted); text-align: right }
+/* Your work (kept: coverage bar and folders) */
+.cover { margin-top: 14px }
+.cover .bar { height: 6px; border-radius: 999px; background: var(--subtle); overflow: hidden }
+.cover .bar i { display: block; height: 100%; border-radius: 999px; background: var(--f1); transform-origin: left; animation: grow .45s var(--ease) .1s backwards }
+.cover p { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 13px; color: var(--muted) }
+.folders { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px 10px; margin-top: 22px }
+@media (max-width: 900px) { .folders { grid-template-columns: repeat(3, minmax(0, 1fr)) } }
+@media (max-width: 640px) { .folders { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+.folder { position: relative; height: 92px; padding: 10px 12px; border-radius: 0 10px 10px 10px; background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; transition: transform .18s var(--ease), box-shadow .18s var(--ease); font-size: 13px }
+.folder::before { content: ""; position: absolute; top: -8px; left: -1px; width: 42px; height: 8px; border: 1px solid var(--border); border-bottom: 0; border-radius: 7px 7px 0 0; background: var(--surface) }
+.folder:hover { transform: translateY(-2px); box-shadow: 0 6px 16px color-mix(in srgb, var(--fg) 6%, transparent) }
+.folder.empty { background: var(--subtle); border-style: dashed }
+.folder.empty::before { background: var(--subtle); border-style: dashed }
+.folder .nm { line-height: 1.3; font-size: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.folder .ft { display: flex; justify-content: space-between; align-items: center; color: var(--muted) }
 
-/* Panel (Sheet) */
-dialog.sheet { position: fixed; inset: 12px 12px 12px auto; margin: 0; width: min(560px, calc(100% - 24px)); max-width: none; max-height: none; height: auto; border: 0; border-radius: 16px; padding: 0; background: var(--surface); color: var(--fg); overflow-y: auto }
+/* Panel (a native dialog, like the app's Sheet) */
+dialog.sheet { position: fixed; inset: 12px 12px 12px auto; margin: 0; width: min(480px, calc(100% - 24px)); max-width: none; max-height: none; height: auto; border: 0; border-radius: 14px; padding: 0; background: var(--surface); color: var(--fg); overflow-y: auto }
 dialog.sheet::backdrop { background: var(--scrim) }
 dialog.sheet[open] { animation: slide .4s var(--ease) backwards }
 dialog.sheet[open]::backdrop { animation: fade .3s var(--ease) backwards }
@@ -202,20 +233,25 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
 @keyframes slide { from { opacity: 0; transform: translateX(32px) } }
 @keyframes slide-out { to { opacity: 0; transform: translateX(32px) } }
 @keyframes fade-out { to { opacity: 0 } }
-.sheet-in { padding: 24px; animation: rise .4s var(--ease) .12s backwards }
+.sheet-in { padding: 20px; animation: rise .4s var(--ease) .12s backwards }
 @media (max-width: 640px) {
-  dialog.sheet { inset: auto 0 0 0; width: 100%; max-height: 88vh; border-radius: 20px 20px 0 0 }
+  dialog.sheet { inset: auto 0 0 0; width: 100%; max-height: 88vh; border-radius: 18px 18px 0 0 }
   dialog.sheet[open] { animation-name: sheet-up } dialog.sheet.closing { animation-name: sheet-down }
   @keyframes sheet-up { from { transform: translateY(100%) } } @keyframes sheet-down { to { transform: translateY(100%) } }
-  .sheet-in { padding: 20px 16px calc(32px + env(safe-area-inset-bottom, 0px)) }
+  .sheet-in { padding: 18px 16px calc(28px + env(safe-area-inset-bottom, 0px)) }
 }
 .p-top { display: flex; align-items: center; justify-content: space-between; gap: 12px }
 .x { width: 40px; height: 40px; border-radius: 10px; display: inline-grid; place-items: center; transition: background-color .18s var(--ease) }
 .x:hover { background: var(--subtle) }
-.shape { width: 100%; height: 96px; display: block; margin: 12px 0 }
-.p-next { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border) }
-.p-acts { display: flex; flex-direction: column; gap: 8px; margin-top: 20px }
-.p-sect { margin-top: 28px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px }
+.shape { width: 100%; height: 40px; display: block; margin: 14px 0 }
+.h2 { font-size: 24px; font-weight: 600; letter-spacing: -.015em; line-height: 1.2 }
+.p-next { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border) }
+.p-acts { display: flex; flex-direction: column; gap: 8px; margin-top: 18px }
+.p-acts .btn2 { min-height: 44px; font-size: 15px }
+.docs-h { display: flex; align-items: center; justify-content: space-between; margin-top: 24px }
+.docs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 6px }
+.doc { min-height: 88px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; gap: 6px }
+.tag { align-self: flex-start; font-size: 13px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--muted) }
 .toast { position: fixed; z-index: 30; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-fg); padding: 10px 16px; border-radius: 999px; font-size: 13px; animation: rise .4s var(--ease) backwards; white-space: nowrap }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::backdrop { animation: none !important; transition: none !important } }
@@ -223,20 +259,11 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
 </head>
 <body>
 
-<div class="proto gutter" role="group" aria-label="Prototype">
-  <span>Prototype · leads with</span>
-  <div class="seg" id="vars">
-    <button type="button" data-var="a" aria-pressed="true">A · Next step</button>
-    <button type="button" data-var="b" aria-pressed="false">B · Ranked</button>
-    <button type="button" data-var="c" aria-pressed="false">C · Depth vs demand</button>
-  </div>
-</div>
-
 <header class="top gutter">
   <span class="brand">Mind Studio</span>
   <nav class="tabs" aria-label="Studio">
-    <a href="#" class="tab">Your mind</a>
-    <a href="#" class="tab" aria-current="page">Knowledge</a>
+    <a href="#mind" class="tab" data-go="mind">Your mind</a>
+    <a href="#knowledge" class="tab" data-go="knowledge">Knowledge</a>
     <a href="#" class="tab">Challenges</a>
     <a href="#" class="tab">Earnings</a>
     <a href="#" class="tab">Insights</a>
@@ -245,14 +272,86 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
 
 <main class="gutter">
   <div class="page">
-    <section class="prog rise" aria-labelledby="pg-title">
-      <div class="prog-top">
-        <div><h1 class="h1" id="pg-title">Knowledge</h1><p class="small muted" style="margin-top:4px">Design · 31 of 36 levels across 12 topics</p></div>
-        <div class="prog-num"><b>86%</b><span class="delta" aria-label="Up 3 levels this month"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>3 levels</span><span class="small muted">this month</span></div>
+
+    <!-- ===== Your mind ===== -->
+    <section class="screen" id="mind" aria-label="Your mind">
+      <div class="dash">
+        <div class="card">
+          <div class="mind-head">
+            <div class="sphere">Knowledge sphere</div>
+            <div style="text-align:right"><p class="small muted vt-levels">Design · 31 of 36 levels</p><p class="num" style="font-size:32px">86%</p></div>
+          </div>
+          <div class="topics-btn vt-topics">
+            <div class="tg"><span class="tg-h" data-sq="3">Deep · 9</span><span class="t">Onboarding &amp; activation · AI feature UX · Pricing &amp; paywalls · Free trials &amp; conversion · +5</span></div>
+            <div class="tg"><span class="tg-h"><span data-sq="2">Solid · 1</span><span data-sq="1">Basics · 2</span></span></div>
+            <button type="button" class="go" data-go="knowledge"><span>See all 12 topics in Knowledge</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </div>
+          <dl class="stats">
+            <div><dt>Interview</dt><dd>11 answers</dd></div>
+            <div><dt>Calibration</dt><dd>Done</dd></div>
+            <div><dt>Earnings</dt><dd>€0.48</dd></div>
+          </dl>
+        </div>
+        <div class="side" aria-hidden="true">
+          <div class="card"><p class="small muted">Earnings · this month</p><div class="skel" style="width:70%;margin-top:14px"></div><div class="skel" style="width:52%"></div></div>
+          <div class="card" style="height:150px"><p class="small muted">Share your mind</p></div>
+        </div>
       </div>
-      <div class="levels" id="levels" role="img" aria-label="31 of 36 levels reached, 3 of them this month"></div>
     </section>
-    <div id="view"></div>
+
+    <!-- ===== Knowledge ===== -->
+    <section class="screen" id="knowledge" aria-label="Knowledge" hidden>
+      <div class="head rise">
+        <h1 class="h1">Knowledge</h1>
+      </div>
+
+      <section class="card month rise" aria-labelledby="t-month">
+        <h2 class="c-title" id="t-month">This month</h2>
+        <div class="count"><span class="num">11</span><span class="lbl">answers you gave</span><span class="ticks" data-n="11" aria-hidden="true"></span></div>
+        <div class="count"><span class="num">9</span><span class="lbl">replies you checked</span><span class="ticks" data-n="9" aria-hidden="true"></span></div>
+        <div class="count lit"><span class="num">3</span><span class="lbl">levels gained</span><span class="ticks" data-n="3" aria-hidden="true"></span></div>
+      </section>
+
+      <div class="grid" style="margin-top:12px">
+        <section class="card vt-topics" aria-labelledby="t-depth">
+          <div class="c-head">
+            <div><h2 class="c-title" id="t-depth">Depth map</h2><p class="c-sub">The more solid the dots, the deeper your mind goes.</p></div>
+            <p class="small muted vt-levels" style="text-align:right;flex-shrink:0">Design · 31 of 36 levels</p>
+          </div>
+          <div class="dm-rows" id="dm"></div>
+        </section>
+        <section class="card rise" style="animation-delay:80ms" aria-labelledby="t-grow">
+          <div class="c-head"><div><h2 class="c-title" id="t-grow">Grow next</h2><p class="c-sub">Thin topics people ask about, most asked first.</p></div></div>
+          <div class="acc" id="acc"></div>
+        </section>
+      </div>
+
+      <div class="grid flip">
+        <section class="card rise" style="animation-delay:120ms" aria-labelledby="t-ask">
+          <div class="c-head"><div><h2 class="c-title" id="t-ask">What people ask</h2><p class="c-sub">This month, by topic</p></div></div>
+          <div class="rank" id="rank"></div>
+          <div class="more"><span class="small muted" id="rank-more"></span><button type="button" class="quiet" data-act="allasks"><span>See all</span></button></div>
+        </section>
+        <section class="card rise" style="animation-delay:160ms" aria-labelledby="t-test">
+          <div class="c-head"><div><h2 class="c-title" id="t-test">Try your mind</h2><p class="c-sub">Ask what a client would. Fix any reply that isn't you.</p></div></div>
+          <div class="thread" id="thread" aria-live="polite"></div>
+          <div class="chips" id="chips"></div>
+          <div class="box"><label class="sr" for="q">Ask your mind</label><textarea id="q" rows="1" placeholder="Ask your mind anything"></textarea>
+            <button type="button" class="send" id="send" aria-label="Send" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button></div>
+        </section>
+      </div>
+
+      <div class="grid">
+        <section class="card wide rise" style="animation-delay:200ms" aria-labelledby="t-work">
+          <div class="c-head">
+            <div><h2 class="c-title" id="t-work">Your work</h2><p class="c-sub">Read for your mind, never shown to people.</p></div>
+            <button type="button" class="quiet" data-act="addwork"><span>Add work</span></button>
+          </div>
+          <div class="cover" id="cover"></div>
+          <div class="folders" id="folders"></div>
+        </section>
+      </div>
+    </section>
   </div>
 </main>
 
@@ -262,220 +361,152 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
 (function () {
   "use strict";
   var PHOTO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCABgAGADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD1g0lBpM0jQG5pmaU0nc0ALS03H61Rv9XtLBN0zkg8fKOM/Xv+FK4zQIpCOK5yLxx4blieT+2LVCnDxu21wfTb1P4VYtvFnh+58vydZsSX+6DMB7Y56H2ougZskcU2lBDLkEEEZBHegjimIYelJTjTaBFqmn2p565xTSKdgGt1oAyecUh65rD8Za3HoXh29vGb50UBVDYYknApPQZxPjzxpqdtdXlnpi20Rg6FmPm5xnOc46dsHrXz94n1G/utUuDeSyTTLyzM5fb7Zrq7+K41O7u8xGRpSjBlfhCTknP0zxWtefDjxLdy2t6GinIXALYU43E4Yd/SsnOKerOiNCpKPuo4fR9btrCOzJt45WRX8w4+VnJ4z9KkS+TC29hKrTyELIgUKjk59Tx1PNesaV8Op45HmvJLYbsN5KpgAj+lYvinwXb2iR3trDFFPCclUHDH1xWftouVjV4GoocxpeCfiTeaS9ro+omC6t1ZIY7ouQUUgYBOOQp47dPavb9PukvbGC5TAWVA2BzjI5FfF99HLZRPDI243G1w3XoTkexzX1R8LNSbUvAGjzuoR1h8pgPVCVz+OM/jXQlY4nudY1M70ppKqwi6aYaeaaaYERrz/wCMs+3wzDAcgT3KIWHbgn+YH5V6Ca8i+NutxLYJp8bOtxHIHfBHTsMe4PX61MthrdFrwBbWGleEYr/U0hRZnYqzrliBwMd+gzW/b+JdL1G7jtbZ7oMy/KTbsqY7c1R8FSQnwZpF8tg93crCY7eEgHaCx554HHU1LYz+IX8QuL63tEslI2rGctj3/HFcT5dbnvUuf3VHY1teuY9H02aRozcSqQVjU4JyOB+deX+Ik8Z3lpJdto9pbW/VYnkPmEdupxWh8TNVvIfFdmYmISFRKFxwcHn6nArT1TTptdEepW+p3kW6NdqjaIR6nvnPcUouPYdaE3KybPBdZuJUkjjljaPL5eFxghwehr134Aa+Y9OvdMvpxlrhfs0TdQSPm56Y6f0rg/ifYDdJPGwlZGBLqMZ7ZFT/AAf8LajrutZaeWztbRhLN1y2SCAB052jn2rqpy5oni4im4TaPqE8CkoYknJoHNbmBcNNalJppPH1pD3GnmuF+I/hO21uBLr7Gk11F8pbzCh2e/Y45613WajkAKkYz7etTNNrQulJRmnLY5z4fWTW/hTToLlNrpHtZTzg5J/kRV25uIohcyRoPKg6uSBubuATx+NF55kNhNHpu1ZZIwsBc4CsVIH5Yrhrvw1qsn2SLWrm+u7eQhStsypFFj+8c7u3YGuFK+59FGfL7sVcyPi9f289jbta26Oobc7iVcIMeoJ59qi+HHi+wGjyWl/fwjbxtbggfTv9RXQat4K0SCyma1tIxK/zSb7d5CxH+8R6CuG8MaTpf9t3k+sWkEVnBwIki8tiPVuf0FU1Eym6sXzEXjuziV5miYS2lwcK6HIz7fzrb+DVteya3qaR3MUdn8kkiY3uyhuApz8uSD68VzOvG2m1G6tNJKxWKuixo7cKx+pr1v4V+HpdH0p7q4ktib1UdVt8lVH+8eSefpxV0YNM83E1U0+7O3bnmkFKTSZrsPPJyaaTTS1MLHNAyTPFJu5qEvgmmNJzzSHczfEmLW2mvEU7duJMdFIOVb8+v4VHY6tbvpbLeytFuXG4HBBPpWszLImxwGR/lIIyDntXGa54UvreQSaK6SQoci3c4YD+6rHt6Z+lctVR5rHo4WdRQ5lqkc5rul6tNeSmPVbiXT9m5kI+c+hAzx/n1rzDxNqUen/6La+cZM4kMhyWb3r0DWfEPiWK5kWTRb4fu2jOI84B9D07D8q87h0N7rUmu9XOwE7kgByxJ/vHtVWUdWKdSU9Io3vhtY/2v4js4Z0RovnlkEibwzbTwRkZxX0baxC3gSJPur6DA/KvE/hvttfGlipUIjq8aKOAPlOAPyr3Baui1JXOXERcJJMVqYO4pzcUzPNanOSGoWPWnZLuFRSxPYDk1Ouny7x9pDRKe2Mmna4zPkcA4q5YaVc3rgkeTFkZdx6+1aXkQWcHmIn7zcBk8nA5PPuK37RVkgbHG5Tn6mrjTvuDOW8S6BFYXmm3sW9lVDAWJON2c5I6ZPT8MUwHKj+tdWQmq6XNZzfeccc9GByP1Arn73SruCISwo1xCRkFB8w9ivXP0rixNCSnzR2PUwWJhyezloYOqW4FlcNtDPtJAryG40s3etfMmCp3OBXq9/fhTsc7W5+V/lNc9DYSw295cw20txczfcCITXPrsdTS3PNddjMcjtbExzIwKMpwVbPBH416n4R1DXU0e2fXYTdPIm9pYgA655AZeAeCOnNc/pXhWY6xbPqRH2osJBar820Z5Lnp+Ar1K9hWw0KYrjzAuCfQk4/TNd2FoOzb0PLxlaMpJRKFvdwXUQktpUlQ91PT6+lPVxmtNPD9rJ50KKYo5YY9skZ2sjhcAg/TFZ8ul3VvlS4kYEgbuN341u6ckcXMj//Z";
-  var NAME = "Ruben";
   var LV = { 3: "Deep", 2: "Solid", 1: "Basics" };
-  // Counts only: how many people asked about each topic this month (my_mind_insights), never what they asked
+  // Counts only: how many people asked about each topic this month, never what they asked
   var TOPICS = [
-    { id: "onb", label: "Onboarding & activation", level: 3, asked: 14, offer: true, work: ["Activation teardown", "First-run checklist", "Onboarding flows"] },
-    { id: "ai", label: "AI feature UX", level: 3, asked: 21, work: ["Prompt box patterns", "Loading states"] },
-    { id: "price", label: "Pricing & paywalls", level: 3, asked: 11, offer: true, work: ["Pricing page review", "Plan comparison"] },
-    { id: "trial", label: "Free trials & conversion", level: 3, asked: 9, work: ["Trial-to-paid notes"] },
-    { id: "ds", label: "Design systems & taste", level: 3, asked: 8, work: ["Design system audit", "Tokens"] },
-    { id: "integ", label: "Integrations & dev platforms", level: 3, asked: 6, work: ["Connector spec"] },
-    { id: "method", label: "Design decision method", level: 3, asked: 5, work: ["Decision log"] },
-    { id: "deliv", label: "Delivery & handoff", level: 3, asked: 4, work: ["Handoff template"] },
-    { id: "collab", label: "Collaboration & pushback", level: 3, asked: 3, work: ["Pushback scripts"] },
-    { id: "ret", label: "Retention & churn", level: 2, asked: 16, next: { to: "Deep", needs: "One more real case, and a piece of your work on it." }, work: ["Churn interviews"] },
-    { id: "growth", label: "Growth experimentation", level: 1, asked: 6, next: { to: "Solid", needs: "Two more answers, one of them a real case." }, work: [] },
-    { id: "team", label: "Team expansion", level: 1, asked: 2, next: { to: "Solid", needs: "Two more answers." }, work: [] }
+    { id: "onb", label: "Onboarding & activation", level: 3, asked: 14, wf: true, docs: [["Activation teardown", "Case study"], ["First-run checklist", "Notes"], ["Onboarding flows", "Design file"]] },
+    { id: "ai", label: "AI feature UX", level: 3, asked: 21, docs: [["Prompt box patterns", "Design file"], ["Loading states", "Notes"]] },
+    { id: "price", label: "Pricing & paywalls", level: 3, asked: 11, wf: true, docs: [["Pricing page review", "Case study"], ["Plan comparison", "Template"]] },
+    { id: "trial", label: "Free trials & conversion", level: 3, asked: 9, docs: [["Trial-to-paid notes", "Notes"]] },
+    { id: "ds", label: "Design systems & taste", level: 3, asked: 8, docs: [["Design system audit", "Case study"], ["Tokens", "Design file"]] },
+    { id: "integ", label: "Integrations & dev platforms", level: 3, asked: 6, docs: [["Connector spec", "Notes"]] },
+    { id: "method", label: "Design decision method", level: 3, asked: 5, docs: [["Decision log", "Notes"]] },
+    { id: "deliv", label: "Delivery & handoff", level: 3, asked: 4, docs: [["Handoff template", "Template"]] },
+    { id: "collab", label: "Collaboration & pushback", level: 3, asked: 3, docs: [["Pushback scripts", "Notes"]] },
+    { id: "ret", label: "Retention & churn", level: 2, asked: 16, next: { to: "Deep", needs: "1 more real case and a piece of your work", done: 2, left: "1 case to go" }, docs: [["Churn interviews", "Notes"]] },
+    { id: "growth", label: "Growth experimentation", level: 1, asked: 6, next: { to: "Solid", needs: "2 more answers and one real case", done: 1, left: "3 answers to go" }, docs: [] },
+    { id: "team", label: "Team expansion", level: 1, asked: 2, next: { to: "Solid", needs: "2 more answers", done: 2, left: "2 answers to go" }, docs: [] }
   ];
-  // Written for the expert from their own topics, never copied from a client (business/05)
-  var REPLIES = {
-    ret: "Look at who left in their second month, not their first. Call five of them. If they all say the same thing, that's your churn, and it's rarely the price.",
-    growth: "Pick one change with a big expected effect, run it for two full weeks, and judge it on something you can see people do.",
-    team: "Hire the second designer when the first spends more time unblocking others than designing.",
-    _: "Start from the decision you need to make, then find the one thing that would change it."
-  };
+  // Written for the expert from their own topics, never copied from a client
+  var TRY = [
+    { q: "Our trial converts at 4%. Where would you look first?", a: "At the first session, not the paywall. Most trials that don't convert never reached the moment the product paid off. Find that moment, then cut every step before it." },
+    { q: "How do you run a growth experiment with only 2k users?", a: "Pick one change with a big expected effect, run it for two full weeks, and judge it on a behaviour you can see, not a rate that needs 50k users to move." },
+    { q: "When should a small team hire its second designer?", a: "When the first one spends more time unblocking others than designing. Before that, hire for the gap around them, usually research or front-end." }
+  ];
   var byId = {}; TOPICS.forEach(function (t) { byId[t.id] = t; });
   var MAX = Math.max.apply(null, TOPICS.map(function (t) { return t.asked; }));
-  // Needs you most: asked about often, still thin
-  function need(t) { return t.asked * (3 - t.level); }
-  var THIN = TOPICS.filter(function (t) { return t.level < 3; }).sort(function (a, b) { return need(b) - need(a); });
-  var DEEP = TOPICS.filter(function (t) { return t.level === 3; }).sort(function (a, b) { return b.asked - a.asked; });
-  var LEAD = THIN[0];
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var esc = function (s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
-  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
   function seeded(n) { return function () { n = (n * 16807) % 2147483647; return (n - 1) / 2147483646; }; }
-  function people(n) { return n + (n === 1 ? " person" : " people") + " asked this month"; }
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function times(n) { return n + (n === 1 ? " time" : " times"); }
   function squares(n, small, base) {
     var h = '<span class="sq' + (small ? " s" : "") + '" aria-hidden="true">';
     for (var i = 0; i < 3; i++) h += '<i class="' + (i < n ? "on" : "") + '" style="animation-delay:' + ((base || 0) + i * 80) + 'ms"></i>';
     return h + "</span>";
   }
-  // a 6x6 block that fills by level: Basics a loose third, Solid two thirds, Deep the whole block
-  function mass(level, seed, base) {
-    var rnd = seeded(seed * 31 + 7), h = '<span class="mass" aria-hidden="true">', fillTo = level * 2;
-    for (var r = 0; r < 6; r++) for (var c = 0; c < 6; c++) {
-      var on = c < fillTo ? rnd() < 0.96 : c < fillTo + 1 ? rnd() < 0.35 : false;
-      h += '<i class="' + (on ? "" : "off") + '" style="animation-delay:' + ((base || 0) + c * 40) + 'ms"></i>';
-    }
-    return h + "</span>";
-  }
+  var CHEV = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
   var ARROW = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-  var UP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
   var PLUS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
-  var CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
-  var PEN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
-
-  // The head: one segment per level of 36; reached in ink, this month's three in the field colour
-  (function levels() {
-    var h = "";
-    for (var i = 0; i < 36; i++) h += '<i class="' + (i < 28 ? "on" : i < 31 ? "new" : "") + '" style="animation-delay:' + (i * 12) + 'ms"></i>';
-    $("#levels").innerHTML = h;
-  })();
+  var FOLDER = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+  document.querySelectorAll("[data-sq]").forEach(function (el) { el.insertAdjacentHTML("afterbegin", squares(+el.dataset.sq, true)); });
 
   /* ------------------------------------------------------------------ *
-   *  The parts                                                          *
+   *  Knowledge cards                                                    *
    * ------------------------------------------------------------------ */
-  // The one primary action on the page: grow the topic that needs you most
-  function nextCard() {
-    var t = LEAD;
-    return '<section class="card next-card rise" aria-labelledby="nx-title">' +
-      '<div class="next-meta">' + squares(t.level) + "<span>Needs you next · " + LV[t.level] + " now</span></div>" +
-      '<div><h2 class="h2" id="nx-title">' + esc(t.label) + '</h2><p class="small muted" style="margin-top:6px">' + people(t.asked) + ". " + t.next.needs + "</p></div>" +
-      '<div class="next-acts"><a href="#interview" class="btn1" data-act="interview" data-id="' + t.id + '">Start interview</a>' +
-      '<button type="button" class="quiet" data-open="' + t.id + '"><span>Open topic</span></button><span class="small muted">About 5 minutes</span></div></section>';
-  }
-
-  function row(t, i) {
-    return '<button type="button" class="row" data-open="' + t.id + '" style="animation:rise .4s var(--ease) ' + (60 + Math.min(i, 8) * 40) + 'ms backwards">' +
-      mass(t.level, i, 100 + Math.min(i, 8) * 40) +
-      '<span class="nm"><span>' + esc(t.label) + "</span><small>" + LV[t.level] + (t.next ? " · next: " + t.next.to : "") + "</small></span>" +
-      '<span class="ask"><span>' + t.asked + '</span><span class="bar"><i style="width:' + Math.round(t.asked / MAX * 100) + "%;animation-delay:" + (160 + Math.min(i, 8) * 40) + 'ms"></i></span></span></button>';
-  }
-
-  // All topics in one list: the thin ones people ask about first (the top one opened), then the deep ones
-  function rankedCard() {
-    var lead = THIN[0], rest = THIN.slice(1), i = 1;
-    var html = '<section class="card rise" aria-labelledby="rk-title"><div class="c-head"><h2 class="c-title" id="rk-title">Your topics</h2><span class="small muted">People asked</span></div><div class="rows">';
-    html += '<div class="row lead" style="border-top:0">' + mass(lead.level, 0, 100) + '<span class="nm"><span style="font-weight:600">' + esc(lead.label) + "</span><small>Needs you next · " + LV[lead.level] + " now</small></span>" +
-      '<span class="ask"><span>' + lead.asked + '</span><span class="bar"><i style="width:' + Math.round(lead.asked / MAX * 100) + '%"></i></span></span>' +
-      '<div class="row-lead-body"><p class="small muted">' + lead.next.needs + '</p><div class="next-acts"><a href="#interview" class="btn1" data-act="interview" data-id="' + lead.id + '">Start interview</a><button type="button" class="quiet" data-open="' + lead.id + '"><span>Open topic</span></button><span class="small muted">About 5 minutes</span></div></div></div>';
-    html += '<p class="group-h">Still thin</p>' + rest.map(function (t) { return row(t, i++); }).join("");
-    html += '<p class="group-h">' + squares(3, true) + "Deep · " + DEEP.length + "</p>" + DEEP.map(function (t) { return row(t, i++); }).join("");
-    return html + "</div></section>";
-  }
-
-  // The overview's TopicGroups: Deep, Solid, Basics, each with its squares
-  function groupsCard() {
-    var i = 0;
-    return '<section class="card rise" style="animation-delay:80ms" aria-labelledby="tg-title"><div class="c-head"><h2 class="c-title" id="tg-title">All topics</h2><span class="small muted">People asked</span></div><div class="rows">' +
-      [3, 2, 1].map(function (l) {
-        var list = TOPICS.filter(function (t) { return t.level === l; }).sort(function (a, b) { return b.asked - a.asked; });
-        return '<p class="group-h">' + squares(l, true) + LV[l] + " · " + list.length + "</p>" + list.map(function (t) { return row(t, i++); }).join("");
-      }).join("") + "</div></section>";
-  }
-
-  // Depth vs demand: a petal per topic, dark = how deep it goes, grey = how often people ask
-  var ORDER = DEEP.concat(THIN.slice().sort(function (a, b) { return b.level - a.level || b.asked - a.asked; }));
-  function petalsCard() {
-    var cx = 200, cy = 200, hole = 26, n = ORDER.length, step = 360 / n, gap = 3.2;
-    function pt(r, a) { var t = a * Math.PI / 180; return (cx + r * Math.cos(t)).toFixed(1) + " " + (cy + r * Math.sin(t)).toFixed(1); }
-    function wedge(r0, r1, a0, a1) { return "M" + pt(r0, a0) + " L" + pt(r1, a0) + " A" + r1 + " " + r1 + " 0 0 1 " + pt(r1, a1) + " L" + pt(r0, a1) + " A" + r0 + " " + r0 + " 0 0 0 " + pt(r0, a0) + "Z"; }
-    var outs = "", ins = "", nums = "";
-    ORDER.forEach(function (t, i) {
-      var a0 = -90 + i * step + gap / 2, a1 = a0 + step - gap, mid = (a0 + a1) / 2;
-      var ro = hole + Math.sqrt(t.asked / MAX) * 160, ri = hole + (t.level / 3) * 150;
-      var r1 = Math.max(ro, ri);
-      var inkNum = ri > ro - 22, nr = inkNum ? ri - 16 : (ri + ro) / 2 + 2;
-      var label = esc(t.label) + ", " + LV[t.level] + ", " + people(t.asked);
-      outs += '<a href="#" class="pet" data-open="' + t.id + '" data-i="' + i + '" data-mid="' + mid + '" data-r="' + r1 + '" aria-label="' + label + '"><path class="outer" d="' + wedge(hole, ro, a0, a1) + '"></path></a>';
-      ins += '<a href="#" class="pet" data-open="' + t.id + '" data-i="' + i + '" tabindex="-1" aria-hidden="true"><path class="inner" d="' + wedge(hole, ri, a0, a1) + '"></path></a>';
-      nums += '<a href="#" class="pet" data-open="' + t.id + '" data-i="' + i + '" tabindex="-1" aria-hidden="true"><text class="n' + (inkNum ? " on-ink" : "") + '" x="' + (cx + nr * Math.cos(mid * Math.PI / 180)).toFixed(1) + '" y="' + (cy + nr * Math.sin(mid * Math.PI / 180)).toFixed(1) + '">' + t.asked + "</text></a>";
+  function renderMonth() {
+    var at = 0;
+    document.querySelectorAll(".ticks").forEach(function (el) {
+      var h = ""; for (var k = 0; k < +el.dataset.n; k++) h += '<i style="animation-delay:' + (120 + (at++) * 16) + 'ms"></i>';
+      el.innerHTML = h;
     });
-    return '<section class="card rise" aria-labelledby="pt-title"><div class="c-head"><h2 class="c-title" id="pt-title">Depth vs demand</h2><span class="small muted">Where grey reaches past dark, people want more than your mind has</span></div>' +
-      '<div class="petals" id="petals"><svg viewBox="0 0 400 400" role="group" aria-label="Each topic: how deep it goes and how often people ask">' +
-      '<g class="g-out">' + outs + '</g><g class="g-in" style="animation-delay:.12s">' + ins + "</g><g>" + nums + '</g></svg><span class="ptip" id="ptip"></span></div>' +
-      '<div class="legend"><span><i></i>How deep it goes</span><span><i class="g"></i>How often people ask</span></div></section>';
-  }
-  function wirePetals() {
-    var host = $("#petals"); if (!host) return;
-    var tip = $("#ptip");
-    function on(i) {
-      host.classList.toggle("has-on", i >= 0);
-      host.querySelectorAll(".pet").forEach(function (p) { p.classList.toggle("on", +p.dataset.i === i); });
-      if (i < 0) { tip.classList.remove("on"); return; }
-      var a = host.querySelector('.pet[data-mid][data-i="' + i + '"]'), t = byId[a.dataset.open], s = host.clientWidth / 400, m = +a.dataset.mid * Math.PI / 180, r = +a.dataset.r + 6;
-      tip.textContent = t.label + " · " + LV[t.level];
-      tip.style.left = Math.max(70, Math.min(host.clientWidth - 70, (200 + r * Math.cos(m)) * s)) + "px";
-      tip.style.top = ((200 + r * Math.sin(m)) * s) + "px";
-      tip.classList.add("on");
-    }
-    host.addEventListener("pointerover", function (e) { var p = e.target.closest(".pet"); on(p ? +p.dataset.i : -1); });
-    host.addEventListener("pointerleave", function () { on(-1); });
-    host.addEventListener("focusin", function (e) { var p = e.target.closest(".pet"); if (p) on(+p.dataset.i); });
-    host.addEventListener("focusout", function () { on(-1); });
   }
 
-  // Try your mind: the app's TryCard, with one suggestion written from the topic that needs you most
-  var tries = [], left = 3;
-  function tryCard() {
-    return '<section class="card rise" style="animation-delay:120ms" aria-labelledby="tr-title"><div class="c-head"><h2 class="c-title" id="tr-title">Try your mind</h2><span class="small muted">' + left + (left === 1 ? " try" : " tries") + ' left</span></div>' +
-      '<p class="try-lead">Ask it something a client would ask you. If the reply isn\'t how you\'d say it, rewrite it.</p>' +
-      '<div class="tries" id="tries">' + tries.map(tryHtml).join("") + "</div>" +
-      (left ? '<div class="box"><label class="sr" for="q">Ask your mind</label><textarea id="q" rows="2" placeholder="Ask what a client would"></textarea><div class="box-bar">' +
-        '<button type="button" class="hint" data-hint="' + LEAD.id + '"><span>What would you do first about ' + esc(LEAD.label.toLowerCase()) + "?</span>" + ARROW + '</button><button type="button" class="send" id="send" aria-label="Send" disabled>' + UP + "</button></div></div>" : "") +
-      "</section>";
+  // Depth map: each topic a row; its strip of square dots is as long and as solid as its level
+  var ORDER = TOPICS.slice().sort(function (a, b) { return b.level - a.level || b.asked - a.asked; });
+  function renderDepth() {
+    var host = $("#dm"), html = "";
+    ORDER.forEach(function (t, i) {
+      if (i && ORDER[i - 1].level !== t.level) html += '<div class="dm-sep" aria-hidden="true"></div>';
+      html += '<button type="button" class="dm-row" data-open="' + t.id + '" aria-label="' + esc(t.label) + ", " + LV[t.level] + '"><span class="nm">' + esc(t.label) + '</span><canvas data-level="' + t.level + '" data-i="' + i + '" aria-hidden="true"></canvas><span class="lv">' + LV[t.level] + "</span></button>";
+    });
+    host.innerHTML = html;
+    host.addEventListener("pointerover", function (e) { host.classList.toggle("has-on", !!e.target.closest(".dm-row")); });
+    host.addEventListener("pointerleave", function () { host.classList.remove("has-on"); });
+    drawDepth();
   }
-  function tryHtml(t, i) {
-    var by = '<p class="by' + (t.state === "thinking" ? " thinking" : "") + '"><img src="' + PHOTO + '" alt="">' + NAME + "'s mind<span class=\"dot\"></span></p>";
-    var body;
-    if (t.state === "thinking") body = '<p class="muted">' + t.line + "</p>";
-    else if (t.state === "editing") body = '<label class="small" for="rw' + i + '" style="font-weight:500">How would you say it? Change what isn\'t you.</label><textarea class="rewrite" id="rw' + i + '">' + esc(t.answer) + '</textarea><div class="verdicts"><button type="button" class="btn1" data-save="' + i + '">Save my version</button><button type="button" class="btn2" data-cancel="' + i + '">Cancel</button></div>';
-    else body = "<p>" + esc(t.mine || t.answer) + "</p>" + (t.verdict
-      ? '<p class="small muted" style="margin-top:8px">' + (t.verdict === "me" ? "You said: that's me." : "Your version. " + NAME + "'s mind will follow it.") + "</p>"
-      : '<div class="verdicts"><button type="button" class="btn2" data-me="' + i + '">' + CHECK + 'That\'s me</button><button type="button" class="btn2" data-edit="' + i + '">' + PEN + "I'd say it differently</button></div>");
-    return '<div class="try"><p class="small muted">You asked: “' + esc(t.q) + '”</p>' + by + body + "</div>";
-  }
-  function ask(q, topicId) {
-    if (!left) return;
-    left--;
-    var t = { q: q, state: "thinking", line: "Reading your work…" };
-    tries.push(t); renderTry();
-    var lines = ["Reading your work…", "Finding a real case of yours…"], k = 0;
-    var iv = setInterval(function () { if (++k < lines.length) { t.line = lines[k]; renderTry(); } }, 700);
-    setTimeout(function () { clearInterval(iv); t.state = "done"; t.answer = REPLIES[topicId] || REPLIES._; renderTry(); }, reduce ? 0 : 1500);
-  }
-  function renderTry() {
-    var title = $("#tr-title"); if (!title) return;
-    var tmp = document.createElement("div"); tmp.innerHTML = tryCard(); tmp.firstChild.style.animation = "none";
-    title.closest(".card").replaceWith(tmp.firstChild); wireBox();
-  }
-  function wireBox() {
-    var q = $("#q"), send = $("#send"); if (!q) return;
-    q.addEventListener("input", function () { send.disabled = q.value.trim().length < 10; });
-    q.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send.click(); } });
-    send.addEventListener("click", function () { var v = q.value.trim(); if (v.length < 10) return; ask(v, guess(v)); });
-  }
-  function guess(v) { v = v.toLowerCase(); return /churn|retention|leave|cancel/.test(v) ? "ret" : /experiment|growth|test/.test(v) ? "growth" : /hire|team/.test(v) ? "team" : "_"; }
-
-  // Your work: one place to add, rows by topic, and how much of the mind has your work behind it
-  function workCard() {
-    var withWork = TOPICS.filter(function (t) { return t.work.length; }), rows = [];
-    TOPICS.forEach(function (t) { t.work.forEach(function (w) { rows.push([w, t.label]); }); });
-    return '<section class="card rise" style="animation-delay:160ms" aria-labelledby="wk-title"><div class="c-head"><h2 class="c-title" id="wk-title">Your work</h2><span class="small muted">Read for your mind, never shown to people</span></div>' +
-      '<div style="margin-top:16px"><div class="fill"><i style="width:' + Math.round(withWork.length / TOPICS.length * 100) + '%"></i></div><p class="small muted" style="margin-top:8px">' + withWork.length + " of " + TOPICS.length + " topics have your work</p></div>" +
-      '<div style="margin-top:8px">' + rows.slice(0, 4).map(function (r) { return '<div class="work-row"><span>' + esc(r[0]) + "</span><span>" + esc(r[1]) + "</span></div>"; }).join("") + "</div>" +
-      '<button type="button" class="drop" id="drop" data-act="add">' + PLUS + "<span>Drop a file or paste a link. Your mind reads it and says what it found.</span></button></section>";
+  function drawDepth() { drawStrips(document.querySelectorAll("#dm canvas"), 5, 3); }
+  // One picture of depth everywhere: a strip of square dots, solid up to the topic's level, then crumbling
+  function drawStrips(list, sp, z) {
+    var ink = cssVar("--fg"), dpr = Math.min(2, window.devicePixelRatio || 1);
+    Array.prototype.forEach.call(list, function (cv) {
+      var w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+      cv.width = w * dpr; cv.height = h * dpr;
+      var ctx = cv.getContext("2d"); ctx.scale(dpr, dpr); ctx.fillStyle = ink;
+      var level = +cv.dataset.level, i = +cv.dataset.i, rnd = seeded(i * 53 + 11), cols = Math.floor(w / sp), rows = Math.floor(h / sp), cells = [];
+      var reach = level / 3; // Deep fills the strip, Solid two thirds, Basics a third
+      for (var c = 0; c < cols; c++) {
+        var xf = c / cols, edge = reach - xf;
+        for (var r = 0; r < rows; r++) {
+          // solid up to the topic's reach, then it crumbles into a few loose dots
+          var on = edge > 0.06 ? rnd() < 0.97 : edge > -0.1 ? rnd() < 0.5 + edge * 4 : rnd() < 0.03;
+          if (on) cells.push({ x: c * sp, y: r * sp + 1, k: c });
+        }
+      }
+      var start = performance.now() + i * 30, dur = reduce ? 0 : 420;
+      (function paint(now) {
+        var p = dur ? Math.max(0, Math.min(1, (now - start) / dur)) : 1, e = 1 - Math.pow(1 - p, 3), upto = e * cols;
+        ctx.clearRect(0, 0, w, h);
+        for (var k = 0; k < cells.length; k++) if (cells[k].k <= upto) ctx.fillRect(cells[k].x, cells[k].y, z, z);
+        if (p < 1) requestAnimationFrame(paint);
+      })(performance.now());
+    });
   }
 
-  /* ------------------------------------------------------------------ *
-   *  The three variations: the same parts, a different lead             *
-   * ------------------------------------------------------------------ */
-  var VARS = {
-    a: function () { return '<div class="grid"><div class="stack">' + nextCard() + groupsCard() + '</div><div class="stack">' + tryCard() + workCard() + "</div></div>"; },
-    b: function () { return '<div class="grid"><div class="stack">' + rankedCard() + '</div><div class="stack">' + tryCard() + workCard() + "</div></div>"; },
-    c: function () { return '<div class="grid"><div class="stack">' + petalsCard() + workCard() + '</div><div class="stack">' + nextCard() + tryCard() + "</div></div>"; }
-  };
-  var current = "a";
-  function show(v) {
-    current = VARS[v] ? v : "a";
-    document.querySelectorAll("#vars button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.var === current)); });
-    $("#view").innerHTML = VARS[current]();
-    wireBox(); wirePetals();
-    if (location.hash.slice(1) !== current) history.replaceState(null, "", "#" + current);
+  function renderGrow() {
+    var thin = TOPICS.filter(function (t) { return t.next; }).sort(function (a, b) { return b.asked - a.asked; });
+    $("#acc").innerHTML = thin.map(function (t, i) {
+      return '<div class="acc-item' + (i === 0 ? " open" : "") + '">' +
+        '<button type="button" class="acc-row" aria-expanded="' + (i === 0) + '" aria-controls="ab-' + t.id + '">' + squares(t.level, false, i * 60) +
+        '<span class="name">' + esc(t.label) + "<small>Asked " + times(t.asked) + " this month</small></span><span class=\"chev\">" + CHEV + "</span></button>" +
+        '<div class="acc-body" id="ab-' + t.id + '"><div class="acc-in"><div>' +
+        '<p class="small muted">' + t.next.needs + " to reach " + t.next.to + ".</p>" +
+        '<div class="bars" aria-hidden="true">' + [0, 1, 2].map(function (k) { return "<i" + (k < t.next.done ? ' class="on"' : "") + "></i>"; }).join("") + "</div>" +
+        '<div class="acc-acts"><button type="button" class="btn2" data-act="interview" data-id="' + t.id + '">Start interview</button><button type="button" class="quiet" data-open="' + t.id + '"><span>Open topic</span></button></div>' +
+        "</div></div></div></div>";
+    }).join("");
+  }
+
+  function renderRank() {
+    var list = TOPICS.slice().sort(function (a, b) { return b.asked - a.asked; }), shown = list.slice(0, 5);
+    $("#rank").innerHTML = shown.map(function (t, i) {
+      return '<button type="button" data-open="' + t.id + '"><span class="line"><b>' + esc(t.label) + "</b><span>" + t.asked + '</span></span><span class="u"><i style="width:' + Math.round(t.asked / MAX * 74) + "%;animation-delay:" + (200 + i * 60) + 'ms"></i>' + "</span></button>";
+    }).join("");
+    var total = list.reduce(function (a, t) { return a + t.asked; }, 0);
+    $("#rank-more").textContent = "+" + (list.length - shown.length) + " more topics · " + total + " questions";
+  }
+
+  function renderWork() {
+    var withWork = TOPICS.filter(function (t) { return t.docs.length; }), docs = TOPICS.reduce(function (a, t) { return a + t.docs.length; }, 0);
+    $("#cover").innerHTML = '<div class="bar" aria-hidden="true"><i style="width:' + Math.round(withWork.length / TOPICS.length * 100) + '%"></i></div><p><span>' + withWork.length + " of " + TOPICS.length + " topics have your work</span><span>" + docs + " documents</span></p>";
+    var folders = withWork.slice(0, 5).map(function (t, i) {
+      return '<button type="button" class="folder rise" data-open="' + t.id + '" style="animation-delay:' + (140 + i * 30) + 'ms"><span class="nm">' + esc(t.label) + '</span><span class="ft">' + FOLDER + "<span>" + t.docs.length + (t.docs.length === 1 ? " item" : " items") + "</span></span></button>";
+    });
+    var empty = TOPICS.filter(function (t) { return !t.docs.length; });
+    folders.push('<button type="button" class="folder empty rise" data-open="' + empty[0].id + '" style="animation-delay:290ms"><span class="nm">' + esc(empty[0].label) + '</span><span class="ft">' + PLUS + "<span>Add the first</span></span></button>");
+    $("#folders").innerHTML = folders.join("");
+  }
+
+  // Try your mind (round 1, kept): one exchange to start, two more to try
+  var tried = 1;
+  function mindBubble(a) {
+    return '<p class="by"><img src="' + PHOTO + '" alt="">Ruben\'s mind<span class="dot"></span></p><p>' + esc(a) + '</p><div class="verdict"><button type="button" data-verdict="yes">Sounds like me</button><button type="button" data-verdict="fix">Fix it</button></div>';
+  }
+  function seedThread() { $("#thread").innerHTML = '<div class="bubble me">' + esc(TRY[0].q) + '</div><div class="bubble mind">' + mindBubble(TRY[0].a) + "</div>"; }
+  function renderChips() {
+    $("#chips").innerHTML = TRY.slice(tried, tried + 2).map(function (x, i) {
+      return '<button type="button" class="chip" data-try="' + (tried + i) + '" style="animation-delay:' + (160 + i * 60) + 'ms"><span>' + esc(x.q) + "</span>" + ARROW + "</button>";
+    }).join("");
+  }
+  function ask(text, idx) {
+    var th = $("#thread");
+    th.insertAdjacentHTML("beforeend", '<div class="bubble me">' + esc(text) + "</div>");
+    var b = document.createElement("div"); b.className = "bubble mind";
+    b.innerHTML = '<p class="by thinking"><img src="' + PHOTO + '" alt="">Ruben\'s mind<span class="dot"></span></p><p class="muted">Reading your work…</p>';
+    th.appendChild(b);
+    while (th.children.length > 4) th.removeChild(th.firstChild);
+    setTimeout(function () { b.innerHTML = mindBubble(idx != null ? TRY[idx].a : "I'd start from the decision you need to make, then look for the one number that would change it."); }, reduce ? 0 : 1000);
   }
 
   /* ------------------------------------------------------------------ *
@@ -485,19 +516,21 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
   function openTopic(id) {
     var t = byId[id]; if (!t) return;
     lastFocus = document.activeElement;
-    $("#sheet-in").innerHTML =
-      '<div class="p-top"><span style="display:inline-flex;align-items:center;gap:10px">' + squares(t.level) + '<span class="small muted">' + LV[t.level] + " · level " + t.level + ' of 3</span></span>' +
+    var n = t.docs.length;
+    $("#sheet-in").innerHTML = '<div class="p-top"><span style="display:inline-flex;align-items:center;gap:10px">' + squares(t.level) + '<span class="small muted">' + LV[t.level] + '</span></span>' +
       '<button type="button" class="x" data-act="close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
-      '<canvas class="shape" aria-hidden="true"></canvas>' +
-      '<h2 class="h2" id="p-title">' + esc(t.label) + '</h2><p class="small muted" style="margin-top:6px">' + people(t.asked) + "</p>" +
-      '<div class="p-next"><p class="small muted">' + (t.next ? "To reach " + t.next.to : "At the deepest level") + '</p><p style="margin-top:2px">' + (t.next ? t.next.needs : "A new real case keeps it sharp.") + "</p></div>" +
-      '<div class="p-acts"><a href="#interview" class="btn1" data-act="interview" data-id="' + t.id + '">Start interview</a>' +
-      '<button type="button" class="btn2" data-act="offer">' + (t.offer ? "Edit what people can ask you for" : "Map something you deliver") + '</button><p class="small muted" style="text-align:center">About 5 minutes</p></div>' +
-      '<div class="p-sect"><h3 class="c-title">Your work on it</h3><button type="button" class="quiet" data-act="add"><span>Add work</span></button></div>' +
-      (t.work.length ? t.work.map(function (w) { return '<div class="work-row"><span>' + esc(w) + "</span><span></span></div>"; }).join("") : '<p class="small muted" style="margin-top:8px">Nothing yet. A piece of your work is what takes a topic to Deep.</p>');
+      '<canvas class="shape" data-level="' + t.level + '" data-i="' + ORDER.indexOf(t) + '" aria-hidden="true"></canvas>' +
+      '<h2 class="h2" id="p-title">' + esc(t.label) + '</h2><p class="small muted" style="margin-top:4px">Asked ' + times(t.asked) + ' this month</p>' +
+      '<div class="p-next"><p class="small muted">' + (t.next ? "To reach " + t.next.to : "At the deepest level") + '</p><p style="margin-top:2px">' + (t.next ? t.next.needs + "." : "A new real case keeps it sharp.") + "</p>" +
+      (t.next ? '<div class="bars" style="margin-top:10px" aria-hidden="true">' + [0, 1, 2].map(function (k) { return "<i" + (k < t.next.done ? ' class="on"' : "") + "></i>"; }).join("") + "</div>" : "") + "</div>" +
+      '<div class="p-acts"><button type="button" class="btn1" data-act="interview" data-id="' + t.id + '">Start interview</button><button type="button" class="btn2" data-act="offer">' + (t.wf ? "Edit what people can ask you for" : "Map something you deliver") + '</button>' +
+      '<p class="small muted" style="text-align:center">About 5 minutes</p></div>' +
+      '<div class="docs-h"><h3 class="c-title">Documents · ' + n + '</h3><button type="button" class="quiet" data-act="addwork"><span>Add work</span></button></div>' +
+      (n ? '<div class="docs">' + t.docs.map(function (d, i) { return '<div class="doc rise" style="animation-delay:' + (200 + i * 60) + 'ms"><span style="display:block;line-height:1.3">' + esc(d[0]) + '</span><span class="small muted">' + d[1] + "</span></div>"; }).join("") + "</div>"
+        : '<p class="small muted" style="margin-top:6px">Nothing yet. A piece of your work is what takes a topic to Deep.</p>');
     sheet.classList.remove("closing");
     if (!sheet.open) sheet.showModal();
-    drawShape($(".shape", sheet), t.level, TOPICS.indexOf(t) + 3);
+    drawStrips([$(".shape", sheet)], 8, 6);
   }
   function closeSheet(after) {
     if (!sheet.open) { if (after) after(); return; }
@@ -508,57 +541,68 @@ dialog.sheet.closing::backdrop { animation: fade-out .3s var(--ease) forwards }
   sheet.addEventListener("close", function () { if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); });
   sheet.addEventListener("cancel", function (e) { e.preventDefault(); closeSheet(); });
   sheet.addEventListener("click", function (e) { if (e.target === sheet) closeSheet(); });
-  // the topic as a mass of square dots (after "Our values"): as wide and solid as its level
-  function drawShape(cv, level, seed) {
-    var w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
-    cv.width = w * dpr; cv.height = h * dpr;
-    var ctx = cv.getContext("2d"); ctx.scale(dpr, dpr); ctx.fillStyle = cssVar("--fg");
-    var s = level / 3, rnd = seeded(seed * 97), sp = 7, cols = Math.floor(w / sp), rows = Math.floor(h / sp), cells = [];
-    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
-      var xf = c / cols, yf = Math.abs(r / (rows - 1) - 0.5) * 2, edge = s * 0.9 - xf - yf * yf * 0.3, n = rnd();
-      if (!(edge > 0 ? n < 0.97 : n < Math.max(0, 0.5 + edge * 3.4))) continue;
-      var jit = edge > 0 ? 0 : Math.min(3, -edge * 10);
-      cells.push({ x: c * sp + (rnd() - 0.5) * jit, y: r * sp + (rnd() - 0.5) * jit, z: edge > 0 ? 4 : 3, k: xf + rnd() * 0.12 });
-    }
-    cells.sort(function (a, b) { return a.k - b.k; });
-    var start = performance.now() + 120, dur = reduce ? 0 : 480;
-    (function paint(now) {
-      var p = dur ? Math.max(0, Math.min(1, (now - start) / dur)) : 1, upto = Math.floor(cells.length * (1 - Math.pow(1 - p, 3)));
-      ctx.clearRect(0, 0, w, h);
-      for (var i = 0; i < upto; i++) ctx.fillRect(cells[i].x, cells[i].y, cells[i].z, cells[i].z);
-      if (p < 1) requestAnimationFrame(paint);
-    })(performance.now());
-  }
   function toast(msg) {
     var el = document.createElement("div"); el.className = "toast"; el.setAttribute("role", "status"); el.textContent = msg;
     document.body.appendChild(el); setTimeout(function () { el.remove(); }, 2200);
   }
 
   /* ------------------------------------------------------------------ *
+   *  Your mind ⇄ Knowledge                                              *
+   * ------------------------------------------------------------------ */
+  var screen = null, built = false;
+  function swap(to) {
+    screen = to;
+    $("#mind").hidden = to !== "mind";
+    $("#knowledge").hidden = to !== "knowledge";
+    document.querySelectorAll(".tab[data-go]").forEach(function (t) { if (t.dataset.go === to) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current"); });
+    if (to === "knowledge") {
+      if (!built) { renderMonth(); renderDepth(); renderGrow(); renderRank(); renderWork(); seedThread(); renderChips(); built = true; }
+      else drawDepth();
+    }
+    if (location.hash.slice(1) !== to) history.replaceState(null, "", "#" + to);
+    window.scrollTo(0, 0);
+  }
+  // The topics block becomes the depth map; the level count travels; the tab pill slides
+  function go(to) {
+    if (to === screen) return;
+    if (!document.startViewTransition || reduce) return swap(to);
+    document.startViewTransition(function () { swap(to); });
+  }
+
+  /* ------------------------------------------------------------------ *
    *  Events                                                             *
    * ------------------------------------------------------------------ */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-var],[data-open],[data-act],[data-hint],[data-me],[data-edit],[data-save],[data-cancel]");
+    var b = e.target.closest("[data-go],[data-open],[data-act],[data-try],[data-verdict],.acc-row");
     if (!b) return;
-    if (b.tagName === "A" || b.closest("a.pet")) e.preventDefault();
-    if (b.dataset.var) { show(b.dataset.var); return; }
+    if (b.tagName === "A") e.preventDefault();
+    if (b.dataset.go) { go(b.dataset.go); return; }
+    if (b.classList.contains("acc-row")) {
+      var item = b.parentNode, open = !item.classList.contains("open");
+      document.querySelectorAll(".acc-item").forEach(function (x) { x.classList.remove("open"); $(".acc-row", x).setAttribute("aria-expanded", "false"); });
+      if (open) { item.classList.add("open"); b.setAttribute("aria-expanded", "true"); }
+      return;
+    }
     if (b.dataset.open) { openTopic(b.dataset.open); return; }
-    if (b.dataset.hint) { var tt = byId[b.dataset.hint]; ask("What would you do first about " + tt.label.toLowerCase() + "?", tt.id); return; }
-    if (b.dataset.me) { tries[+b.dataset.me].verdict = "me"; renderTry(); return; }
-    if (b.dataset.edit) { tries[+b.dataset.edit].state = "editing"; renderTry(); return; }
-    if (b.dataset.cancel) { tries[+b.dataset.cancel].state = "done"; renderTry(); return; }
-    if (b.dataset.save) { var i = +b.dataset.save, tr = tries[i], v = $("#rw" + i).value.trim(); if (v.length < 10) return; tr.mine = v; tr.verdict = "mine"; tr.state = "done"; renderTry(); return; }
+    if (b.dataset.try) { var i = +b.dataset.try; ask(TRY[i].q, i); tried = Math.min(TRY.length - 1, i + 1); renderChips(); return; }
+    if (b.dataset.verdict) {
+      b.closest(".verdict").outerHTML = '<p class="small muted" style="margin-top:8px">' + (b.dataset.verdict === "yes" ? "Kept. Your mind will answer like this." : "Tell it what you'd say instead. It learns from your words.") + "</p>";
+      return;
+    }
     var act = b.dataset.act;
     if (act === "close") closeSheet();
     else if (act === "interview") toast("The interview opens on " + byId[b.dataset.id].label);
     else if (act === "offer") toast("Opens What people can ask you for");
-    else if (act === "add") {
-      // one place to add work: the panel hands over to Your work's drop
-      closeSheet(function () { var d = $("#drop"); if (!d) return; d.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" }); d.classList.add("flash"); d.focus({ preventScroll: true }); setTimeout(function () { d.classList.remove("flash"); }, 700); });
-    }
+    else if (act === "addwork") closeSheet(function () { toast("Drop a file or paste a link"); });
+    else if (act === "allasks") toast("Insights has every topic, by how often it's asked");
   });
-  addEventListener("hashchange", function () { show(location.hash.slice(1)); });
-  show(location.hash.slice(1) || "a");
+  var q = $("#q"), send = $("#send");
+  q.addEventListener("input", function () { send.disabled = !q.value.trim(); q.style.height = "auto"; q.style.height = Math.min(120, q.scrollHeight) + "px"; });
+  q.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send.click(); } });
+  send.addEventListener("click", function () { var v = q.value.trim(); if (!v) return; q.value = ""; send.disabled = true; q.style.height = "auto"; ask(v, null); });
+  var rt = 0; addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { if (screen === "knowledge") drawDepth(); }, 250); });
+  addEventListener("hashchange", function () { var h = location.hash.slice(1); if (h === "mind" || h === "knowledge") go(h); });
+  swap(location.hash.slice(1) === "knowledge" ? "knowledge" : "mind");
 })();
 </script>
 </body>
