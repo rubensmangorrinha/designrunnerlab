@@ -13,6 +13,10 @@
     1 Pit     topics drop in and pile up, the deepest first
     2 Magnet  no gravity: deep topics pull to the centre, thin ones drift at the edge
     3 Jars    each depth has its own jar; topics fall into theirs
+    4 Density a field of square dots, packed where a topic is deep (after GLASS)
+    5 Sticks  one stick per topic, as tall as it is strong (after Twisty)
+    6 Ticks   one tick per time a topic was asked (after Proposal progress)
+  Knowledge: Columns (by depth) or Dots (each topic drawn in dots, after "Our values").
   Drag and throw a topic. Tap a topic to open it in Knowledge; tap the stage for the
   whole Knowledge tab. In Knowledge, a topic opens the side panel: start an
   interview, map a workflow, see its documents. Reduced motion: everything settles once.
@@ -52,8 +56,8 @@ h1, h2 { text-wrap: balance }
 
 /* Prototype bar (not product) */
 .proto { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 10px; border-bottom: 1px dashed var(--border-strong); font-size: 13px; color: var(--muted) }
-.seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; background: var(--subtle) }
-.seg button { min-height: 32px; padding: 0 12px; border-radius: 999px; font-size: 13px; color: var(--muted); transition: background-color .18s var(--ease), color .18s var(--ease) }
+.seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; background: var(--subtle); max-width: 100%; overflow-x: auto; scrollbar-width: none }
+.seg button { flex-shrink: 0; white-space: nowrap; min-height: 32px; padding: 0 12px; border-radius: 999px; font-size: 13px; color: var(--muted); transition: background-color .18s var(--ease), color .18s var(--ease) }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: var(--shadow) }
 
 /* Studio header */
@@ -115,6 +119,50 @@ h1, h2 { text-wrap: balance }
 .link { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 13px; font-weight: 500 }
 .link span { text-decoration: underline; text-underline-offset: 3px; transition: color .18s var(--ease) }
 .link:hover span { color: var(--muted) }
+
+/* 4 Density (after GLASS): one field of square dots, packed where a topic is deep */
+.d-scale { position: absolute; top: 4px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); transform: translateX(4px); pointer-events: none; white-space: nowrap }
+.d-label { position: absolute; left: 8px; right: 8px; bottom: 0; pointer-events: none; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.d-label b { display: block; font-weight: 500; font-size: 16px; color: var(--fg); overflow: hidden; text-overflow: ellipsis }
+/* 5 Sticks (after Twisty's income tracker) */
+.sticks { display: flex; align-items: flex-end; gap: 16px; height: 100%; padding: 0 8px }
+.st-left { flex: 0 0 auto; padding-bottom: 30px; max-width: 120px }
+.st-big { font-size: 32px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2 }
+.st-chart { flex: 1; min-width: 0; display: flex; height: 100%; align-items: stretch }
+.st-col { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; border-radius: 999px; padding: 10px 0 8px; transition: background-color .25s var(--ease) }
+.st-col.on { background: var(--subtle) }
+.st-stick { position: relative; width: 2px; height: calc(var(--h) * 1px); background: var(--border-strong); transform-origin: bottom; animation: growY .55s var(--ease) backwards; animation-delay: var(--d); transition: background-color .2s var(--ease) }
+@keyframes growY { from { transform: scaleY(0) } }
+.st-dot { position: absolute; top: -4px; left: -3px; width: 8px; height: 8px; border-radius: 1.5px; background: var(--fg) }
+.st-col.on .st-stick { background: var(--fg) }
+.st-base { width: 10px; height: 10px; border-radius: 2px; margin-top: 10px; flex-shrink: 0 }
+.lc3 { background: var(--f1) } .lc2 { background: var(--f2) } .lc1 { background: var(--f3) }
+.st-tip { position: absolute; bottom: calc(var(--h) * 1px + 36px); left: 50%; transform: translate(-50%, 4px); white-space: nowrap; background: var(--btn); color: var(--btn-fg); font-size: 13px; padding: 4px 10px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .2s var(--ease), transform .2s var(--ease); z-index: 1 }
+.st-col.on .st-tip { opacity: 1; transform: translate(-50%, 0) }
+.st-col.eL .st-tip { left: 0; transform: translate(0, 4px) } .st-col.eL.on .st-tip { transform: none }
+.st-col.eR .st-tip { left: auto; right: 0; transform: translate(0, 4px) } .st-col.eR.on .st-tip { transform: none }
+@media (max-width: 640px) { .st-left { display: none } }
+/* 6 Ticks (after Proposal progress) */
+.ticks { display: flex; gap: 16px; height: 100%; padding: 8px 8px 0 }
+.tg { min-width: 0; border-left: 1px solid; padding-left: 10px; display: flex; flex-direction: column }
+.tg-num { font-size: 32px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums }
+.tg-bars { margin-top: auto; display: flex; gap: 6px; align-items: flex-end; height: 84px; overflow: hidden }
+.tk { display: flex; gap: 2px; height: 100%; align-items: flex-end; border-radius: 4px; padding: 0 1px }
+.tk i { width: 2px; height: 100%; background: var(--fg); transform-origin: bottom; animation: growY .45s var(--ease) backwards; transition: opacity .2s var(--ease) }
+.tk.l2 i { opacity: .55 } .tk.l1 i { opacity: .3 }
+.ticks.has-on .tk i { opacity: .2 } .ticks.has-on .tk.on i { opacity: 1 }
+.tk-cap { position: absolute; left: 8px; right: 8px; bottom: 0; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.tk-cap b { font-weight: 500; color: var(--fg) }
+/* Knowledge · Dots (after "Our values"): each topic drawn in dots, as dense as it is deep */
+.dgrid { flex: 1 1 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px }
+.dcard { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease) }
+.dcard:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(11,11,11,.06) }
+.dcard:active { transform: scale(.97) }
+.dcard[aria-expanded="true"] { border-color: var(--fg) }
+.dcard canvas { width: 100%; height: 112px; display: block; margin-bottom: 4px }
+.dmeta { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted) }
+.ubar { height: 2px; border-radius: 2px; background: var(--subtle); overflow: hidden }
+.ubar i { display: block; height: 100%; background: var(--fg); transform-origin: left; animation: grow .6s var(--ease) backwards }
 
 /* Knowledge */
 .k-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px }
@@ -185,13 +233,21 @@ h1, h2 { text-wrap: balance }
 <body>
 
 <div class="proto gutter" role="group" aria-label="Prototype">
-  <span>Prototype · topics collide</span>
+  <span>Prototype</span>
   <div class="seg" id="modes">
     <button type="button" data-mode="pit" aria-pressed="true">1 Pit</button>
     <button type="button" data-mode="magnet" aria-pressed="false">2 Magnet</button>
     <button type="button" data-mode="jars" aria-pressed="false">3 Jars</button>
+    <button type="button" data-mode="density" aria-pressed="false">4 Density</button>
+    <button type="button" data-mode="sticks" aria-pressed="false">5 Sticks</button>
+    <button type="button" data-mode="ticks" aria-pressed="false">6 Ticks</button>
   </div>
-  <button type="button" class="link" id="replay"><span>Drop them again</span></button>
+  <span>Knowledge</span>
+  <div class="seg" id="layouts">
+    <button type="button" data-layout="cols" aria-pressed="true">Columns</button>
+    <button type="button" data-layout="dots" aria-pressed="false">Dots</button>
+  </div>
+  <button type="button" class="link" id="replay"><span>Play again</span></button>
 </div>
 
 <header class="top gutter">
@@ -271,6 +327,13 @@ h1, h2 { text-wrap: balance }
     _: ["Think of the last time this went wrong for a client. What did you change first?", "What do most people get wrong about it, and how do you spot it early?", "Which rule do you never break here, and why?"]
   };
   var byId = {}; TOPICS.forEach(function (t) { byId[t.id] = t; });
+  // How strong a topic is, 0-1: its level, how close it is to the next, and (for deep ones) how often it's asked
+  var MAX_ASKED = Math.max.apply(null, TOPICS.map(function (t) { return t.asked; }));
+  function strength(t) { return t.level === 3 ? 0.72 + 0.28 * t.asked / MAX_ASKED : t.level === 2 ? 0.42 + 0.05 * t.next[2] : 0.12 + 0.05 * t.next[2]; }
+  var RANKED = TOPICS.slice().sort(function (a, b) { return strength(b) - strength(a); });
+  function times(n) { return "asked " + n + (n === 1 ? " time" : " times") + " this month"; }
+  function seeded(n) { return function () { n = (n * 16807) % 2147483647; return (n - 1) / 2147483646; }; }
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var coarse = matchMedia("(pointer: coarse)").matches;
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -414,10 +477,146 @@ h1, h2 { text-wrap: balance }
     };
   }
 
+  /* 4 Density: dots spring to a home whose spacing is the topic's strength; the cursor pushes through them */
+  function mountDensity(host, onOpen) {
+    host.innerHTML = "";
+    var W = host.clientWidth, H = host.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
+    var cv = document.createElement("canvas");
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.cssText = "position:absolute;inset:0;width:100%;height:100%";
+    host.appendChild(cv);
+    var ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+    var ink = cssVar("--fg"), line = cssVar("--border-strong");
+    var pad = 8, top = 34, band = Math.min(112, H * 0.46);
+    // thin topics get more room, so their scatter reads as scatter (and the scale labels don't collide)
+    var wts = RANKED.map(function (t) { return 0.8 + Math.pow(1 - strength(t), 1.2) * 2.4; }), sum = wts.reduce(function (a, b) { return a + b; }, 0);
+    var X = [pad]; wts.forEach(function (w, i) { X.push(X[i] + w / sum * (W - pad * 2)); });
+    function segX(i) { return X[i]; } function segWd(i) { return X[i + 1] - X[i]; }
+    var rnd = seeded(11), dots = [];
+    RANKED.forEach(function (t, i) {
+      var s = strength(t), sp = 4.4 + Math.pow(1 - s, 1.2) * 13, keep = 0.3 + 0.7 * s, jit = Math.pow(1 - s, 1.4) * sp * 1.4, x0 = segX(i), x1 = x0 + segWd(i);
+      for (var y = top + sp / 2; y < top + band; y += sp) for (var x = x0 + sp / 2; x < x1; x += sp) {
+        if (rnd() > keep) continue;
+        var hx = x + (rnd() - 0.5) * jit * 2, hy = Math.min(top + band, Math.max(top, y + (rnd() - 0.5) * jit * 2));
+        dots.push({ hx: hx, hy: hy, x: reduce ? hx : hx + (rnd() - 0.5) * W * 0.6, y: reduce ? hy : hy + (rnd() - 0.5) * H * 1.4, vx: 0, vy: 0, i: i, z: 2.4 + s * 1.2 });
+      }
+    });
+    // the depth scale, like the reference's ticks: where each level starts
+    var starts = [];
+    RANKED.forEach(function (t, i) { if (!i || RANKED[i - 1].level !== t.level) starts.push({ i: i, level: t.level }); });
+    starts.forEach(function (st) {
+      var el = document.createElement("span"); el.className = "d-scale"; el.style.left = segX(st.i) + "px";
+      el.textContent = LV[st.level];
+      host.appendChild(el);
+    });
+    var label = document.createElement("div"); label.className = "d-label"; host.appendChild(label);
+    var hv = -1, mx = -999, my = -999, down = null;
+    function setLabel() {
+      var t = RANKED[hv < 0 ? 0 : hv];
+      label.innerHTML = "<b>" + esc(t.label) + "</b>" + (hv < 0 ? "Deepest topic · " : LV[t.level] + " · ") + times(t.asked);
+    }
+    setLabel();
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
+      starts.forEach(function (st) { if (!st.i) return; var x = Math.round(segX(st.i)) + 0.5; ctx.beginPath(); ctx.moveTo(x, 22); ctx.lineTo(x, top + band + 8); ctx.stroke(); });
+      ctx.setLineDash([]);
+      // the axis with arrowheads, and a bracket under the topic in focus
+      var ay = top + band + 18, fi = hv < 0 ? 0 : hv, bx0 = segX(fi), bx1 = bx0 + segWd(fi);
+      ctx.beginPath(); ctx.moveTo(pad, ay); ctx.lineTo(W - pad, ay); ctx.stroke();
+      ctx.fillStyle = line;
+      [[pad, 1], [W - pad, -1]].forEach(function (a) { ctx.beginPath(); ctx.moveTo(a[0], ay); ctx.lineTo(a[0] + 5 * a[1], ay - 3); ctx.lineTo(a[0] + 5 * a[1], ay + 3); ctx.fill(); });
+      ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx0 + 2, ay); ctx.lineTo(bx1 - 2, ay); ctx.stroke(); ctx.lineWidth = 1;
+      ctx.fillStyle = ink;
+      for (var k = 0; k < dots.length; k++) {
+        var d = dots[k];
+        ctx.globalAlpha = hv < 0 || d.i === hv ? 1 : 0.22;
+        ctx.fillRect(d.x - d.z / 2, d.y - d.z / 2, d.z, d.z);
+      }
+      ctx.globalAlpha = 1;
+      if (hv >= 0) { ctx.strokeStyle = ink; ctx.beginPath(); ctx.arc(segX(hv) + segWd(hv) / 2, top + band / 2, Math.max(segWd(hv), band) * 0.62, 0, Math.PI * 2); ctx.stroke(); }
+    }
+    function step() {
+      for (var k = 0; k < dots.length; k++) {
+        var d = dots[k], ax = (d.hx - d.x) * 0.05, ay = (d.hy - d.y) * 0.05, dx = d.x - mx, dy = d.y - my, dist = Math.hypot(dx, dy);
+        if (dist < 46 && dist > 0.1) { var push = (46 - dist) / 46 * 2.2; ax += dx / dist * push; ay += dy / dist * push; }
+        d.vx = (d.vx + ax) * 0.8; d.vy = (d.vy + ay) * 0.8; d.x += d.vx; d.y += d.vy;
+      }
+    }
+    function local(e) { var r = host.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+    function segAt(p) { if (p.y < top - 14 || p.y > top + band + 30) return -1; for (var i = 0; i < RANKED.length; i++) if (p.x < X[i + 1]) return i; return RANKED.length - 1; }
+    function onMove(e) { var p = local(e); if (!coarse) { mx = p.x; my = p.y; } var n = segAt(p); if (n !== hv) { hv = n; setLabel(); host.classList.toggle("hot", n >= 0); if (reduce) draw(); } }
+    function onLeave() { mx = my = -999; hv = -1; setLabel(); host.classList.remove("hot"); if (reduce) draw(); }
+    function onDown(e) { down = local(e); }
+    function onUp(e) { if (!down) return; var p = local(e); if (Math.hypot(p.x - down.x, p.y - down.y) < 6) { var n = segAt(p); onOpen(n >= 0 ? RANKED[n].id : null); } down = null; }
+    host.addEventListener("pointermove", onMove); host.addEventListener("pointerleave", onLeave);
+    host.addEventListener("pointerdown", onDown); host.addEventListener("pointerup", onUp);
+    var raf = 0, visible = true, io = null;
+    if (reduce) draw();
+    else {
+      io = new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }); io.observe(host);
+      (function loop() { raf = requestAnimationFrame(loop); if (!visible) return; step(); draw(); })();
+    }
+    return { destroy: function () {
+      cancelAnimationFrame(raf); if (io) io.disconnect();
+      host.removeEventListener("pointermove", onMove); host.removeEventListener("pointerleave", onLeave);
+      host.removeEventListener("pointerdown", onDown); host.removeEventListener("pointerup", onUp);
+      host.classList.remove("hot"); host.innerHTML = "";
+    } };
+  }
+
+  /* 5 Sticks: one stick per topic, as tall as it is strong; hover moves the highlight and its name */
+  function mountSticks(host, onOpen) {
+    var maxH = host.clientHeight - 92;
+    var cols = RANKED.map(function (t, i) {
+      var edge = i < 2 ? " eL" : i > RANKED.length - 3 ? " eR" : "";
+      return '<button type="button" class="st-col' + edge + (i === 0 ? " on" : "") + '" data-i="' + i + '" aria-label="' + esc(t.label) + ", " + LV[t.level] + '" style="--h:' + Math.round(18 + strength(t) * maxH) + ";--d:" + (i * 45) + 'ms">' +
+        '<span class="st-tip">' + esc(t.label) + '</span><span class="st-stick"><i class="st-dot"></i></span><span class="st-base lc' + t.level + '"></span></button>';
+    }).join("");
+    host.innerHTML = '<div class="sticks"><div class="st-left"><p class="st-big">+3</p><p class="small muted">topics went deeper this month</p></div><div class="st-chart">' + cols + "</div></div>";
+    host.removeAttribute("aria-hidden"); host.style.cursor = "default";
+    var list = host.querySelectorAll(".st-col");
+    function on(i) { list.forEach(function (c, k) { c.classList.toggle("on", k === i); }); }
+    function onOver(e) { var c = e.target.closest(".st-col"); if (c) on(+c.dataset.i); }
+    function onClick(e) { var c = e.target.closest(".st-col"); onOpen(c ? RANKED[+c.dataset.i].id : null); }
+    host.addEventListener("pointerover", onOver); host.addEventListener("focusin", onOver); host.addEventListener("click", onClick);
+    return { destroy: function () { host.removeEventListener("pointerover", onOver); host.removeEventListener("focusin", onOver); host.removeEventListener("click", onClick); host.setAttribute("aria-hidden", "true"); host.style.cursor = ""; host.innerHTML = ""; } };
+  }
+
+  /* 6 Ticks: each depth a column with its count; each topic a group of ticks, one per time it was asked */
+  function mountTicks(host, onOpen) {
+    var n = 0;
+    var groups = [3, 2, 1].map(function (l, gi) {
+      var list = RANKED.filter(function (t) { return t.level === l; });
+      var bars = list.map(function (t) {
+        var ticks = ""; for (var k = 0; k < Math.max(3, t.asked); k++) ticks += '<i style="animation-delay:' + (gi * 120 + (n++) * 6) + 'ms"></i>';
+        return '<button type="button" class="tk l' + l + '" data-topic-hover="' + t.id + '" aria-label="' + esc(t.label) + '">' + ticks + "</button>";
+      }).join("");
+      return '<div class="tg" style="border-color:var(--f' + (4 - l) + ");flex:" + (l === 3 ? "1 1 0" : "0 0 auto") + '"><p class="small muted">' + LV[l] + '</p><p class="tg-num">' + list.length + '</p><div class="tg-bars">' + bars + "</div></div>";
+    }).join("");
+    host.innerHTML = '<div class="ticks">' + groups + '</div><p class="tk-cap"></p>';
+    host.style.paddingBottom = "26px"; host.removeAttribute("aria-hidden"); host.style.cursor = "default";
+    var wrap = $(".ticks", host), cap = $(".tk-cap", host);
+    function show(id) {
+      var t = byId[id] || RANKED[0];
+      wrap.classList.toggle("has-on", !!byId[id]);
+      host.querySelectorAll(".tk").forEach(function (b) { b.classList.toggle("on", b.dataset.topicHover === id); });
+      cap.innerHTML = "<b>" + esc(t.label) + "</b> · " + LV[t.level] + " · " + times(t.asked);
+    }
+    show(null);
+    function onOver(e) { var b = e.target.closest(".tk"); show(b ? b.dataset.topicHover : null); }
+    function onClick(e) { var b = e.target.closest(".tk"); onOpen(b ? b.dataset.topicHover : null); }
+    host.addEventListener("pointerover", onOver); host.addEventListener("focusin", onOver); host.addEventListener("click", onClick);
+    return { destroy: function () { host.removeEventListener("pointerover", onOver); host.removeEventListener("focusin", onOver); host.removeEventListener("click", onClick); host.style.paddingBottom = ""; host.setAttribute("aria-hidden", "true"); host.style.cursor = ""; host.innerHTML = ""; } };
+  }
+
+  var HINTS = { density: "Move through it. Tap a cluster to open it.", sticks: "Tap a topic to open it.", ticks: "One tick per time it was asked." };
   function startStage() {
     if (stage) stage.destroy();
-    stage = mountStage($("#stage"), mode, function (id) { go("know", id); });
+    var open = function (id) { go("know", id); }, host = $("#stage");
+    $("#hint").textContent = HINTS[mode] || "Drag one. Tap one to open it.";
+    stage = mode === "density" ? mountDensity(host, open) : mode === "sticks" ? mountSticks(host, open) : mode === "ticks" ? mountTicks(host, open) : mountStage(host, mode, open);
   }
+
 
   /* ------------------------------------------------------------------ *
    *  Screens                                                            *
@@ -434,7 +633,10 @@ h1, h2 { text-wrap: balance }
     window.scrollTo(0, 0);
   }
 
+  var layout = "cols";
+  try { layout = localStorage.getItem("kp-layout") || "cols"; } catch (e) {}
   function renderKnowledge() {
+    if (layout === "dots") { renderDots(); renderFolders(); return; }
     var cols = [3, 2, 1].map(function (l, gi) {
       var list = TOPICS.filter(function (t) { return t.level === l; });
       return '<section class="col"><h2 class="col-h">' + squares(l, false, gi * 60) + LV[l] + " · " + list.length + '</h2><div class="rows">' +
@@ -444,11 +646,45 @@ h1, h2 { text-wrap: balance }
         }).join("") + "</div></section>";
     }).join("");
     $("#cols").innerHTML = cols;
+    renderFolders();
+  }
+  function renderFolders() {
     $("#folders").innerHTML = TOPICS.filter(function (t) { return t.docs.length; }).map(function (t, i) {
       var n = t.docs.length;
       return '<button type="button" class="folder rise" data-topic="' + t.id + '" style="animation-delay:' + (240 + Math.min(i, 8) * 40) + 'ms"><span><span style="display:block;line-height:1.3">' + esc(t.label) + '</span><span class="small muted" style="display:block">' + n + (n === 1 ? " item" : " items") + '</span></span>' +
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button>';
     }).join("");
+  }
+
+  function renderDots() {
+    $("#cols").innerHTML = '<div class="dgrid">' + RANKED.map(function (t, i) {
+      return '<button type="button" class="dcard rise" data-topic="' + t.id + '" aria-expanded="false" style="animation-delay:' + Math.min(i, 8) * 50 + 'ms"><canvas data-s="' + strength(t).toFixed(3) + '" data-seed="' + (i + 3) + '" aria-hidden="true"></canvas>' +
+        '<span style="line-height:1.3">' + esc(t.label) + '</span><span class="dmeta"><span style="display:inline-flex;align-items:center;gap:6px">' + squares(t.level, true) + LV[t.level] + "</span><span>Asked " + t.asked + "×</span></span>" +
+        '<span class="ubar" aria-hidden="true"><i style="width:' + Math.round(t.asked / MAX_ASKED * 100) + "%;animation-delay:" + (200 + Math.min(i, 8) * 50) + 'ms"></i></span></button>';
+    }).join("") + "</div>";
+    var ink = cssVar("--fg");
+    document.querySelectorAll(".dcard canvas").forEach(function (cv) {
+      var w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = w * dpr; cv.height = h * dpr;
+      var ctx = cv.getContext("2d"); ctx.scale(dpr, dpr); ctx.fillStyle = ink;
+      var s = +cv.dataset.s, rnd = seeded(+cv.dataset.seed * 97), sp = 7, cols = Math.floor(w / sp), rows = Math.floor(h / sp), cells = [];
+      // a soft mass from the left: as wide and as solid as the topic is deep, crumbling at its edge
+      for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+        var xf = c / cols, yf = Math.abs(r / (rows - 1) - 0.5) * 2, edge = s * 1.05 - xf - yf * yf * 0.35, n = rnd();
+        var on = edge > 0 ? n < 0.97 : n < Math.max(0, 0.55 + edge * 3.2);
+        if (!on) continue;
+        var jit = edge > 0 ? 0 : Math.min(3, -edge * 10);
+        cells.push({ x: c * sp + (rnd() - 0.5) * jit, y: r * sp + (rnd() - 0.5) * jit, z: edge > 0 ? 4 : 3, k: xf + rnd() * 0.15 });
+      }
+      cells.sort(function (a, b) { return a.k - b.k; });
+      var start = performance.now(), dur = reduce ? 0 : 520;
+      (function paint(now) {
+        var p = dur ? Math.min(1, (now - start) / dur) : 1, upto = Math.floor(cells.length * (1 - Math.pow(1 - p, 3)));
+        ctx.clearRect(0, 0, w, h);
+        for (var i = 0; i < upto; i++) ctx.fillRect(cells[i].x, cells[i].y, cells[i].z, cells[i].z);
+        if (p < 1) requestAnimationFrame(paint);
+      })(start);
+    });
   }
 
   /* ------------------------------------------------------------------ *
@@ -458,12 +694,12 @@ h1, h2 { text-wrap: balance }
   function openTopic(id) { openId = id; panelView = "topic"; qIndex = 0; lastFocus = document.activeElement; renderPanel(true); }
   function closePanel() {
     openId = null; $("#panel-root").innerHTML = "";
-    document.querySelectorAll(".row[aria-expanded]").forEach(function (r) { r.setAttribute("aria-expanded", "false"); });
+    document.querySelectorAll(".row[aria-expanded],.dcard[aria-expanded]").forEach(function (r) { r.setAttribute("aria-expanded", "false"); });
     if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
   }
   function renderPanel(fresh) {
     var t = byId[openId]; if (!t) return;
-    document.querySelectorAll(".row[data-topic]").forEach(function (r) { r.setAttribute("aria-expanded", String(r.dataset.topic === openId)); });
+    document.querySelectorAll(".row[data-topic],.dcard[data-topic]").forEach(function (r) { r.setAttribute("aria-expanded", String(r.dataset.topic === openId)); });
     var body;
     if (panelView === "interview") {
       var qs = QUESTIONS[t.id] || QUESTIONS._;
@@ -486,7 +722,7 @@ h1, h2 { text-wrap: balance }
       var n = t.docs.length;
       body = '<div class="p-top"><span style="display:inline-flex;align-items:center;gap:10px">' + squares(t.level) + '<span class="small muted">' + LV[t.level] + " · level " + t.level + ' of 3</span></span>' +
         '<button type="button" class="x" data-act="close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
-        '<h2 class="h2" id="p-title">' + esc(t.label) + '</h2><p class="small muted" style="margin-top:6px">Asked ' + t.asked + ' times this month</p>' +
+        '<h2 class="h2" id="p-title">' + esc(t.label) + '</h2><p class="small muted" style="margin-top:6px">' + times(t.asked).replace("asked", "Asked") + '</p>' +
         '<div class="next"><p class="small muted">' + (t.next ? "To reach " + t.next[0] : "At the deepest level") + '</p><p style="margin-top:2px">' + (t.next ? t.next[1] : "A new real case keeps it sharp.") + "</p>" +
         (t.next ? '<div class="bars">' + [0, 1, 2].map(function (i) { return '<i class="grow' + (i < t.next[2] ? " on" : "") + '" style="animation-delay:' + (200 + i * 80) + 'ms"></i>'; }).join("") + "</div>" : "") + "</div>" +
         '<div class="acts"><button type="button" class="btn1" data-act="interview">Start interview</button><button type="button" class="btn2" data-act="workflow">' + (t.wf ? "Edit your workflow" : "Map a workflow") + '</button>' +
@@ -515,12 +751,17 @@ h1, h2 { text-wrap: balance }
    *  Events                                                             *
    * ------------------------------------------------------------------ */
   document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-go],[data-topic],[data-act],[data-mode]");
+    var b = e.target.closest("[data-go],[data-topic],[data-act],[data-mode],[data-layout]");
     if (!b) return;
     if (b.dataset.mode) {
       mode = b.dataset.mode; try { localStorage.setItem("kp-mode", mode); } catch (err) {}
       document.querySelectorAll("#modes button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
       go("dash"); return;
+    }
+    if (b.dataset.layout) {
+      layout = b.dataset.layout; try { localStorage.setItem("kp-layout", layout); } catch (err) {}
+      document.querySelectorAll("#layouts button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      go("know"); return;
     }
     if (b.dataset.go) { go(b.dataset.go); return; }
     if (b.dataset.topic) { openTopic(b.dataset.topic); return; }
@@ -548,6 +789,7 @@ h1, h2 { text-wrap: balance }
   addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { if (current === "dash") startStage(); }, 250); });
 
   document.querySelectorAll("#modes button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.mode === mode)); });
+  document.querySelectorAll("#layouts button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.layout === layout)); });
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () { go("dash"); });
 })();
 </script>
