@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Knowledge Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!--
+  KNOWLEDGE STUDIO · the Knowledge tab of Sabli's Mind Studio, rebuilt as one page (2026-10-29)
+  ----------------------------------------------------------------------------------------
+  Every card answers one question an expert has about their mind:
+    Depth map        how deep does my mind go, topic by topic?        (Twisty's tracker card + GLASS's dot field)
+    Grow next        what should I do next?                           (Twisty's recent projects: rows that open)
+    What clients ask where is the demand, and where is it thin?       (General statistics' country list)
+    This month       am I moving?                                     (Proposal progress: three counts, one tick each)
+    Your work        what have I given it?                            (the Files panel: a coverage bar, folders)
+    Try your mind    does it sound like me?                           (General statistics' assistant + Sabli's arrow chips)
+  Any topic, anywhere, opens the same side panel: its dot shape (Our values), what the next level takes,
+  Start interview, a workflow, its documents. Square dots everywhere: the brand's full stop.
+  Monochrome; the expert's field colour (Design, orange) only on progress marks.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+<style>
+/* Layout: Studio header and tabs, then a three-column bento (hero across two, a tall list on the right); one column on phones. */
+:root {
+  --bg: #fafaf7; --surface: #ffffff; --subtle: #f1f0ec; --fg: #0b0b0b; --muted: #5c5c57; --faint: #6b6b65;
+  --border: #e8e7e2; --border-strong: #d6d5cf; --off: #dcdbd5; --scrim: rgba(11,11,11,.18);
+  --btn: #0b0b0b; --btn-fg: #ffffff; --btn-hover: #2b2b29; --shadow: 0 1px 2px rgba(11,11,11,.04), 0 8px 24px rgba(11,11,11,.04);
+  --f1: #dc6b25; --f2: #f08c4b; --f3: #f6b285;
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease: cubic-bezier(.22,1,.36,1);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0c0c0b; --surface: #161615; --subtle: #1f1f1d; --fg: #f2f1ec; --muted: #a8a7a0; --faint: #9a9992;
+  --border: #2a2a28; --border-strong: #3a3a37; --off: #3a3a37; --scrim: rgba(0,0,0,.5);
+  --btn: #f2f1ec; --btn-fg: #0b0b0b; --btn-hover: #d9d8d2; --shadow: 0 0 0 1px rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.4); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0c0c0b; --surface: #161615; --subtle: #1f1f1d; --fg: #f2f1ec; --muted: #a8a7a0; --faint: #9a9992;
+  --border: #2a2a28; --border-strong: #3a3a37; --off: #3a3a37; --scrim: rgba(0,0,0,.5);
+  --btn: #f2f1ec; --btn-fg: #0b0b0b; --btn-hover: #d9d8d2; --shadow: 0 0 0 1px rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.4); color-scheme: dark }
+
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.45 var(--sans); -webkit-font-smoothing: antialiased }
+button, input, textarea { font: inherit; color: inherit }
+button { background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid color-mix(in srgb, var(--fg) 30%, transparent); outline-offset: 2px }
+h1, h2, h3, p { margin: 0 }
+h1, h2 { text-wrap: balance }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+.small { font-size: 13px } .muted { color: var(--muted) }
+.gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+@media (min-width: 760px) { .gutter { padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)) } }
+
+/* Motion pieces: one curve, shape first, content after */
+@keyframes rise { from { opacity: 0; transform: translateY(8px); filter: blur(4px) } }
+@keyframes pop { from { opacity: 0; transform: scale(.4) } }
+@keyframes grow { from { transform: scaleX(0) } }
+@keyframes growY { from { transform: scaleY(0) } }
+@keyframes fade { from { opacity: 0 } }
+.rise { animation: rise .45s var(--ease) backwards }
+
+/* Studio header */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding-block: 12px; border-bottom: 1px solid var(--border) }
+.brand { font-weight: 600 }
+.tabs { display: flex; gap: 4px; overflow-x: auto; max-width: 100%; scrollbar-width: none }
+.tab { flex-shrink: 0; min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; transition: background-color .18s var(--ease), color .18s var(--ease) }
+.tab:hover { background: var(--subtle) }
+.tab[aria-current="page"] { background: var(--subtle); color: var(--fg) }
+.tab .new { width: 6px; height: 6px; border-radius: 1px; background: var(--fg) }
+
+.page { max-width: 1220px; margin: 0 auto; padding-block: 32px 64px }
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px }
+.h1 { font-size: 32px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2 }
+.num { font-size: 32px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums }
+
+/* Bento */
+.bento { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "hero hero grow" "ask test test" "work work month" }
+@media (max-width: 980px) { .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "hero hero" "grow ask" "test test" "work month" } }
+@media (max-width: 640px) { .bento { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hero" "grow" "ask" "month" "test" "work" } }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: var(--shadow); min-width: 0; display: flex; flex-direction: column }
+@media (max-width: 640px) { .card { padding: 20px 16px } }
+.c-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px }
+.c-title { font-size: 16px; font-weight: 600 }
+.c-sub { font-size: 13px; color: var(--muted); margin-top: 2px }
+.quiet { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 13px; font-weight: 500; flex-shrink: 0 }
+.quiet span { text-decoration: underline; text-underline-offset: 3px; transition: color .18s var(--ease) }
+.quiet:hover span { color: var(--muted) }
+.btn1 { min-height: 48px; padding: 0 16px; border-radius: 12px; background: var(--btn); color: var(--btn-fg); font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background-color .18s var(--ease), transform .15s var(--ease) }
+.btn1:hover { background: var(--btn-hover) }
+.btn2 { min-height: 44px; padding: 0 16px; border: 1px solid var(--border-strong); border-radius: 12px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--surface); transition: background-color .18s var(--ease), transform .15s var(--ease) }
+.btn2:hover { background: var(--subtle) }
+.btn1:active, .btn2:active, .chip:active, .folder:active { transform: scale(.97) }
+.pill { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: 999px; background: var(--subtle); font-size: 13px; color: var(--muted); white-space: nowrap }
+.pill.ink { background: var(--btn); color: var(--btn-fg) }
+
+/* Level squares */
+.sq { display: inline-flex; gap: 3px; flex-shrink: 0 }
+.sq i { width: 10px; height: 10px; border-radius: 2px; background: var(--off); animation: pop .3s var(--ease) backwards }
+.sq i.on { background: var(--f1) }
+.sq.s i { width: 7px; height: 7px; border-radius: 1.5px }
+
+/* Depth map (hero) */
+.hero { grid-area: hero; min-height: 380px }
+.hero-body { display: flex; gap: 24px; align-items: stretch; margin-top: 20px; flex: 1 }
+.hero-num { flex: 0 0 150px; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 36px }
+.field { position: relative; flex: 1; min-width: 0; min-height: 240px; cursor: default; touch-action: pan-y; user-select: none; -webkit-user-select: none }
+.field.hot { cursor: pointer }
+.field canvas { position: absolute; inset: 0; width: 100%; height: 100% }
+.f-tip { position: absolute; top: 0; transform: translate(-50%, 4px); white-space: nowrap; background: var(--btn); color: var(--btn-fg); font-size: 13px; padding: 4px 10px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .2s var(--ease), transform .2s var(--ease), left .3s var(--ease) }
+.f-tip.on { opacity: 1; transform: translate(-50%, 0) }
+.f-scale { position: absolute; bottom: 0; font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; pointer-events: none }
+@media (max-width: 640px) { .hero-body { flex-direction: column; gap: 8px } .hero-num { flex: none; padding-bottom: 0 } .field { min-height: 220px } }
+
+/* Grow next (accordion) */
+.grow { grid-area: grow }
+.acc { display: flex; flex-direction: column; margin-top: 12px }
+.acc-item { border-top: 1px solid var(--border) }
+.acc-item:first-child { border-top: 0 }
+.acc-row { width: 100%; min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 12px 0 }
+.acc-row .name { flex: 1; min-width: 0; line-height: 1.3 }
+.acc-row .name small { display: block; font-size: 13px; color: var(--muted) }
+.chev { width: 32px; height: 32px; border-radius: 999px; background: var(--subtle); display: inline-grid; place-items: center; flex-shrink: 0; transition: transform .3s var(--ease), background-color .18s var(--ease) }
+.acc-row:hover .chev { background: var(--border) }
+.acc-item.open .chev { transform: rotate(180deg) }
+.acc-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s var(--ease) }
+.acc-item.open .acc-body { grid-template-rows: 1fr }
+.acc-in { overflow: hidden }
+.acc-in > div { padding: 0 0 16px; display: flex; flex-direction: column; gap: 12px; opacity: 0; transition: opacity .25s var(--ease) }
+.acc-item.open .acc-in > div { opacity: 1; transition-delay: .12s }
+.tags { display: flex; flex-wrap: wrap; gap: 6px }
+.bars { display: flex; gap: 4px }
+.bars i { flex: 1; height: 6px; border-radius: 999px; background: var(--subtle) }
+.bars i.on { background: var(--f1) }
+.acc-acts { display: flex; gap: 8px; flex-wrap: wrap }
+.acc-acts { align-items: center; gap: 16px }
+
+/* What clients ask (ranked list) */
+.ask { grid-area: ask }
+.rank { display: flex; flex-direction: column; margin-top: 16px }
+.rank button { display: block; width: 100%; padding: 10px 0; min-height: 52px }
+.rank .line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px }
+.rank .line b { font-weight: 400; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.rank .line span { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; flex-shrink: 0 }
+.rank .u { display: flex; align-items: center; gap: 8px; margin-top: 6px }
+.rank .u i { display: block; height: 2px; border-radius: 2px; background: var(--fg); transform-origin: left; animation: grow .6s var(--ease) backwards }
+.rank .u em { font-style: normal; font-size: 13px; color: var(--f1); font-weight: 500 }
+.rank button:hover .line b { text-decoration: underline; text-underline-offset: 3px }
+.more { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 12px }
+
+/* This month (three counts, one tick each) */
+.month { grid-area: month }
+.counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px; flex: 1 }
+.count { border-left: 1px solid var(--border-strong); padding-left: 12px; display: flex; flex-direction: column; min-width: 0 }
+.count.lit { border-left-color: var(--f1) }
+.ticks { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; padding-top: 16px; align-content: flex-end; min-height: 72px }
+.ticks i { width: 2px; height: 40px; background: var(--fg); transform-origin: bottom; animation: growY .45s var(--ease) backwards }
+.count.lit .ticks i { background: var(--f1) }
+.ticks i.ghost { background: var(--off) }
+
+/* Your work (files) */
+.work { grid-area: work }
+.cover { margin-top: 16px }
+.cover .bar { height: 8px; border-radius: 999px; background: var(--subtle); overflow: hidden }
+.cover .bar i { display: block; height: 100%; border-radius: 999px; background: var(--fg); transform-origin: left; animation: grow .6s var(--ease) .1s backwards }
+.cover p { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 13px; color: var(--muted) }
+.folders { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px 10px; margin-top: 26px }
+@media (max-width: 640px) { .folders { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+.folder { position: relative; height: 104px; padding: 12px; border-radius: 0 12px 12px 12px; background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; transition: transform .18s var(--ease), box-shadow .18s var(--ease) }
+.folder::before { content: ""; position: absolute; top: -9px; left: -1px; width: 48px; height: 9px; border: 1px solid var(--border); border-bottom: 0; border-radius: 8px 8px 0 0; background: var(--surface) }
+.folder:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(11,11,11,.06) }
+.folder.empty { background: var(--subtle); border-style: dashed }
+.folder.empty::before { background: var(--subtle); border-style: dashed }
+.folder .nm { line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.folder .ft { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted) }
+
+/* Try your mind (assistant) */
+.test { grid-area: test }
+.thread { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; flex: 1; min-height: 120px; justify-content: flex-end }
+.bubble { max-width: 92%; padding: 10px 14px; border-radius: 16px; background: var(--subtle); animation: rise .4s var(--ease) backwards }
+.bubble.me { align-self: flex-end; background: var(--btn); color: var(--btn-fg); border-bottom-right-radius: 6px }
+.bubble.mind { border-bottom-left-radius: 6px }
+.by { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-bottom: 4px }
+.by i { width: 6px; height: 6px; border-radius: 1px; background: var(--fg); display: inline-block }
+.thinking i { animation: blink 1s steps(2, start) infinite }
+@keyframes blink { to { visibility: hidden } }
+.verdict { display: flex; gap: 8px; margin-top: 8px }
+.verdict button { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border-strong); font-size: 13px; background: var(--surface); transition: background-color .18s var(--ease) }
+.verdict button:hover { background: var(--subtle) }
+.chips { display: flex; flex-direction: column; gap: 6px; margin-top: 12px }
+.chip { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 8px 12px; border-radius: 12px; background: var(--subtle); font-size: 13px; transition: background-color .18s var(--ease), transform .15s var(--ease); animation: rise .4s var(--ease) backwards }
+.chip:hover { background: var(--border) }
+.chip svg { flex-shrink: 0; color: var(--muted) }
+.box { display: flex; align-items: flex-end; gap: 8px; margin-top: 12px; border: 1px solid var(--border-strong); border-radius: 16px; padding: 8px 8px 8px 14px; transition: border-color .2s var(--ease) }
+.box:focus-within { border-color: var(--fg) }
+.box textarea { flex: 1; min-width: 0; border: 0; resize: none; background: transparent; outline: none; min-height: 28px; max-height: 120px; padding: 6px 0 }
+.send { width: 40px; height: 40px; border-radius: 999px; background: var(--btn); color: var(--btn-fg); display: inline-grid; place-items: center; flex-shrink: 0; transition: opacity .18s var(--ease), transform .15s var(--ease) }
+.send:disabled { opacity: .3; cursor: default }
+.send:not(:disabled):active { transform: scale(.94) }
+
+/* Side panel */
+.scrim { position: fixed; inset: 0; background: var(--scrim); animation: fade .2s ease-out backwards; z-index: 20 }
+.panel { position: fixed; z-index: 21; top: 12px; right: 12px; bottom: 12px; width: min(440px, calc(100% - 24px)); overflow-y: auto; background: var(--surface); border-radius: 20px; padding: 24px; box-shadow: 0 12px 40px rgba(11,11,11,.18); animation: slide .36s var(--ease) backwards }
+@keyframes slide { from { opacity: 0; transform: translateX(32px) } }
+.panel .in { animation: rise .4s var(--ease) .13s backwards }
+@media (max-width: 640px) {
+  .panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 88%; border-radius: 20px 20px 0 0; padding: 20px max(16px, env(safe-area-inset-right, 0px)) calc(32px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); animation-name: sheet }
+  @keyframes sheet { from { transform: translateY(100%) } }
+}
+.p-top { display: flex; align-items: center; justify-content: space-between; gap: 12px }
+.x { width: 40px; height: 40px; border-radius: 10px; display: inline-grid; place-items: center; transition: background-color .18s var(--ease) }
+.x:hover { background: var(--subtle) }
+.shape { width: 100%; height: 120px; display: block; margin: 8px 0 4px }
+.h2 { font-size: 24px; font-weight: 600; letter-spacing: -.015em; line-height: 1.2 }
+.next { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border) }
+.acts { display: flex; flex-direction: column; gap: 8px; margin-top: 24px }
+.docs-h { display: flex; align-items: center; justify-content: space-between; margin-top: 28px }
+.docs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px }
+.doc { min-height: 100px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; gap: 8px }
+.tag { align-self: flex-start; font-size: 13px; padding: 1px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--muted) }
+.drop { min-height: 100px; padding: 12px; border-radius: 12px; background: var(--subtle); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; font-size: 13px; color: var(--muted) }
+.toast { position: fixed; z-index: 30; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-fg); padding: 10px 16px; border-radius: 999px; font-size: 13px; animation: rise .4s var(--ease) backwards }
+
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important } }
+</style>
+</head>
+<body>
+
+<header class="top gutter">
+  <span class="brand">Mind Studio</span>
+  <nav class="tabs" aria-label="Studio">
+    <button type="button" class="tab">Your mind</button>
+    <button type="button" class="tab" aria-current="page">Knowledge <span class="new" aria-hidden="true"></span><span class="sr">(new)</span></button>
+    <button type="button" class="tab">Challenges</button>
+    <button type="button" class="tab">Earnings</button>
+    <button type="button" class="tab">Insights</button>
+  </nav>
+</header>
+
+<main class="gutter">
+  <div class="page">
+    <div class="head rise">
+      <div><h1 class="h1">Knowledge</h1><p class="small muted" style="margin-top:4px">Everything your mind knows, how deep it goes, and what to add next.</p></div>
+      <button type="button" class="btn2" data-act="addwork"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add work</button>
+    </div>
+
+    <div class="bento">
+      <!-- How deep does it go? -->
+      <section class="card hero rise" aria-labelledby="t-hero">
+        <div class="c-head">
+          <div><h2 class="c-title" id="t-hero">Depth map</h2><p class="c-sub">Each topic is a block of dots. The tighter they pack, the deeper your mind goes.</p></div>
+          <span class="pill">Design</span>
+        </div>
+        <div class="hero-body">
+          <div class="hero-num">
+            <p class="num">31<span class="muted" style="font-size:16px;font-weight:500;letter-spacing:0"> of 36</span></p>
+            <p class="small muted">levels across 12 topics</p>
+            <p class="small" style="margin-top:12px"><span class="pill" style="background:transparent;padding:0;color:var(--fg)">+3 this month</span></p>
+          </div>
+          <div class="field" id="field" role="img" aria-label="Depth of each topic: 9 deep, 1 solid, 2 basics"></div>
+        </div>
+      </section>
+
+      <!-- What to do next -->
+      <section class="card grow rise" style="animation-delay:60ms" aria-labelledby="t-grow">
+        <div class="c-head">
+          <div><h2 class="c-title" id="t-grow">Grow next</h2><p class="c-sub">The thinnest topics, closest to their next level.</p></div>
+        </div>
+        <div class="acc" id="acc"></div>
+      </section>
+
+      <!-- Where is the demand? -->
+      <section class="card ask rise" style="animation-delay:120ms" aria-labelledby="t-ask">
+        <div class="c-head"><div><h2 class="c-title" id="t-ask">What clients ask</h2><p class="c-sub">This month, by topic</p></div></div>
+        <div class="rank" id="rank"></div>
+        <div class="more"><span class="small muted" id="rank-more"></span><button type="button" class="quiet" data-act="allasks"><span>See all</span></button></div>
+      </section>
+
+      <!-- Am I moving? -->
+      <section class="card month rise" style="animation-delay:180ms" aria-labelledby="t-month">
+        <div class="c-head"><div><h2 class="c-title" id="t-month">This month</h2><p class="c-sub">One tick for each</p></div><span class="pill">October</span></div>
+        <div class="counts" id="counts"></div>
+      </section>
+
+      <!-- What have I given it? -->
+      <section class="card work rise" style="animation-delay:240ms" aria-labelledby="t-work">
+        <div class="c-head">
+          <div><h2 class="c-title" id="t-work">Your work</h2><p class="c-sub">Read for your mind, never shown to clients.</p></div>
+          <button type="button" class="quiet" data-act="addwork"><span>Add</span></button>
+        </div>
+        <div class="cover" id="cover"></div>
+        <div class="folders" id="folders"></div>
+        <div class="more"><span class="small muted">Deep topics need a piece of your own work.</span><button type="button" class="quiet" data-act="allwork"><span id="work-all"></span></button></div>
+      </section>
+
+      <!-- Does it sound like me? -->
+      <section class="card test rise" style="animation-delay:300ms" aria-labelledby="t-test">
+        <div class="c-head"><div><h2 class="c-title" id="t-test">Try your mind</h2><p class="c-sub">Ask what a client would. Fix any reply that isn't you.</p></div></div>
+        <div class="thread" id="thread" aria-live="polite"></div>
+        <div class="chips" id="chips"></div>
+        <div class="box"><label class="sr" for="q">Ask your mind</label><textarea id="q" rows="1" placeholder="Ask your mind anything"></textarea>
+          <button type="button" class="send" id="send" aria-label="Send" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div id="panel-root"></div>
+
+<script>
+(function () {
+  "use strict";
+  var LV = { 3: "Deep", 2: "Solid", 1: "Basics" };
+  var TOPICS = [
+    { id: "onb", label: "Onboarding & activation", level: 3, asked: 14, wf: true, docs: [["Activation teardown", "2.4 MB", "PDF"], ["First-run checklist", "6 kB", "MD"], ["Onboarding flows", "18 MB", "FIG"]] },
+    { id: "ai", label: "AI feature UX", level: 3, asked: 21, docs: [["Prompt box patterns", "9 MB", "FIG"], ["Loading states", "4 kB", "MD"]] },
+    { id: "price", label: "Pricing & paywalls", level: 3, asked: 11, wf: true, docs: [["Pricing page review", "1.1 MB", "PDF"], ["Plan comparison", "48 kB", "DOC"]] },
+    { id: "trial", label: "Free trials & conversion", level: 3, asked: 9, docs: [["Trial-to-paid notes", "12 kB", "MD"]] },
+    { id: "ds", label: "Design systems & taste", level: 3, asked: 8, docs: [["Design system audit", "3.2 MB", "PDF"], ["Tokens", "5 MB", "FIG"]] },
+    { id: "integ", label: "Integrations & dev platforms", level: 3, asked: 6, docs: [["Connector spec", "22 kB", "MD"]] },
+    { id: "method", label: "Design decision method", level: 3, asked: 5, docs: [["Decision log", "15 kB", "MD"]] },
+    { id: "deliv", label: "Delivery & handoff", level: 3, asked: 4, docs: [["Handoff template", "31 kB", "DOC"]] },
+    { id: "collab", label: "Collaboration & pushback", level: 3, asked: 3, docs: [["Pushback scripts", "7 kB", "MD"]] },
+    { id: "ret", label: "Retention & churn", level: 2, asked: 7, next: ["Deep", "1 more real case and a piece of your work", 2, "1 case to go"], docs: [["Churn interviews", "19 kB", "MD"]] },
+    { id: "growth", label: "Growth experimentation", level: 1, asked: 2, next: ["Solid", "2 more answers and one real case", 1, "3 answers to go"], docs: [] },
+    { id: "team", label: "Team expansion", level: 1, asked: 1, next: ["Solid", "2 more answers", 2, "2 answers to go"], docs: [] }
+  ];
+  var TRY = [
+    { q: "Our trial converts at 4%. Where would you look first?", a: "At the first session, not the paywall. Most trials that don't convert never reached the moment the product paid off. Find that moment, then cut every step before it." },
+    { q: "How do you run a growth experiment with only 2k users?", a: "Pick one change with a big expected effect, run it for two full weeks, and judge it on a behaviour you can see, not a rate that needs 50k users to move." },
+    { q: "When should a small team hire its second designer?", a: "When the first one spends more time unblocking others than designing. Before that, hire for the gap around them, usually research or front-end." }
+  ];
+  var byId = {}; TOPICS.forEach(function (t) { byId[t.id] = t; });
+  var MAX_ASKED = Math.max.apply(null, TOPICS.map(function (t) { return t.asked; }));
+  function strength(t) { return t.level === 3 ? 0.72 + 0.28 * t.asked / MAX_ASKED : t.level === 2 ? 0.42 + 0.05 * t.next[2] : 0.12 + 0.05 * t.next[2]; }
+  var RANKED = TOPICS.slice().sort(function (a, b) { return strength(b) - strength(a); });
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var coarse = matchMedia("(pointer: coarse)").matches;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var esc = function (s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
+  function seeded(n) { return function () { n = (n * 16807) % 2147483647; return (n - 1) / 2147483646; }; }
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function times(n) { return n + (n === 1 ? " time" : " times"); }
+  function squares(n, small, base) {
+    var h = '<span class="sq' + (small ? " s" : "") + '" aria-hidden="true">';
+    for (var i = 0; i < 3; i++) h += '<i class="' + (i < n ? "on" : "") + '" style="animation-delay:' + ((base || 0) + i * 80) + 'ms"></i>';
+    return h + "</span>";
+  }
+  var CHEV = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  var ARROW = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  var PLUS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  var FOLDER = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+
+  /* ------------------------------------------------------------------ *
+   *  Depth map: square dots, packed where a topic is deep               *
+   * ------------------------------------------------------------------ */
+  var field = null;
+  function mountField(host) {
+    host.innerHTML = "";
+    var W = host.clientWidth, H = host.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
+    var cv = document.createElement("canvas"); cv.width = W * dpr; cv.height = H * dpr; host.appendChild(cv);
+    var ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+    var ink = cssVar("--fg"), line = cssVar("--border-strong"), band = cssVar("--subtle");
+    var top = 40, bottom = H - 34, bh = bottom - top;
+    // thin topics get more room, so their scatter reads as scatter
+    var wts = RANKED.map(function (t) { return 0.8 + Math.pow(1 - strength(t), 1.2) * 2.4; }), sum = wts.reduce(function (a, b) { return a + b; }, 0);
+    var X = [0]; wts.forEach(function (w, i) { X.push(X[i] + w / sum * W); });
+    var rnd = seeded(11), dots = [];
+    RANKED.forEach(function (t, i) {
+      var s = strength(t), sp = 4.6 + Math.pow(1 - s, 1.2) * 13, keep = 0.3 + 0.7 * s, jit = Math.pow(1 - s, 1.4) * sp * 1.4, x0 = X[i] + 2, x1 = X[i + 1] - 2;
+      for (var y = top + sp / 2; y < bottom; y += sp) for (var x = x0 + sp / 2; x < x1; x += sp) {
+        if (rnd() > keep) continue;
+        var hx = x + (rnd() - 0.5) * jit * 2, hy = Math.min(bottom - 2, Math.max(top + 2, y + (rnd() - 0.5) * jit * 2));
+        dots.push({ hx: hx, hy: hy, x: reduce ? hx : hx + (rnd() - 0.5) * 40, y: reduce ? hy : top - 20 - rnd() * 80, vx: 0, vy: 0, i: i, z: 2.4 + s * 1.3, d: reduce ? 0 : i * 3 + rnd() * 10 });
+      }
+    });
+    // the depth scale under the field: where each level starts, with its squares
+    var starts = [];
+    RANKED.forEach(function (t, i) { if (!i || RANKED[i - 1].level !== t.level) starts.push({ i: i, level: t.level }); });
+    starts.forEach(function (st, k) {
+      var el = document.createElement("span"); el.className = "f-scale";
+      var end = k + 1 < starts.length ? X[starts[k + 1].i] : W;
+      el.style.left = X[st.i] + "px"; el.style.maxWidth = (end - X[st.i]) + "px";
+      el.innerHTML = (end - X[st.i] > 90 ? squares(st.level, true) : "") + LV[st.level];
+      host.appendChild(el);
+    });
+    var tip = document.createElement("span"); tip.className = "f-tip"; host.appendChild(tip);
+    var hv = -1, mx = -999, my = -999, down = null, frame = 0;
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      if (hv >= 0) { ctx.fillStyle = band; roundRect(X[hv], top - 6, X[hv + 1] - X[hv], bh + 12, 10); ctx.fill(); }
+      ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
+      starts.forEach(function (st) { if (!st.i) return; var x = Math.round(X[st.i]) + 0.5; ctx.beginPath(); ctx.moveTo(x, top - 10); ctx.lineTo(x, H - 4); ctx.stroke(); });
+      ctx.setLineDash([]);
+      ctx.fillStyle = ink;
+      for (var k = 0; k < dots.length; k++) { var d = dots[k]; if (d.d > frame) continue; ctx.globalAlpha = hv < 0 || d.i === hv ? 1 : 0.25; ctx.fillRect(d.x - d.z / 2, d.y - d.z / 2, d.z, d.z); }
+      ctx.globalAlpha = 1;
+    }
+    function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+    function step() {
+      frame++;
+      for (var k = 0; k < dots.length; k++) {
+        var d = dots[k]; if (d.d > frame) continue;
+        var ax = (d.hx - d.x) * 0.06, ay = (d.hy - d.y) * 0.06, dx = d.x - mx, dy = d.y - my, dist = Math.hypot(dx, dy);
+        if (dist < 40 && dist > 0.1) { var push = (40 - dist) / 40 * 2; ax += dx / dist * push; ay += dy / dist * push; }
+        d.vx = (d.vx + ax) * 0.78; d.vy = (d.vy + ay) * 0.78; d.x += d.vx; d.y += d.vy;
+      }
+    }
+    function local(e) { var r = host.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+    function segAt(p) { if (p.y < top - 12 || p.y > bottom + 8) return -1; for (var i = 0; i < RANKED.length; i++) if (p.x < X[i + 1]) return i; return -1; }
+    function focus(n) {
+      if (n === hv) return; hv = n; host.classList.toggle("hot", n >= 0);
+      if (n >= 0) { var t = RANKED[n]; tip.textContent = t.label + " · " + LV[t.level]; tip.style.left = Math.min(W - 70, Math.max(70, (X[n] + X[n + 1]) / 2)) + "px"; tip.classList.add("on"); }
+      else tip.classList.remove("on");
+      if (reduce) draw();
+    }
+    function onMove(e) { var p = local(e); if (!coarse) { mx = p.x; my = p.y; } focus(segAt(p)); }
+    function onLeave() { mx = my = -999; focus(-1); }
+    function onDown(e) { down = local(e); }
+    function onUp(e) { if (!down) return; var p = local(e); if (Math.hypot(p.x - down.x, p.y - down.y) < 6) { var n = segAt(p); if (n >= 0) openTopic(RANKED[n].id); } down = null; }
+    host.addEventListener("pointermove", onMove); host.addEventListener("pointerleave", onLeave);
+    host.addEventListener("pointerdown", onDown); host.addEventListener("pointerup", onUp);
+    var raf = 0, visible = true, io = null;
+    if (reduce) draw();
+    else {
+      io = new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }); io.observe(host);
+      (function loop() { raf = requestAnimationFrame(loop); if (!visible) return; step(); draw(); })();
+    }
+    return { destroy: function () {
+      cancelAnimationFrame(raf); if (io) io.disconnect();
+      host.removeEventListener("pointermove", onMove); host.removeEventListener("pointerleave", onLeave);
+      host.removeEventListener("pointerdown", onDown); host.removeEventListener("pointerup", onUp);
+    } };
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  Cards                                                              *
+   * ------------------------------------------------------------------ */
+  function renderGrow() {
+    var thin = TOPICS.filter(function (t) { return t.next; }).sort(function (a, b) { return b.asked - a.asked; });
+    $("#acc").innerHTML = thin.map(function (t, i) {
+      return '<div class="acc-item' + (i === 0 ? " open" : "") + '" data-acc="' + t.id + '">' +
+        '<button type="button" class="acc-row" aria-expanded="' + (i === 0) + '" aria-controls="ab-' + t.id + '">' + squares(t.level, false, i * 60) +
+        '<span class="name">' + esc(t.label) + "<small>" + LV[t.level] + " · next: " + t.next[0] + "</small></span><span class=\"chev\">" + CHEV + "</span></button>" +
+        '<div class="acc-body" id="ab-' + t.id + '"><div class="acc-in"><div>' +
+        '<div class="tags"><span class="pill">Asked ' + times(t.asked) + '</span><span class="pill">' + t.next[3] + "</span>" + (t.docs.length ? "" : '<span class="pill">No work yet</span>') + "</div>" +
+        '<p class="small muted">' + t.next[1] + ' to reach ' + t.next[0] + '.</p>' +
+        '<div class="bars" aria-hidden="true">' + [0, 1, 2].map(function (k) { return "<i" + (k < t.next[2] ? ' class="on"' : "") + "></i>"; }).join("") + "</div>" +
+        '<div class="acc-acts"><button type="button" class="btn2" data-open="' + t.id + '" data-view="interview">Start interview</button><button type="button" class="quiet" data-open="' + t.id + '"><span>Open topic</span></button></div>' +
+        "</div></div></div></div>";
+    }).join("");
+  }
+
+  function renderRank() {
+    var list = TOPICS.slice().sort(function (a, b) { return b.asked - a.asked; }), shown = list.slice(0, 6);
+    $("#rank").innerHTML = shown.map(function (t, i) {
+      var gap = t.level < 3;
+      return '<button type="button" data-open="' + t.id + '"><span class="line"><b>' + esc(t.label) + "</b><span>" + t.asked + '</span></span><span class="u"><i style="width:' + Math.round(t.asked / MAX_ASKED * 78) + "%;animation-delay:" + (200 + i * 60) + 'ms"></i>' + (gap ? "<em>Not deep yet</em>" : "") + "</span></button>";
+    }).join("");
+    var rest = list.length - shown.length, total = list.reduce(function (a, t) { return a + t.asked; }, 0);
+    $("#rank-more").textContent = "+" + rest + " more topics · " + total + " questions";
+  }
+
+  function renderMonth() {
+    var C = [{ n: 11, label: "Answers you gave", lit: false }, { n: 9, label: "Replies you checked", lit: false }, { n: 3, label: "Levels gained", lit: true }];
+    var at = 0;
+    $("#counts").innerHTML = C.map(function (c) {
+      var ticks = ""; for (var k = 0; k < c.n; k++) ticks += '<i style="animation-delay:' + (300 + (at++) * 18) + 'ms"></i>';
+      if (c.lit) ticks += '<i class="ghost"></i><i class="ghost"></i>';
+      return '<div class="count' + (c.lit ? " lit" : "") + '"><p class="small muted">' + c.label + '</p><p class="num">' + c.n + '</p><div class="ticks" aria-hidden="true">' + ticks + "</div></div>";
+    }).join("");
+  }
+
+  function renderWork() {
+    var withWork = TOPICS.filter(function (t) { return t.docs.length; }), docs = TOPICS.reduce(function (a, t) { return a + t.docs.length; }, 0);
+    $("#cover").innerHTML = '<div class="bar" aria-hidden="true"><i style="width:' + Math.round(withWork.length / TOPICS.length * 100) + '%"></i></div><p><span>' + withWork.length + " of " + TOPICS.length + " topics have your work</span><span>" + docs + " documents</span></p>";
+    var folders = withWork.slice(0, 3).map(function (t, i) {
+      return '<button type="button" class="folder rise" data-open="' + t.id + '" style="animation-delay:' + (300 + i * 50) + 'ms"><span class="nm">' + esc(t.label) + '</span><span class="ft">' + FOLDER + "<span>" + t.docs.length + (t.docs.length === 1 ? " item" : " items") + "</span></span></button>";
+    });
+    var empty = TOPICS.filter(function (t) { return !t.docs.length; });
+    folders.push('<button type="button" class="folder empty rise" data-open="' + empty[0].id + '" style="animation-delay:550ms"><span class="nm">' + esc(empty[0].label) + '</span><span class="ft">' + PLUS + "<span>Add the first</span></span></button>");
+    $("#folders").innerHTML = folders.join("");
+    $("#work-all").textContent = "See all " + withWork.length + " folders";
+  }
+
+  var tried = 1;
+  function renderChips() {
+    $("#chips").innerHTML = TRY.slice(tried, tried + 2).map(function (x, i) {
+      return '<button type="button" class="chip" data-try="' + (tried + i) + '" style="animation-delay:' + (360 + i * 60) + 'ms"><span>' + esc(x.q) + "</span>" + ARROW + "</button>";
+    }).join("");
+  }
+  function seedThread() {
+    $("#thread").innerHTML = '<div class="bubble me">' + esc(TRY[0].q) + '</div><div class="bubble mind"><p class="by"><i></i>Ruben\'s mind</p><p>' + esc(TRY[0].a) +
+      '</p><div class="verdict"><button type="button" data-verdict="yes">Sounds like me</button><button type="button" data-verdict="fix">Fix it</button></div></div>';
+  }
+  function ask(text, idx) {
+    var th = $("#thread");
+    th.insertAdjacentHTML("beforeend", '<div class="bubble me">' + esc(text) + "</div>");
+    var b = document.createElement("div"); b.className = "bubble mind thinking";
+    b.innerHTML = '<p class="by"><i></i>Ruben\'s mind · reading your work…</p>';
+    th.appendChild(b);
+    while (th.children.length > 4) th.removeChild(th.firstChild);
+    setTimeout(function () {
+      b.classList.remove("thinking");
+      var a = idx != null ? TRY[idx].a : "I'd start from the decision you need to make, then look for the one number that would change it.";
+      b.innerHTML = '<p class="by"><i></i>Ruben\'s mind</p><p>' + esc(a) + '</p><div class="verdict"><button type="button" data-verdict="yes">Sounds like me</button><button type="button" data-verdict="fix">Fix it</button></div>';
+    }, reduce ? 0 : 900);
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  Side panel: the topic, its shape in dots, what's next              *
+   * ------------------------------------------------------------------ */
+  var openId = null, lastFocus = null;
+  function openTopic(id, view) {
+    var t = byId[id]; if (!t) return;
+    openId = id; lastFocus = document.activeElement;
+    var n = t.docs.length;
+    var body = '<div class="p-top"><span style="display:inline-flex;align-items:center;gap:10px">' + squares(t.level) + '<span class="small muted">' + LV[t.level] + " · level " + t.level + ' of 3</span></span>' +
+      '<button type="button" class="x" data-act="close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+      '<canvas class="shape" aria-hidden="true"></canvas>' +
+      '<h2 class="h2">' + esc(t.label) + '</h2><p class="small muted" style="margin-top:6px">Asked ' + times(t.asked) + ' this month</p>' +
+      '<div class="next"><p class="small muted">' + (t.next ? "To reach " + t.next[0] : "At the deepest level") + '</p><p style="margin-top:2px">' + (t.next ? t.next[1] : "A new real case keeps it sharp.") + "</p>" +
+      (t.next ? '<div class="bars" style="margin-top:10px" aria-hidden="true">' + [0, 1, 2].map(function (k) { return "<i" + (k < t.next[2] ? ' class="on"' : "") + "></i>"; }).join("") + "</div>" : "") + "</div>" +
+      '<div class="acts"><button type="button" class="btn1" data-act="interview">Start interview</button><button type="button" class="btn2" data-act="workflow">' + (t.wf ? "Edit your workflow" : "Map a workflow") + '</button>' +
+      '<p class="small muted" style="text-align:center;margin-top:4px">Both stay on this one topic. About 5 minutes.</p></div>' +
+      '<div class="docs-h"><h3 style="font-size:16px;font-weight:600">Documents · ' + n + '</h3><button type="button" class="quiet" data-act="addwork"><span>Add</span></button></div>' +
+      '<div class="docs">' + t.docs.map(function (d, i) { return '<div class="doc rise" style="animation-delay:' + (220 + i * 60) + 'ms"><span><span style="display:block;line-height:1.3">' + esc(d[0]) + '</span><span class="small muted" style="display:block">' + d[1] + '</span></span><span class="tag">' + d[2] + "</span></div>"; }).join("") +
+      '<div class="drop">' + PLUS + "<span>" + (n ? "Drop a file or paste a link" : "Nothing here yet. Drop a file or paste a link") + "</span></div></div>";
+    $("#panel-root").innerHTML = '<div class="scrim" data-act="close"></div><aside class="panel" role="dialog" aria-modal="true" aria-label="' + esc(t.label) + '"><div class="in">' + body + "</div></aside>";
+    drawShape($(".shape"), strength(t), TOPICS.indexOf(t) + 3);
+    $(".panel .x").focus({ preventScroll: true });
+    if (view === "interview") toast("The interview opens on " + t.label);
+  }
+  function closePanel() { openId = null; $("#panel-root").innerHTML = ""; if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
+  // the topic as a mass of square dots (after "Our values"): as wide and solid as it is deep, crumbling at its edge
+  function drawShape(cv, s, seed) {
+    var w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = w * dpr; cv.height = h * dpr;
+    var ctx = cv.getContext("2d"); ctx.scale(dpr, dpr); ctx.fillStyle = cssVar("--fg");
+    var rnd = seeded(seed * 97), sp = 7, cols = Math.floor(w / sp), rows = Math.floor(h / sp), cells = [];
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      var xf = c / cols, yf = Math.abs(r / (rows - 1) - 0.5) * 2, edge = s * 1.05 - xf - yf * yf * 0.35, n = rnd();
+      if (!(edge > 0 ? n < 0.97 : n < Math.max(0, 0.55 + edge * 3.2))) continue;
+      var jit = edge > 0 ? 0 : Math.min(3, -edge * 10);
+      cells.push({ x: c * sp + (rnd() - 0.5) * jit, y: r * sp + (rnd() - 0.5) * jit, z: edge > 0 ? 4 : 3, k: xf + rnd() * 0.15 });
+    }
+    cells.sort(function (a, b) { return a.k - b.k; });
+    var start = performance.now(), dur = reduce ? 0 : 520;
+    (function paint(now) {
+      var p = dur ? Math.min(1, (now - start) / dur) : 1, upto = Math.floor(cells.length * (1 - Math.pow(1 - p, 3)));
+      ctx.clearRect(0, 0, w, h);
+      for (var i = 0; i < upto; i++) ctx.fillRect(cells[i].x, cells[i].y, cells[i].z, cells[i].z);
+      if (p < 1) requestAnimationFrame(paint);
+    })(start + 130);
+  }
+  function toast(msg) {
+    var el = document.createElement("div"); el.className = "toast"; el.setAttribute("role", "status"); el.textContent = msg;
+    document.body.appendChild(el); setTimeout(function () { el.remove(); }, 2200);
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  Events                                                             *
+   * ------------------------------------------------------------------ */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-open],[data-act],[data-try],[data-verdict],.acc-row");
+    if (!b) return;
+    if (b.classList.contains("acc-row")) {
+      var item = b.parentNode, open = !item.classList.contains("open");
+      document.querySelectorAll(".acc-item").forEach(function (x) { x.classList.remove("open"); $(".acc-row", x).setAttribute("aria-expanded", "false"); });
+      if (open) { item.classList.add("open"); b.setAttribute("aria-expanded", "true"); }
+      return;
+    }
+    if (b.dataset.open) { openTopic(b.dataset.open, b.dataset.view); return; }
+    if (b.dataset.try) { var i = +b.dataset.try; ask(TRY[i].q, i); tried = Math.min(TRY.length - 1, i + 1); renderChips(); return; }
+    if (b.dataset.verdict) {
+      var v = b.closest(".verdict");
+      v.outerHTML = '<p class="small muted" style="margin-top:8px">' + (b.dataset.verdict === "yes" ? "Kept. Your mind will answer like this." : "Tell it what you'd say instead. It learns from your words.") + "</p>";
+      return;
+    }
+    var act = b.dataset.act;
+    if (act === "close") closePanel();
+    else if (act === "interview") toast("The interview opens on " + byId[openId].label);
+    else if (act === "workflow") toast("Workflow steps open here");
+    else if (act === "addwork") toast("Drop a file or paste a link");
+    else if (act === "allwork") toast("Every folder, by topic");
+    else if (act === "allasks") toast("All 12 topics, by how often they're asked");
+  });
+  var q = $("#q"), send = $("#send");
+  q.addEventListener("input", function () { send.disabled = !q.value.trim(); q.style.height = "auto"; q.style.height = Math.min(120, q.scrollHeight) + "px"; });
+  q.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send.click(); } });
+  send.addEventListener("click", function () { var v = q.value.trim(); if (!v) return; q.value = ""; send.disabled = true; q.style.height = "auto"; ask(v, null); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && openId) closePanel(); });
+
+  renderGrow(); renderRank(); renderMonth(); renderWork(); seedThread(); renderChips();
+  function start() { if (field) field.destroy(); field = mountField($("#field")); }
+  var rt = 0; addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(start, 250); });
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(start);
+})();
+</script>
+</body>
+</html>
